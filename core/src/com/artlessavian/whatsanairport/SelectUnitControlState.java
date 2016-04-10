@@ -65,17 +65,27 @@ public class SelectUnitControlState implements ControlState
 		if (cursorX == x && cursorY == y)
 		{
 			select();
-		} else
-		{
-			cursorX = x;
-			cursorY = y;
 		}
+		weakPick(screenX, screenY, x, y);
+	}
+
+	@Override
+	public void weakPick(int screenX, int screenY, int x, int y)
+	{
+		cursorX = x;
+		cursorY = y;
+	}
+
+	@Override
+	public void release(int screenX, int screenY, int x, int y)
+	{
+
 	}
 
 	@Override
 	public void select()
 	{
-		Unit unit = battle.map[cursorX][cursorY].unit;
+		Unit unit = battle.map.map[cursorX][cursorY].unit;
 		if (unit != null)
 		{
 			controlStateSystem.setState(MoveUnitControlState.class);
@@ -85,6 +95,22 @@ public class SelectUnitControlState implements ControlState
 
 	@Override
 	public void cancel()
+	{
+		Unit unit = battle.map.map[cursorX][cursorY].unit;
+		if (unit != null)
+		{
+			if (unit.dangerZoned == null)
+			{
+				unit.makeDangerZone();
+			} else
+			{
+				unit.removeDangerZone();
+			}
+		}
+	}
+
+	@Override
+	public void update(float delta)
 	{
 
 	}

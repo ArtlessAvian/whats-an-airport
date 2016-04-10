@@ -1,50 +1,151 @@
 package com.artlessavian.whatsanairport;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
-import java.util.LinkedList;
+import java.util.HashMap;
 
 class Unit
 {
-	int health = 100;
-	int unitType;
-	int team = 0;
+	BattleScreen battle;
 
-	private MapTile tile;
+	int health = 10;
+	int movement = 3;
 
-	final Texture texture;
+	Color dangerZoned;
 
-	public Unit(MapTile tile)
+	String team;
+
+	MapTile tile;
+
+	Sprite sprite;
+	TextureRegion firstFrame;
+
+	static HashMap<String, Texture> textures;
+
+	public Unit(BattleScreen battle, MapTile tile, String type)
 	{
-		texture = new Texture("Unit.png");
+		this.battle = battle;
+
+		this.sprite = new Sprite(textures.get(type));
+		sprite.setRegion(0, 0, sprite.getTexture().getHeight(), sprite.getTexture().getHeight());
+		sprite.setPosition(tile.x, tile.y);
+
+		firstFrame = TextureRegion.split(sprite.getTexture(), sprite.getTexture().getHeight(), sprite.getTexture().getHeight())[0][0];
+
+		this.team = type.replaceAll("/.+", "");
 		this.tile = tile;
+		tile.unit = this;
 	}
 
-	public LinkedList<MapTile> getMovement()
+	public MovementRange getRange()
 	{
-		return tile.getMovement(3);
+		return tile.getRange(movement, team, true, 0, 0);
+
 	}
 
-	public LinkedList<MapTile> getAttack()
+	public void makeDangerZone()
 	{
-		return tile.getAttack(3, 1);
-	}
+		dangerZoned = WarsConst.registerColor();
 
-	public boolean move(MapTile target)
-	{
-		if (this.tile.getMovement(3).contains(target) && target.unit == null)
+		for (MapTile t : tile.getRange(movement, team, true, 0, 0).attackable)
 		{
+			t.register(this, dangerZoned);
+		}
+	}
+
+	public void refreshDangerZone()
+	{
+		removeDangerZone();
+		makeDangerZone();
+	}
+
+	public void removeDangerZone()
+	{
+		WarsConst.unRegisterColor(dangerZoned);
+		dangerZoned = null;
+
+		for (MapTile t : tile.getRange(movement, team, true, 0, 0).attackable)
+		{
+			t.deregister(this);
+		}
+	}
+
+	public Unit move(MapTile target)
+	{
+		Unit temp;
+
+		MovementRange range = tile.getRange(movement, team, true, 0, 0);
+
+		if (range.movable.contains(target))
+		{
+			if (dangerZoned != null)
+			{
+				for (MapTile t : tile.getRange(movement, team, true, 0, 0).attackable)
+				{
+					t.deregister(this);
+				}
+			}
+
+			temp = target.unit;
 			this.tile.unit = null;
 			target.unit = this;
 			this.tile = target;
-			return true;
+
+			range = this.tile.getRange(movement, team, true, 0, 0);
+
+			if (dangerZoned != null)
+			{
+				for (MapTile t : range.attackable)
+				{
+					t.register(this, dangerZoned);
+				}
+			}
+
+			return temp;
 		}
-		return false;
+
+		return null;
 	}
 
-	public void attack(Unit other)
+	public void attack(Unit other, boolean isCounter)
 	{
-		other.health -= 20;
-		this.health -= 15;
+		other.health -= this.health / 2;
+		if (other.health <= 0)
+		{
+			other.die();
+			return;
+		}
+
+		if (!isCounter)
+		{
+			other.attack(this, true);
+		}
+	}
+
+	public void die()
+	{
+		if (dangerZoned != null)
+		{
+			removeDangerZone();
+		}
+		this.tile.unit = null;
+	}
+
+	public void draw(SpriteBatch batch)
+	{
+		WarsConst.uvGarbage(sprite, (int)(2 + 1.9 * Math.cos(Gdx.graphics.getFrameId() / 20f)));
+		sprite.setSize(1, health / 20f + 0.5f);
+		sprite.draw(batch);
+
+		if (health != 10)
+		{
+			batch.draw(WarsConst.healthTextures[health - 1], sprite.getX() + 3 / 4f, sprite.getY(), 1 / 4f, 1 / 2f);
+		}
+
 	}
 }

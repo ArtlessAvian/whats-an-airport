@@ -1,124 +1,159 @@
 package com.artlessavian.whatsanairport;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 
 class MapTile
 {
-	private int x = -1;
-	private int y = -1;
+	BattleScreen battle;
+
+	int x = -1;
+	int y = -1;
 
 	Unit unit;
-	private final WarsConst.TerrainType terrainType;
+	final WarsConst.TerrainType terrainType;
 	final Sprite sprite;
 
-	private Color targetColor;
-	private int colorPriority;
+	boolean debug; // TODO remove lol
 
-	final List<MapTile> neighbors;
+	private ArrayList<Color> colorPile;
+	private HashMap<Object, Color> colorRegister;
 
-	public MapTile(int x, int y, WarsConst.TerrainType tileType, TextureRegion[] tiles)
+	final HashMap<MapTile, WarsConst.CardinalDir> neighbors;
+
+	public MapTile(BattleScreen battle, int x, int y, WarsConst.TerrainType tileType, Texture tiles)
 	{
+		this.battle = battle;
+
 		this.x = x;
 		this.y = y;
 		this.terrainType = tileType;
 
-		neighbors = new LinkedList<MapTile>();
+		neighbors = new HashMap<MapTile, WarsConst.CardinalDir>();
 
-		targetColor = Color.WHITE;
-		sprite = new Sprite(tiles[WarsConst.getID(tileType)]);
+		colorPile = new ArrayList<Color>();
+		colorRegister = new HashMap<Object, Color>();
+
+		sprite = new Sprite(tiles);
+		WarsConst.uvGarbage(sprite, WarsConst.getID(terrainType));
 		sprite.setSize(1, 1);
 		sprite.setOrigin(0.5f, 0.5f);
 		sprite.setPosition(x, y);
 	}
 
-	public void createUnit()
+	public void createUnit(String type)
 	{
-		unit = new Unit(this);
+		new Unit(battle, this, type);
 	}
 
-	public LinkedList<MapTile> getMovement(int move)
+	public MovementRange getRange(int move, String team, boolean direct, int minIndir, int maxIndir)
 	{
+		MovementRange range = new MovementRange();
+
+		LinkedList<MapTile> visited = range.movable;
+		LinkedList<MapTile> edgeAttackable = range.edgeAttackable;
+		LinkedList<MapTile> attackable = range.attackable;
+
+		// Dijkstra's for movement
 		LinkedList<MapTile> frontier = new LinkedList<MapTile>();
-		LinkedList<MapTile> visited = new LinkedList<MapTile>();
-		HashMap<MapTile, Integer> movementCost = new HashMap<MapTile, Integer>();
+
+		HashMap<MapTile, Integer> movementCost = range.movementCost;
+		HashMap<MapTile, MapTile> cameFrom = range.cameFrom;
+
 		frontier.add(this);
 		visited.add(this);
-		movementCost.put(this, move);
+		movementCost.put(this, 0);
 
 		while (!frontier.isEmpty())
 		{
-			MapTile current = frontier.removeFirst();
-			for (MapTile t : current.neighbors)
+			// Get least moved
+			MapTile current = null;
+			int cost = 0;
+
+			for (MapTile t : frontier)
 			{
-				if (!visited.contains(t) && movementCost.get(current) - WarsConst.getFootMoveCost(t.terrainType) >= 0)
+				if (current == null || movementCost.get(t) < cost)
 				{
-					frontier.add(t);
-					visited.add(t);
-					movementCost.put(t, movementCost.get(current) - WarsConst.getFootMoveCost(t.terrainType));
+					cost = movementCost.get(t);
+					current = t;
+				}
+			}
+
+			frontier.remove(current);
+
+			// Expand
+			for (MapTile neighbor : current.neighbors.keySet())
+			{
+				if (!visited.contains(neighbor))
+				{
+					int newCost = cost + WarsConst.getFootMoveCost(neighbor.terrainType);
+					if (newCost <= move && (neighbor.unit == null || neighbor.unit.team.equals(team)))
+					{
+						frontier.add(neighbor);
+						visited.add(neighbor);
+						movementCost.put(neighbor, newCost);
+						cameFrom.put(neighbor, current);
+					} else if (direct && !edgeAttackable.contains(neighbor))
+					{
+						edgeAttackable.add(neighbor);
+					}
 				}
 			}
 		}
 
-		return visited;
-	}
-
-	public LinkedList<MapTile> getAttack(int move, int range)
-	{
-		LinkedList<MapTile> covered = new LinkedList<MapTile>();
-
-		if (range == 1)
+		if (!direct)
 		{
-			LinkedList<MapTile> movement = this.getMovement(move);
-			for (MapTile t : movement)
-			{
-				for (MapTile neighbors : t.getNeighbors())
-				{
-					if (!covered.contains(neighbors)) {covered.add(neighbors);}
-				}
-			}
+			// TODO add indirect attack
 		} else
 		{
-			// TODO ranged thingies
+			// Direct units should be able to reach moved areas
+			attackable.addAll(visited);
+			attackable.addAll(edgeAttackable);
 		}
 
-		return covered;
+		return range;
 	}
 
-	private List<MapTile> getNeighbors()
+	private HashMap<MapTile, WarsConst.CardinalDir> getNeighbors()
 	{
 		return neighbors;
 	}
 
-	public void setHighlight(Color target, int priority)
+	public void register(Object caller, Color target)
 	{
-		if (priority > colorPriority)
-		{
-			targetColor = target;
-			colorPriority = priority;
-		}
+		colorPile.add(target);
+		colorRegister.put(caller, target);
 	}
 
-	public void clearHighlight()
+	public void deregister(Object object)
 	{
-		colorPriority = 0;
-		targetColor = Color.WHITE;
+		colorPile.remove(colorRegister.get(object));
+		colorRegister.remove(object);
 	}
 
 	public void draw(SpriteBatch batch)
 	{
-		sprite.setColor(sprite.getColor().lerp(targetColor, 0.3f));
+		if (colorPile.isEmpty())
+		{
+			sprite.setColor(sprite.getColor().lerp(Color.WHITE, 0.3f));
+		} else
+		{
+			for (Color c : colorPile)
+			{
+				// Its a bit hard to see overlap, but its better than looking like puke
+				sprite.setColor(sprite.getColor().lerp(c, 0.3f));
+			}
+		}
+
+		if (debug) {sprite.rotate(Gdx.graphics.getFrameId());}
 
 		sprite.draw(batch);
-		if (unit != null)
-		{
-			batch.draw(unit.texture, x, y, 1, unit.health / 100f);
-		}
 	}
 }

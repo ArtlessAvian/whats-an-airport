@@ -19,6 +19,10 @@ class ControlStateSystem extends InputAdapter
 	private float timeHeld;
 	private float accumulator;
 
+	private int pointer = -1;
+	private float timePressed;
+	private boolean isCancelling;
+
 	private final Vector3 helper = new Vector3();
 
 	public ControlStateSystem(BattleScreen battleScreen)
@@ -34,6 +38,8 @@ class ControlStateSystem extends InputAdapter
 		// Populate States
 		stateHashMap.put(SelectUnitControlState.class, new SelectUnitControlState(this));
 		stateHashMap.put(MoveUnitControlState.class, new MoveUnitControlState(this));
+		stateHashMap.put(MovingUnitControlState.class, new MovingUnitControlState(this));
+		stateHashMap.put(UnitOptionsControlState.class, new UnitOptionsControlState(this));
 
 		setState(SelectUnitControlState.class);
 	}
@@ -128,39 +134,104 @@ class ControlStateSystem extends InputAdapter
 		return true;
 	}
 
+	@Override
+	public boolean touchDown(int screenX, int screenY, int pointer, int button)
+	{
+		this.pointer = pointer;
+		helper.x = screenX;
+		helper.y = screenY;
+		battle.world.unproject(helper);
+
+		helper.x = Math.max(0, Math.min(battle.mapWidth - 1, helper.x));
+		helper.y = Math.max(0, Math.min(battle.mapHeight - 1, helper.y));
+		state.pick(screenX, Gdx.graphics.getHeight() - screenY, (int)helper.x, (int)helper.y);
+
+		return true;
+	}
+
+	public boolean touchUp(int screenX, int screenY, int pointer, int button)
+	{
+		if (this.pointer == pointer)
+		{
+			this.pointer = -1;
+			this.timePressed = 0;
+			if (!isCancelling)
+			{
+				state.release(screenX, Gdx.graphics.getHeight() - screenY, (int)helper.x, (int)helper.y);
+			}
+			isCancelling = false;
+		}
+		return true;
+	}
+
+	@Override
+	public boolean touchDragged(int screenX, int screenY, int pointer)
+	{
+		if (this.pointer == pointer)
+		{
+			timePressed = 0;
+
+			helper.x = screenX;
+			helper.y = screenY;
+			battle.world.unproject(helper);
+
+			helper.x = Math.max(0, Math.min(battle.mapWidth - 1, helper.x));
+			helper.y = Math.max(0, Math.min(battle.mapHeight - 1, helper.y));
+			state.weakPick(screenX, Gdx.graphics.getHeight() - screenY, (int)helper.x, (int)helper.y);
+		}
+
+		return true;
+	}
+
+	public void doDirection()
+	{
+		switch (heldDirection)
+		{
+			case UP:
+			{
+				state.up();
+				break;
+			}
+			case DOWN:
+			{
+				state.down();
+				break;
+			}
+			case LEFT:
+			{
+				state.left();
+				break;
+			}
+			case RIGHT:
+			{
+				state.right();
+				break;
+			}
+		}
+	}
+
 	public void update(float delta)
 	{
-		// This is pretty bad
+		// Touch Stuff
+		if (this.pointer != -1)
+		{
+			this.timePressed += delta;
+			if (this.timePressed > 1)
+			{
+				state.cancel();
+				this.timePressed -= 1;
+				isCancelling = true;
+			}
+		}
 
+		// Keyboard Stuff
 		if (heldDirection != null)
 		{
 			if (timeHeld > 0.3)
 			{
 				while (accumulator > 0.03f)
 				{
-					switch (heldDirection)
-					{
-						case UP:
-						{
-							state.up();
-							break;
-						}
-						case DOWN:
-						{
-							state.down();
-							break;
-						}
-						case LEFT:
-						{
-							state.left();
-							break;
-						}
-						case RIGHT:
-						{
-							state.right();
-							break;
-						}
-					}
+					doDirection();
 					accumulator -= 0.03f;
 				}
 				accumulator += delta;
@@ -168,49 +239,14 @@ class ControlStateSystem extends InputAdapter
 
 			if (timeHeld == 0)
 			{
-				switch (heldDirection)
-				{
-					case UP:
-					{
-						state.up();
-						break;
-					}
-					case DOWN:
-					{
-						state.down();
-						break;
-					}
-					case LEFT:
-					{
-						state.left();
-						break;
-					}
-					case RIGHT:
-					{
-						state.right();
-						break;
-					}
-				}
+				accumulator += delta;
+				doDirection();
 			}
 			timeHeld += delta;
 		}
-	}
 
-	@Override
-	public boolean touchDown(int screenX, int screenY, int pointer, int button)
-	{
-		helper.x = screenX;
-		helper.y = screenY;
-		battle.world.unproject(helper);
-		helper.x = Math.max(0,Math.min(battle.mapWidth-1, helper.x));
-		helper.y = Math.max(0,Math.min(battle.mapHeight-1, helper.y));
-		state.pick(screenX, screenY, (int)helper.x, (int)helper.y);
-		return true;
-	}
-
-	@Override
-	public boolean touchDragged(int screenX, int screenY, int pointer)
-	{
-		return false;
+		// State stuff
+		state.update(delta);
+		state.moveCam();
 	}
 }

@@ -3,7 +3,6 @@ package com.artlessavian.whatsanairport;
 import com.badlogic.gdx.math.Vector3;
 
 import java.util.LinkedList;
-import java.util.Stack;
 
 public class MoveUnitControlState implements ControlState
 {
@@ -11,9 +10,10 @@ public class MoveUnitControlState implements ControlState
 	private final BattleScreen battle;
 
 	private Unit selectedUnit;
-	private final Stack<WarsConst.CardinalDir> path;
+	private final LinkedList<WarsConst.CardinalDir> path;
 	private int movementCost;
-	private LinkedList<MapTile> movement;
+	private MovementRange range;
+	private boolean wasOutside = false;
 
 	private int originX;
 	private int originY;
@@ -27,7 +27,7 @@ public class MoveUnitControlState implements ControlState
 		this.controlStateSystem = controlStateSystem;
 		this.battle = controlStateSystem.battle;
 
-		path = new Stack<WarsConst.CardinalDir>();
+		path = new LinkedList<WarsConst.CardinalDir>();
 
 		cursorPos = new Vector3();
 	}
@@ -37,6 +37,7 @@ public class MoveUnitControlState implements ControlState
 	{
 		path.clear();
 		movementCost = 0;
+		wasOutside = false;
 
 		originX = (Integer)varargs[0];
 		originY = (Integer)varargs[1];
@@ -45,35 +46,109 @@ public class MoveUnitControlState implements ControlState
 
 		selectedUnit = (Unit)varargs[2];
 
-		movement = selectedUnit.getMovement();
-		for (MapTile t : movement)
+		range = selectedUnit.getRange();
+		for (MapTile t : range.edgeAttackable)
 		{
-			t.setHighlight(WarsConst.selectBlue, 100);
+			t.register(this, WarsConst.selectRed);
+			//t.debug = true;
+		}
+		for (MapTile t : range.movable)
+		{
+			t.register(this, WarsConst.selectBlue);
+		}
+	}
+
+	private void pathStuff(WarsConst.CardinalDir dir)
+	{
+		if (range.movable.contains(battle.map.map[cursorX][cursorY]))
+		{
+			if (wasOutside)
+			{
+				recalculatePath();
+				wasOutside = false;
+			} else
+			{
+				if (path.peekLast() == WarsConst.CardinalDir.UP && dir == WarsConst.CardinalDir.DOWN)
+				{
+					path.removeLast();
+				} else if (path.peekLast() == WarsConst.CardinalDir.DOWN && dir == WarsConst.CardinalDir.UP)
+				{
+					path.removeLast();
+				} else if (path.peekLast() == WarsConst.CardinalDir.LEFT && dir == WarsConst.CardinalDir.RIGHT)
+				{
+					path.removeLast();
+				} else if (path.peekLast() == WarsConst.CardinalDir.RIGHT && dir == WarsConst.CardinalDir.LEFT)
+				{
+					path.removeLast();
+				} else
+				{
+					path.addLast(dir);
+					movementCost += WarsConst.getFootMoveCost(battle.map.map[cursorX][cursorY].terrainType);
+
+					if (movementCost > selectedUnit.movement && range.movable.contains(battle.map.map[cursorX][cursorY]))
+					{
+						recalculatePath();
+					}
+				}
+			}
+		} else
+		{
+			wasOutside = true;
+		}
+	}
+
+	private void recalculatePath()
+	{
+		MapTile current = battle.map.map[cursorX][cursorY];
+		movementCost = range.movementCost.get(current);
+		path.clear();
+
+		while (current != battle.map.map[originX][originY])
+		{
+			MapTile from = range.cameFrom.get(current);
+			path.addFirst(from.neighbors.get(current));
+			current = from;
 		}
 	}
 
 	@Override
 	public void up()
 	{
-		if (cursorY < battle.mapHeight - 1) {cursorY++;}
+		if (cursorY < battle.mapHeight - 1)
+		{
+			cursorY++;
+			pathStuff(WarsConst.CardinalDir.UP);
+		}
 	}
 
 	@Override
 	public void down()
 	{
-		if (cursorY > 0) {cursorY--;}
+		if (cursorY > 0)
+		{
+			cursorY--;
+			pathStuff(WarsConst.CardinalDir.DOWN);
+		}
 	}
 
 	@Override
 	public void left()
 	{
-		if (cursorX > 0) {cursorX--;}
+		if (cursorX > 0)
+		{
+			cursorX--;
+			pathStuff(WarsConst.CardinalDir.LEFT);
+		}
 	}
 
 	@Override
 	public void right()
 	{
-		if (cursorX < battle.mapWidth - 1) {cursorX++;}
+		if (cursorX < battle.mapWidth - 1)
+		{
+			cursorX++;
+			pathStuff(WarsConst.CardinalDir.RIGHT);
+		}
 	}
 
 	@Override
@@ -82,36 +157,68 @@ public class MoveUnitControlState implements ControlState
 		if (cursorX == x && cursorY == y)
 		{
 			select();
-		} else
-		{
-			cursorX = x;
-			cursorY = y;
 		}
+		weakPick(screenX, screenY, x, y);
+	}
+
+	@Override
+	public void weakPick(int screenX, int screenY, int x, int y)
+	{
+		cursorX = x;
+		cursorY = y;
+		if (range.movable.contains(battle.map.map[x][y]))
+		{
+			recalculatePath();
+		}
+	}
+
+	@Override
+	public void release(int screenX, int screenY, int x, int y)
+	{
+
 	}
 
 	@Override
 	public void select()
 	{
-		if (selectedUnit.move(battle.map[cursorX][cursorY]))
+		if (battle.map.map[cursorX][cursorY].unit == null || battle.map.map[cursorX][cursorY].unit.team.equals(selectedUnit.team))
 		{
-			for (MapTile t : movement)
+			if (range.movable.contains(battle.map.map[cursorX][cursorY]))
 			{
-				t.clearHighlight();
+				for (MapTile t : range.movable)
+				{
+					t.deregister(this);
+				}
+				for (MapTile t : range.edgeAttackable)
+				{
+					t.deregister(this);
+				}
+				controlStateSystem.setState(MovingUnitControlState.class);
+				controlStateSystem.state.enter(selectedUnit, path, originX, originY);
 			}
-			controlStateSystem.setState(SelectUnitControlState.class);
-			controlStateSystem.state.enter(cursorX, cursorY);
 		}
 	}
 
 	@Override
 	public void cancel()
 	{
-		for (MapTile t : movement)
+		for (MapTile t : range.movable)
 		{
-			t.clearHighlight();
+			t.deregister(this);
+		}
+		for (MapTile t : range.edgeAttackable)
+		{
+			t.deregister(this);
 		}
 		controlStateSystem.setState(SelectUnitControlState.class);
 	}
+
+	@Override
+	public void update(float delta)
+	{
+
+	}
+
 
 	@Override
 	public void moveCam()
@@ -144,5 +251,37 @@ public class MoveUnitControlState implements ControlState
 	public void draw()
 	{
 		battle.main.batch.draw(battle.grid, cursorX, cursorY, 1, 1);
+
+		int x = originX;
+		int y = originY;
+
+		for (WarsConst.CardinalDir dir : path)
+		{
+			switch (dir)
+			{
+				case UP:
+				{
+					y++;
+					break;
+				}
+				case DOWN:
+				{
+					y--;
+					break;
+				}
+				case LEFT:
+				{
+					x--;
+					break;
+				}
+				case RIGHT:
+				{
+					x++;
+					break;
+				}
+			}
+
+			battle.main.batch.draw(selectedUnit.firstFrame, x + 0.2f, y + 0.2f, 0.6f, 0.6f);
+		}
 	}
 }
