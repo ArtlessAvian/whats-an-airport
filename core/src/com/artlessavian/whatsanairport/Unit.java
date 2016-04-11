@@ -16,7 +16,9 @@ class Unit
 	int health = 10;
 	int movement = 3;
 
-	Color dangerZoned;
+	boolean isDangerZoned;
+	MovementRange oldDangerZone;
+	Color dangerColor;
 
 	String team;
 
@@ -50,12 +52,15 @@ class Unit
 
 	public void makeDangerZone()
 	{
-		dangerZoned = WarsConst.registerColor();
+		if (dangerColor == null) {registerColor();}
 
-		for (MapTile t : tile.getRange(movement, team, true, 0, 0).attackable)
+		oldDangerZone = tile.getRange(movement, team, true, 0, 0);
+		for (MapTile t : oldDangerZone.attackable)
 		{
-			t.register(this, dangerZoned);
+			t.register(this, dangerColor);
 		}
+
+		isDangerZoned = true;
 	}
 
 	public void refreshDangerZone()
@@ -66,50 +71,83 @@ class Unit
 
 	public void removeDangerZone()
 	{
-		WarsConst.unRegisterColor(dangerZoned);
-		dangerZoned = null;
-
-		for (MapTile t : tile.getRange(movement, team, true, 0, 0).attackable)
+		if (oldDangerZone != null)
 		{
-			t.deregister(this);
+			for (MapTile t : oldDangerZone.attackable)
+			{
+				t.deregister(this);
+			}
 		}
+
+		isDangerZoned = false;
+		oldDangerZone = null;
+	}
+
+	public void registerColor()
+	{
+		dangerColor = WarsConst.registerColor();
+	}
+
+	public void deregisterColor()
+	{
+		WarsConst.unRegisterColor(dangerColor);
+		dangerColor = null;
 	}
 
 	public Unit move(MapTile target)
 	{
 		Unit temp;
 
-		MovementRange range = tile.getRange(movement, team, true, 0, 0);
-
-		if (range.movable.contains(target))
+		if (isDangerZoned)
 		{
-			if (dangerZoned != null)
-			{
-				for (MapTile t : tile.getRange(movement, team, true, 0, 0).attackable)
-				{
-					t.deregister(this);
-				}
-			}
-
-			temp = target.unit;
-			this.tile.unit = null;
-			target.unit = this;
-			this.tile = target;
-
-			range = this.tile.getRange(movement, team, true, 0, 0);
-
-			if (dangerZoned != null)
-			{
-				for (MapTile t : range.attackable)
-				{
-					t.register(this, dangerZoned);
-				}
-			}
-
-			return temp;
+			removeDangerZone();
+			isDangerZoned = true;
 		}
 
-		return null;
+		for(Object o : this.tile.colorRegister.keySet())
+		{
+			System.out.println("from");
+			try
+			{
+				Unit u = (Unit)o;
+				u.refreshDangerZone();
+			}
+			catch (ClassCastException e)
+			{
+				// ;__; teach me coding habits
+			}
+		}
+
+		temp = target.unit;
+		this.tile.unit = null;
+		target.unit = this;
+		this.tile = target;
+
+		for(Object o : target.colorRegister.keySet())
+		{
+			System.out.println("to");
+			try
+			{
+				Unit u = (Unit)o;
+				u.refreshDangerZone();
+			}
+			catch (ClassCastException e)
+			{
+				// ;__; teach me coding habits
+			}
+		}
+
+		if (isDangerZoned)
+		{
+			oldDangerZone = this.tile.getRange(movement, team, true, 0, 0);
+
+			for (MapTile t : oldDangerZone.attackable)
+			{
+				t.register(this, dangerColor);
+			}
+		}
+
+		return temp;
 	}
 
 	public void attack(Unit other, boolean isCounter)
@@ -129,11 +167,24 @@ class Unit
 
 	public void die()
 	{
-		if (dangerZoned != null)
+		if (isDangerZoned)
 		{
 			removeDangerZone();
 		}
+		deregisterColor();
 		this.tile.unit = null;
+	}
+
+	public void joined(Unit mainUnit)
+	{
+		mainUnit.health += this.health;
+		if (mainUnit.tile.unit.health > 10) {mainUnit.tile.unit.health = 10;}
+
+		if (isDangerZoned)
+		{
+			removeDangerZone();
+		}
+		deregisterColor();
 	}
 
 	public void draw(SpriteBatch batch)

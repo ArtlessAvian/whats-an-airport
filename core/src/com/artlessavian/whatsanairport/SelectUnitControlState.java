@@ -11,6 +11,8 @@ public class SelectUnitControlState implements ControlState
 	private int cursorY;
 	private Vector3 cursorPos;
 
+	private boolean hasReleased;
+
 	public SelectUnitControlState(ControlStateSystem controlStateSystem)
 	{
 		this.controlStateSystem = controlStateSystem;
@@ -24,6 +26,14 @@ public class SelectUnitControlState implements ControlState
 		cursorX = (Integer)varargs[0];
 		cursorY = (Integer)varargs[1];
 		cursorPos = new Vector3(cursorX, cursorY, 0);
+
+		hasReleased = false;
+	}
+
+	@Override
+	public void cancelReturn()
+	{
+
 	}
 
 	@Override
@@ -62,24 +72,30 @@ public class SelectUnitControlState implements ControlState
 	@Override
 	public void pick(int screenX, int screenY, int x, int y)
 	{
-		if (cursorX == x && cursorY == y)
+		if (hasReleased)
 		{
-			select();
+			if (cursorX == x && cursorY == y)
+			{
+				select();
+			}
+			weakPick(screenX, screenY, x, y);
 		}
-		weakPick(screenX, screenY, x, y);
 	}
 
 	@Override
 	public void weakPick(int screenX, int screenY, int x, int y)
 	{
-		cursorX = x;
-		cursorY = y;
+		if (hasReleased)
+		{
+			cursorX = x;
+			cursorY = y;
+		}
 	}
 
 	@Override
 	public void release(int screenX, int screenY, int x, int y)
 	{
-
+		hasReleased = true;
 	}
 
 	@Override
@@ -88,8 +104,7 @@ public class SelectUnitControlState implements ControlState
 		Unit unit = battle.map.map[cursorX][cursorY].unit;
 		if (unit != null)
 		{
-			controlStateSystem.setState(MoveUnitControlState.class);
-			controlStateSystem.state.enter(cursorX, cursorY, unit);
+			controlStateSystem.setState(MoveUnitControlState.class).enter(cursorX, cursorY, unit);
 		}
 	}
 
@@ -99,7 +114,7 @@ public class SelectUnitControlState implements ControlState
 		Unit unit = battle.map.map[cursorX][cursorY].unit;
 		if (unit != null)
 		{
-			if (unit.dangerZoned == null)
+			if (!unit.isDangerZoned)
 			{
 				unit.makeDangerZone();
 			} else

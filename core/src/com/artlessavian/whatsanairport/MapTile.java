@@ -24,7 +24,7 @@ class MapTile
 	boolean debug; // TODO remove lol
 
 	private ArrayList<Color> colorPile;
-	private HashMap<Object, Color> colorRegister;
+	HashMap<Object, Color> colorRegister;
 
 	final HashMap<MapTile, WarsConst.CardinalDir> neighbors;
 
@@ -128,8 +128,12 @@ class MapTile
 
 	public void register(Object caller, Color target)
 	{
-		colorPile.add(target);
+		if (colorRegister.containsKey(caller))
+		{
+			deregister(caller);
+		}
 		colorRegister.put(caller, target);
+		colorPile.add(target);
 	}
 
 	public void deregister(Object object)

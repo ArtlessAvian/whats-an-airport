@@ -28,13 +28,12 @@ class BattleScreen implements Screen
 	{
 		this.main = main;
 
-		controlStateSystem = new ControlStateSystem(this);
+		// Get Assets
+		Texture terrain = main.assetManager.get("Terrain.png", Texture.class);
 
 		grid = main.assetManager.get("Grid.png", Texture.class);
 		white = main.assetManager.get("White.png", Texture.class);
 		scrollBox = new Sprite(grid);
-
-		Texture terrain = main.assetManager.get("Terrain.png", Texture.class);
 
 		// I can probably figure out how to do palette swaps, but nah
 		String[] teams = {"Red", "Blue"};
@@ -52,48 +51,15 @@ class BattleScreen implements Screen
 			}
 		}
 
+		// Game Stuff
+		controlStateSystem = new ControlStateSystem(this);
+
 		// Probably bad practice idk
 		// As long as its consistent: [x][y]
-		map = new Map(mapWidth, mapHeight);
+		map = new Map(this, mapWidth, mapHeight);
 
-		for (int x = 0; x < mapWidth; x++)
-		{
-			for (int y = 0; y < mapHeight; y++)
-			{
-				// This makes a cool thingy
-				int tileID = (int)(Math.cos(x * y / 2) * 1.5 + 1.5);
-
-				map.map[x][y] = new MapTile(this, x, y, WarsConst.getTerrain(tileID), terrain);
-			}
-		}
-
-		for (int x = 0; x < mapWidth; x++)
-		{
-			for (int y = 0; y < mapHeight; y++)
-			{
-				// lol gross
-				try
-				{
-					map.map[x][y].neighbors.put(map.map[x + 1][y], WarsConst.CardinalDir.RIGHT);
-				}
-				catch (Exception e) {}
-				try
-				{
-					map.map[x][y].neighbors.put(map.map[x - 1][y], WarsConst.CardinalDir.LEFT);
-				}
-				catch (Exception e) {}
-				try
-				{
-					map.map[x][y].neighbors.put(map.map[x][y + 1], WarsConst.CardinalDir.UP);
-				}
-				catch (Exception e) {}
-				try
-				{
-					map.map[x][y].neighbors.put(map.map[x][y - 1], WarsConst.CardinalDir.DOWN);
-				}
-				catch (Exception e) {}
-			}
-		}
+		map.debugGeneration(terrain);
+		map.establishNeighbors();
 
 		map.map[3][3].createUnit("Blue/Soldier");
 		map.map[3][5].createUnit("Red/Soldier");

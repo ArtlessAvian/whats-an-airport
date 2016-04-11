@@ -1,5 +1,7 @@
 package com.artlessavian.whatsanairport;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector3;
 
 import java.util.Iterator;
@@ -26,6 +28,8 @@ public class UnitOptionsControlState implements ControlState
 	private final LinkedList<Options> options;
 	private int position;
 
+	private Sprite selector;
+
 	private Vector3 unitPosition;
 
 	public UnitOptionsControlState(ControlStateSystem controlStateSystem)
@@ -36,6 +40,8 @@ public class UnitOptionsControlState implements ControlState
 		options = new LinkedList<Options>();
 		pushOptionRight = new LinkedList<Float>();
 		unitPosition = new Vector3();
+
+		selector = new Sprite(battle.grid);
 	}
 
 	@Override
@@ -50,14 +56,12 @@ public class UnitOptionsControlState implements ControlState
 
 		position = 0;
 
-		pushOptionRight.clear();
 		options.clear();
 
 		// Join if standing on friendly
 		if (displaced != null && displaced != selectedUnit)
 		{
 			options.addLast(Options.JOIN);
-			pushOptionRight.addLast(0f);
 		} else
 		{
 			// Capture if standing on property and not joining
@@ -77,12 +81,28 @@ public class UnitOptionsControlState implements ControlState
 			if (canAttack)
 			{
 				options.addLast(Options.ATTACK);
-				pushOptionRight.addLast(0f);
 			}
 
 			options.addLast(Options.END);
-			pushOptionRight.addLast(0f);
+
+			for (int i = (int)(Math.random() * 7); i >= 0; i--)
+			{
+				options.addLast(Options.END);
+			}
+
+			pushOptionRight.clear();
+			pushOptionRight.add(60f);
+			while (options.size() > pushOptionRight.size())
+			{
+				pushOptionRight.add(0f);
+			}
 		}
+	}
+
+	@Override
+	public void cancelReturn()
+	{
+
 	}
 
 	@Override
@@ -117,31 +137,53 @@ public class UnitOptionsControlState implements ControlState
 
 	}
 
+	public float[] getBoxCoord(boolean rightOfCenter, boolean topOfCenter)
+	{
+		float[] thing = new float[4];
+
+		thing[3] = battle.main.font.getLineHeight() + 10f;
+		thing[2] = 4 * thing[3];
+
+		if (rightOfCenter)
+		{
+			thing[0] = Gdx.graphics.getHeight() / 10f;
+		}
+		else
+		{
+			thing[0] = Gdx.graphics.getWidth()
+				- Gdx.graphics.getHeight() / 10f
+				- thing[2];
+		}
+
+		if (topOfCenter)
+		{
+			thing[1] = Gdx.graphics.getHeight() / 10f;
+		}
+		else
+		{
+			thing[1] =  9 * Gdx.graphics.getHeight() / 10f
+				- options.size() * thing[3];
+		}
+		
+		return thing;
+	}
+	
 	@Override
 	public void pick(int screenX, int screenY, int x, int y)
 	{
-		float xb;
-		float yb;
-
-		if (unitPosition.x > 0) {xb = battle.main.screen.viewportHeight / 10f;} else
+		float[] thing = getBoxCoord(unitPosition.x > 0, unitPosition.y > 0);
+		
+		if (thing[0] < screenX && screenX < thing[0] + thing[2])
 		{
-			xb = 9 * battle.main.screen.viewportHeight / 10f;
-		}
-		if (unitPosition.y > 0)
-		{
-			yb = battle.main.screen.viewportHeight / 10f + 10 - (1 - options.size()) * (battle.main.font.getLineHeight() + 10f);
-		} else {yb = battle.main.screen.viewportHeight / 10f;}
-
-		if (xb < screenX && screenX < xb + 4 * (battle.main.font.getLineHeight() + 10f))
-		{
-			if (0 <= ((yb - screenY) / (battle.main.font.getLineHeight() + 10f)) + 1 && ((yb - screenY) / (battle.main.font.getLineHeight() + 10f)) + 1 < options.size())
+			float calculatedPosition = options.size() - (screenY - thing[1]) / thing[3];
+			if (0 <= calculatedPosition && calculatedPosition < options.size())
 			{
-				if (position == (int)(((yb - screenY) / (battle.main.font.getLineHeight() + 10f)) + 1))
+				if (position == (int)calculatedPosition)
 				{
 					select();
 				} else
 				{
-					position = (int)(((yb - screenY) / (battle.main.font.getLineHeight() + 10f)) + 1);
+					position = (int)calculatedPosition;
 				}
 			}
 		}
@@ -150,7 +192,16 @@ public class UnitOptionsControlState implements ControlState
 	@Override
 	public void weakPick(int screenX, int screenY, int x, int y)
 	{
-		// TODO use delta screen coords
+		float[] thing = getBoxCoord(unitPosition.x > 0, unitPosition.y > 0);
+
+		if (thing[0] < screenX && screenX < thing[0] + thing[2])
+		{
+			float calculatedPosition = options.size() - (screenY - thing[1]) / thing[3];
+			if (0 <= calculatedPosition && calculatedPosition < options.size())
+			{
+				position = (int)calculatedPosition;
+			}
+		}
 	}
 
 	@Override
@@ -176,25 +227,20 @@ public class UnitOptionsControlState implements ControlState
 					}
 				}
 
-				controlStateSystem.setState(SelectUnitControlState.class);
-				controlStateSystem.state.enter(x, y);
+				controlStateSystem.setState(SelectUnitControlState.class).enter(x, y);
 				break;
 			}
 
 			case JOIN:
 			{
-				selectedUnit.health += displaced.health;
-				if (selectedUnit.tile.unit.health > 10) {selectedUnit.tile.unit.health = 10;}
-
-				controlStateSystem.setState(SelectUnitControlState.class);
-				controlStateSystem.state.enter(x, y);
+				displaced.joined(selectedUnit);
+				controlStateSystem.setState(SelectUnitControlState.class).enter(x, y);
 				break;
 			}
 
 			case END:
 			{
-				controlStateSystem.setState(SelectUnitControlState.class);
-				controlStateSystem.state.enter(x, y);
+				controlStateSystem.setState(SelectUnitControlState.class).enter(x, y);
 				break;
 			}
 		}
@@ -210,17 +256,7 @@ public class UnitOptionsControlState implements ControlState
 			displaced.tile = battle.map.map[x][y];
 			battle.map.map[x][y].unit = displaced;
 		}
-		controlStateSystem.setState(MoveUnitControlState.class);
-		MovementRange range = selectedUnit.getRange();
-		for (MapTile t : range.edgeAttackable)
-		{
-			t.register(this, WarsConst.selectRed);
-			//t.debug = true;
-		}
-		for (MapTile t : range.movable)
-		{
-			t.register(this, WarsConst.selectBlue);
-		}
+		controlStateSystem.setState(MoveUnitControlState.class).cancelReturn();
 	}
 
 	@Override
@@ -255,33 +291,29 @@ public class UnitOptionsControlState implements ControlState
 
 		unitPosition.x = x + 0.5f;
 		unitPosition.y = y + 0.5f;
-
 		unitPosition.sub(battle.trueCamPos);
-
-		float xb;
-		float yb;
-
-		if (unitPosition.x > 0) {xb = battle.main.screen.viewportHeight / 10f;} else
-		{
-			xb = battle.main.screen.viewportWidth - battle.main.screen.viewportHeight / 10f - 4 * (battle.main.font.getLineHeight() + 10f);
-		}
-		if (unitPosition.y > 0) {yb = battle.main.screen.viewportHeight / 10f;} else
-		{
-			yb = 9 * battle.main.screen.viewportHeight / 10f - (options.size()) * (battle.main.font.getLineHeight() + 10f);
-		}
+		
+		float[] thing = getBoxCoord(unitPosition.x > 0, unitPosition.y > 0);
 
 		for (int i = 0; i < options.size(); i++)
 		{
-			battle.main.batch.draw(battle.white, xb, yb + i * (battle.main.font.getLineHeight() + 10f), 4 * (battle.main.font.getLineHeight() + 10f), (battle.main.font.getLineHeight() + 10f));
+			battle.main.batch.draw(battle.white, thing[0], thing[1] + i * (thing[3]),
+				thing[2], (thing[3]));
 		}
 
 		int i = 0;
-		Iterator<Options> iter = options.iterator();
-		while (iter.hasNext())
+		for (Options option : options)
 		{
-			battle.main.font.draw(battle.main.batch, iter.next().name() + " " + i, xb + 5 + pushOptionRight.get(i), yb + (options.size() - i) * (battle.main.font.getLineHeight() + 10f) - 10f);
+			battle.main.font.getColor().set(pushOptionRight.get(i)/120 + 0.5f, pushOptionRight.get(i)/120 + 0.5f, pushOptionRight.get(i)/120 + 0.5f, 1);
+			battle.main.font.draw(battle.main.batch, option.name(),
+				thing[0] + 5 + pushOptionRight.get(i),
+				thing[1] + (options.size() - i) * (thing[3]) - 10f);
 			i++;
 		}
+
+		selector.setSize(thing[2], thing[3]);
+		selector.setPosition(thing[0], thing[1] + (options.size() - 1 - position) * (thing[3]));
+		selector.draw(battle.main.batch);
 
 		battle.main.batch.setProjectionMatrix(battle.world.combined);
 	}

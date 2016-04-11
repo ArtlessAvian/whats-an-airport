@@ -4,6 +4,7 @@ interface ControlState
 {
 	// Not a fan of this method :/
 	void enter(Object... varargs);
+	void cancelReturn();
 
 	// Directionals
 	void up();

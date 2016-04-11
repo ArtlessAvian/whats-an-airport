@@ -49,6 +49,12 @@ public class MovingUnitControlState implements ControlState
 	}
 
 	@Override
+	public void cancelReturn()
+	{
+
+	}
+
+	@Override
 	public void up()
 	{
 
@@ -100,17 +106,8 @@ public class MovingUnitControlState implements ControlState
 	public void cancel()
 	{
 		selectedUnit.sprite.setPosition(originX, originY);
-		controlStateSystem.setState(MoveUnitControlState.class);
-		MovementRange range = selectedUnit.getRange();
-		for (MapTile t : range.edgeAttackable)
-		{
-			t.register(this, WarsConst.selectRed);
-			//t.debug = true;
-		}
-		for (MapTile t : range.movable)
-		{
-			t.register(this, WarsConst.selectBlue);
-		}
+		selectedUnit.move(battle.map.map[originX][originY]);
+		controlStateSystem.setState(MoveUnitControlState.class).cancelReturn();
 	}
 
 	@Override
@@ -126,8 +123,7 @@ public class MovingUnitControlState implements ControlState
 			} else
 			{
 				Unit displaced = selectedUnit.move(battle.map.map[x][y]);
-				controlStateSystem.setState(UnitOptionsControlState.class);
-				controlStateSystem.state.enter(selectedUnit, originX, originY, x, y, displaced);
+				controlStateSystem.setState(UnitOptionsControlState.class).enter(selectedUnit, originX, originY, x, y, displaced);
 			}
 		} else if (timeAccum >= timePerTile)
 		{

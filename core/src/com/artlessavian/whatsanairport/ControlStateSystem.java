@@ -44,7 +44,7 @@ class ControlStateSystem extends InputAdapter
 		setState(SelectUnitControlState.class);
 	}
 
-	public void setState(Class clazz)
+	public ControlState setState(Class<? extends ControlState> clazz)
 	{
 		state = stateHashMap.get(clazz);
 		if (state == null)
@@ -52,7 +52,7 @@ class ControlStateSystem extends InputAdapter
 			System.out.println("[ControlStateSystem] You're missing a state you dunk.");
 			try
 			{
-				stateHashMap.put(clazz, (ControlState)(clazz.getConstructor(ControlStateSystem.class).newInstance(this)));
+				stateHashMap.put(clazz, clazz.getConstructor(ControlStateSystem.class).newInstance(this));
 				state = stateHashMap.get(clazz);
 			}
 			catch (Exception e)
@@ -61,6 +61,8 @@ class ControlStateSystem extends InputAdapter
 				e.printStackTrace();
 			}
 		}
+
+		return state;
 	}
 
 	public void draw()

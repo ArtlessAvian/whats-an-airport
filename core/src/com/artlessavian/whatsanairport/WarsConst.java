@@ -47,9 +47,12 @@ public class WarsConst
 
 	public static void unRegisterColor(Color color)
 	{
-		dangerZones.remove(color);
-		dangerZones.addLast(color);
-		inUse--;
+		if (dangerZones.contains(color))
+		{
+			dangerZones.remove(color);
+			dangerZones.addLast(color);
+			inUse--;
+		}
 	}
 
 	// Terrain Stuff

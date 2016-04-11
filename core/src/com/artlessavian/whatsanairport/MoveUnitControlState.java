@@ -58,6 +58,20 @@ public class MoveUnitControlState implements ControlState
 		}
 	}
 
+	@Override
+	public void cancelReturn()
+	{
+		for (MapTile t : range.edgeAttackable)
+		{
+			t.register(this, WarsConst.selectRed);
+			//t.debug = true;
+		}
+		for (MapTile t : range.movable)
+		{
+			t.register(this, WarsConst.selectBlue);
+		}
+	}
+
 	private void pathStuff(WarsConst.CardinalDir dir)
 	{
 		if (range.movable.contains(battle.map.map[cursorX][cursorY]))
@@ -193,8 +207,7 @@ public class MoveUnitControlState implements ControlState
 				{
 					t.deregister(this);
 				}
-				controlStateSystem.setState(MovingUnitControlState.class);
-				controlStateSystem.state.enter(selectedUnit, path, originX, originY);
+				controlStateSystem.setState(MovingUnitControlState.class).enter(selectedUnit, path, originX, originY);
 			}
 		}
 	}
