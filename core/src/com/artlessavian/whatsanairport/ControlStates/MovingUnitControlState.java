@@ -1,5 +1,6 @@
-package com.artlessavian.whatsanairport;
+package com.artlessavian.whatsanairport.ControlStates;
 
+import com.artlessavian.whatsanairport.*;
 import com.badlogic.gdx.math.Vector3;
 
 import java.util.Iterator;
@@ -23,7 +24,7 @@ public class MovingUnitControlState implements ControlState
 	private int originY;
 
 	private float timeAccum;
-	private Vector3 cursorPos;
+	private final Vector3 cursorPos;
 
 	public MovingUnitControlState(ControlStateSystem controlStateSystem)
 	{

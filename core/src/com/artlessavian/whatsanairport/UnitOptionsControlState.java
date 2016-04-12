@@ -1,10 +1,12 @@
 package com.artlessavian.whatsanairport;
 
+import com.artlessavian.whatsanairport.ControlStates.ControlState;
+import com.artlessavian.whatsanairport.ControlStates.MoveUnitControlState;
+import com.artlessavian.whatsanairport.ControlStates.SelectUnitControlState;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector3;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 
 public class UnitOptionsControlState implements ControlState
@@ -28,9 +30,9 @@ public class UnitOptionsControlState implements ControlState
 	private final LinkedList<Options> options;
 	private int position;
 
-	private Sprite selector;
+	private final Sprite selector;
 
-	private Vector3 unitPosition;
+	private final Vector3 unitPosition;
 
 	public UnitOptionsControlState(ControlStateSystem controlStateSystem)
 	{
@@ -137,31 +139,34 @@ public class UnitOptionsControlState implements ControlState
 
 	}
 
-	public float[] getBoxCoord(boolean rightOfCenter, boolean topOfCenter)
+	private float[] getBoxCoord(boolean rightOfCenter, boolean topOfCenter)
 	{
 		float[] thing = new float[4];
 
 		thing[3] = battle.main.font.getLineHeight() + 10f;
 		thing[2] = 4 * thing[3];
 
-		if (rightOfCenter)
-		{
-			thing[0] = Gdx.graphics.getHeight() / 10f;
-		}
-		else
+		// It's better to keep things consistent I suppose
+		// Maybe I recycle this later
+
+//		if (rightOfCenter)
+//		{
+//			thing[0] = Gdx.graphics.getHeight() / 10f;
+//		}
+//		else
 		{
 			thing[0] = Gdx.graphics.getWidth()
 				- Gdx.graphics.getHeight() / 10f
 				- thing[2];
 		}
 
-		if (topOfCenter)
+//		if (topOfCenter)
+//		{
+//			thing[1] = Gdx.graphics.getHeight() / 10f;
+//		}
+//		else
 		{
-			thing[1] = Gdx.graphics.getHeight() / 10f;
-		}
-		else
-		{
-			thing[1] =  9 * Gdx.graphics.getHeight() / 10f
+			thing[1] = 9 * Gdx.graphics.getHeight() / 10f
 				- options.size() * thing[3];
 		}
 		
@@ -227,6 +232,7 @@ public class UnitOptionsControlState implements ControlState
 					}
 				}
 
+				selectedUnit.sprite.setRotation(0);
 				controlStateSystem.setState(SelectUnitControlState.class).enter(x, y);
 				break;
 			}
@@ -234,12 +240,15 @@ public class UnitOptionsControlState implements ControlState
 			case JOIN:
 			{
 				displaced.joined(selectedUnit);
+
+				selectedUnit.sprite.setRotation(0);
 				controlStateSystem.setState(SelectUnitControlState.class).enter(x, y);
 				break;
 			}
 
 			case END:
 			{
+				selectedUnit.sprite.setRotation(0);
 				controlStateSystem.setState(SelectUnitControlState.class).enter(x, y);
 				break;
 			}
@@ -251,6 +260,7 @@ public class UnitOptionsControlState implements ControlState
 	{
 		selectedUnit.move(battle.map.map[originX][originY]);
 		selectedUnit.sprite.setPosition(originX, originY);
+		selectedUnit.sprite.setRotation(0);
 		if (displaced != null)
 		{
 			displaced.tile = battle.map.map[x][y];
@@ -267,12 +277,12 @@ public class UnitOptionsControlState implements ControlState
 			if (i == position)
 			{
 				float a = pushOptionRight.pollFirst();
-				a += 0.3f * (60 - a);
+				a += 0.1f * (60 - a);
 				pushOptionRight.addLast(a);
 			} else
 			{
 				float a = pushOptionRight.pollFirst();
-				a += 0.3f * (0 - a);
+				a += 0.1f * (0 - a);
 				pushOptionRight.addLast(a);
 			}
 		}
@@ -287,6 +297,12 @@ public class UnitOptionsControlState implements ControlState
 	@Override
 	public void draw()
 	{
+		if (displaced != null)
+		{
+			displaced.draw(battle.main.batch);
+		}
+		selectedUnit.sprite.rotate(145);
+
 		battle.main.batch.setProjectionMatrix(battle.main.screen.combined);
 
 		unitPosition.x = x + 0.5f;
@@ -304,7 +320,7 @@ public class UnitOptionsControlState implements ControlState
 		int i = 0;
 		for (Options option : options)
 		{
-			battle.main.font.getColor().set(pushOptionRight.get(i)/120 + 0.5f, pushOptionRight.get(i)/120 + 0.5f, pushOptionRight.get(i)/120 + 0.5f, 1);
+			battle.main.font.getColor().set(pushOptionRight.get(i) / 120 + 0.5f, pushOptionRight.get(i) / 120 + 0.5f, pushOptionRight.get(i) / 120 + 0.5f, 1);
 			battle.main.font.draw(battle.main.batch, option.name(),
 				thing[0] + 5 + pushOptionRight.get(i),
 				thing[1] + (options.size() - i) * (thing[3]) - 10f);

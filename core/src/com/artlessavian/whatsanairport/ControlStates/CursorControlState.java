@@ -1,23 +1,29 @@
-package com.artlessavian.whatsanairport;
+package com.artlessavian.whatsanairport.ControlStates;
 
+import com.artlessavian.whatsanairport.BattleScreen;
+import com.artlessavian.whatsanairport.ControlStateSystem;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector3;
 
-public class SelectUnitControlState implements ControlState
+public abstract class CursorControlState implements ControlState
 {
 	private final ControlStateSystem controlStateSystem;
 	private final BattleScreen battle;
+	private final Sprite scrollBox;
 
-	private int cursorX;
-	private int cursorY;
-	private Vector3 cursorPos;
+	int cursorX;
+	int cursorY;
+	private final Vector3 cursorPos;
 
-	private boolean hasReleased;
+	private boolean initPressReleased;
 
-	public SelectUnitControlState(ControlStateSystem controlStateSystem)
+	CursorControlState(ControlStateSystem controlStateSystem)
 	{
 		this.controlStateSystem = controlStateSystem;
 		this.battle = controlStateSystem.battle;
 		cursorPos = new Vector3();
+		scrollBox = new Sprite(battle.grid);
+		initPressReleased = true;
 	}
 
 	@Override
@@ -25,15 +31,7 @@ public class SelectUnitControlState implements ControlState
 	{
 		cursorX = (Integer)varargs[0];
 		cursorY = (Integer)varargs[1];
-		cursorPos = new Vector3(cursorX, cursorY, 0);
-
-		hasReleased = false;
-	}
-
-	@Override
-	public void cancelReturn()
-	{
-
+		initPressReleased = false;
 	}
 
 	@Override
@@ -72,20 +70,23 @@ public class SelectUnitControlState implements ControlState
 	@Override
 	public void pick(int screenX, int screenY, int x, int y)
 	{
-		if (hasReleased)
+		if (initPressReleased)
 		{
 			if (cursorX == x && cursorY == y)
 			{
 				select();
 			}
-			weakPick(screenX, screenY, x, y);
+			cursorX = x;
+			cursorY = y;
+
+			moveCam();
 		}
 	}
 
 	@Override
 	public void weakPick(int screenX, int screenY, int x, int y)
 	{
-		if (hasReleased)
+		if (initPressReleased)
 		{
 			cursorX = x;
 			cursorY = y;
@@ -95,39 +96,7 @@ public class SelectUnitControlState implements ControlState
 	@Override
 	public void release(int screenX, int screenY, int x, int y)
 	{
-		hasReleased = true;
-	}
-
-	@Override
-	public void select()
-	{
-		Unit unit = battle.map.map[cursorX][cursorY].unit;
-		if (unit != null)
-		{
-			controlStateSystem.setState(MoveUnitControlState.class).enter(cursorX, cursorY, unit);
-		}
-	}
-
-	@Override
-	public void cancel()
-	{
-		Unit unit = battle.map.map[cursorX][cursorY].unit;
-		if (unit != null)
-		{
-			if (!unit.isDangerZoned)
-			{
-				unit.makeDangerZone();
-			} else
-			{
-				unit.removeDangerZone();
-			}
-		}
-	}
-
-	@Override
-	public void update(float delta)
-	{
-
+		initPressReleased = true;
 	}
 
 	@Override
@@ -137,29 +106,34 @@ public class SelectUnitControlState implements ControlState
 		cursorPos.y = cursorY + 0.5f;
 
 		cursorPos.sub(battle.trueCamPos);
-		if (cursorPos.x > 0.3 * battle.world.viewportWidth)
+		while (cursorPos.x > battle.world.viewportWidth / 2f - 0.3 * battle.world.viewportHeight)
 		{
 			battle.trueCamPos.x++;
+			cursorPos.x--;
 		}
-		if (cursorPos.x < -0.3 * battle.world.viewportWidth)
+		while (cursorPos.x < -battle.world.viewportWidth / 2f + 0.3 * battle.world.viewportHeight)
 		{
 			battle.trueCamPos.x--;
+			cursorPos.x++;
 		}
-		if (cursorPos.y > 0.3 * battle.world.viewportHeight)
+		while (cursorPos.y > 0.3 * battle.world.viewportHeight)
 		{
 			battle.trueCamPos.y++;
+			cursorPos.y--;
 		}
-		if (cursorPos.y < -0.3 * battle.world.viewportHeight)
+		while (cursorPos.y < -0.3 * battle.world.viewportHeight)
 		{
 			battle.trueCamPos.y--;
+			cursorPos.y++;
 		}
-
-		battle.world.position.lerp(battle.trueCamPos, 0.3f);
 	}
 
 	@Override
 	public void draw()
 	{
 		battle.main.batch.draw(battle.grid, cursorX, cursorY, 1, 1);
+		scrollBox.setSize(battle.world.viewportWidth - 0.4f * battle.world.viewportHeight, 0.6f * battle.world.viewportHeight);
+		scrollBox.setCenter(battle.world.position.x, battle.world.position.y);
+		scrollBox.draw(battle.main.batch, 0.3f);
 	}
 }

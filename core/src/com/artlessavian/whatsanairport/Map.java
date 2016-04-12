@@ -8,14 +8,14 @@ import java.util.HashMap;
 
 public class Map
 {
-	BattleScreen battle;
+	private final BattleScreen battle;
 
-	final MapTile[][] map;
-	final int mapWidth;
-	final int mapHeight;
+	public final MapTile[][] map;
+	private final int mapWidth;
+	private final int mapHeight;
 
-	final HashMap<Object, Color> highlightRegister;
-	final HashMap<MovementRange, Object> tileToObj;
+	private final HashMap<Object, Color> highlightRegister;
+	private final HashMap<MovementRange, Object> tileToObj;
 
 	public Map(BattleScreen battle, int width, int height)
 	{

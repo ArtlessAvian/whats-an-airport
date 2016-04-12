@@ -1,5 +1,9 @@
 package com.artlessavian.whatsanairport;
 
+import com.artlessavian.whatsanairport.ControlStates.ControlState;
+import com.artlessavian.whatsanairport.ControlStates.MoveUnitControlState;
+import com.artlessavian.whatsanairport.ControlStates.MovingUnitControlState;
+import com.artlessavian.whatsanairport.ControlStates.SelectUnitControlState;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
@@ -8,9 +12,9 @@ import com.badlogic.gdx.math.Vector3;
 import java.util.HashMap;
 
 
-class ControlStateSystem extends InputAdapter
+public class ControlStateSystem extends InputAdapter
 {
-	final BattleScreen battle;
+	public final BattleScreen battle;
 
 	ControlState state;
 	private final HashMap<Class, ControlState> stateHashMap;
@@ -24,7 +28,8 @@ class ControlStateSystem extends InputAdapter
 	private boolean isCancelling;
 
 	private final Vector3 helper = new Vector3();
-
+	private float camAccumulator;
+	
 	public ControlStateSystem(BattleScreen battleScreen)
 	{
 		battle = battleScreen;
@@ -33,6 +38,7 @@ class ControlStateSystem extends InputAdapter
 		heldDirection = null;
 		timeHeld = 0;
 		accumulator = 0;
+		camAccumulator = 0;
 
 		stateHashMap = new HashMap<Class, ControlState>();
 		// Populate States
@@ -136,16 +142,23 @@ class ControlStateSystem extends InputAdapter
 		return true;
 	}
 
-	@Override
-	public boolean touchDown(int screenX, int screenY, int pointer, int button)
+	private Vector3 screenToWorld(int screenX, int screenY)
 	{
-		this.pointer = pointer;
 		helper.x = screenX;
 		helper.y = screenY;
 		battle.world.unproject(helper);
 
 		helper.x = Math.max(0, Math.min(battle.mapWidth - 1, helper.x));
 		helper.y = Math.max(0, Math.min(battle.mapHeight - 1, helper.y));
+
+		return helper;
+	}
+
+	@Override
+	public boolean touchDown(int screenX, int screenY, int pointer, int button)
+	{
+		this.pointer = pointer;
+		screenToWorld(screenX, screenY);
 		state.pick(screenX, Gdx.graphics.getHeight() - screenY, (int)helper.x, (int)helper.y);
 
 		return true;
@@ -159,6 +172,7 @@ class ControlStateSystem extends InputAdapter
 			this.timePressed = 0;
 			if (!isCancelling)
 			{
+				screenToWorld(screenX, screenY);
 				state.release(screenX, Gdx.graphics.getHeight() - screenY, (int)helper.x, (int)helper.y);
 			}
 			isCancelling = false;
@@ -173,19 +187,14 @@ class ControlStateSystem extends InputAdapter
 		{
 			timePressed = 0;
 
-			helper.x = screenX;
-			helper.y = screenY;
-			battle.world.unproject(helper);
-
-			helper.x = Math.max(0, Math.min(battle.mapWidth - 1, helper.x));
-			helper.y = Math.max(0, Math.min(battle.mapHeight - 1, helper.y));
+			screenToWorld(screenX, screenY);
 			state.weakPick(screenX, Gdx.graphics.getHeight() - screenY, (int)helper.x, (int)helper.y);
 		}
 
 		return true;
 	}
 
-	public void doDirection()
+	private void doDirection()
 	{
 		switch (heldDirection)
 		{
@@ -249,6 +258,11 @@ class ControlStateSystem extends InputAdapter
 
 		// State stuff
 		state.update(delta);
-		state.moveCam();
+		camAccumulator += delta;
+		if (camAccumulator > 0.3f)
+		{
+			state.moveCam();
+			camAccumulator -= 0.3f;
+		}
 	}
 }

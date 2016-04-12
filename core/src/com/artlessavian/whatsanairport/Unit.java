@@ -9,23 +9,23 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 import java.util.HashMap;
 
-class Unit
+public class Unit
 {
-	BattleScreen battle;
+	private final BattleScreen battle;
 
-	int health = 10;
-	int movement = 3;
+	private int health = 10;
+	public final int movement = 3;
 
-	boolean isDangerZoned;
-	MovementRange oldDangerZone;
-	Color dangerColor;
+	public boolean isDangerZoned;
+	private MovementRange oldDangerZone;
+	private Color dangerColor;
 
-	String team;
+	public final String team;
 
 	MapTile tile;
 
-	Sprite sprite;
-	TextureRegion firstFrame;
+	public final Sprite sprite;
+	public final TextureRegion firstFrame;
 
 	static HashMap<String, Texture> textures;
 
@@ -35,6 +35,7 @@ class Unit
 
 		this.sprite = new Sprite(textures.get(type));
 		sprite.setRegion(0, 0, sprite.getTexture().getHeight(), sprite.getTexture().getHeight());
+		sprite.setOrigin(0.5f, 0.5f);
 		sprite.setPosition(tile.x, tile.y);
 
 		firstFrame = TextureRegion.split(sprite.getTexture(), sprite.getTexture().getHeight(), sprite.getTexture().getHeight())[0][0];
@@ -63,7 +64,7 @@ class Unit
 		isDangerZoned = true;
 	}
 
-	public void refreshDangerZone()
+	private void refreshDangerZone()
 	{
 		removeDangerZone();
 		makeDangerZone();
@@ -83,12 +84,12 @@ class Unit
 		oldDangerZone = null;
 	}
 
-	public void registerColor()
+	private void registerColor()
 	{
 		dangerColor = WarsConst.registerColor();
 	}
 
-	public void deregisterColor()
+	private void deregisterColor()
 	{
 		WarsConst.unRegisterColor(dangerColor);
 		dangerColor = null;
@@ -104,9 +105,15 @@ class Unit
 			isDangerZoned = true;
 		}
 
-		for(Object o : this.tile.colorRegister.keySet())
+		MapTile oldTile = this.tile;
+
+		temp = target.unit;
+		this.tile.unit = null;
+		target.unit = this;
+		this.tile = target;
+
+		for (Object o : oldTile.colorRegister.keySet().toArray())
 		{
-			System.out.println("from");
 			try
 			{
 				Unit u = (Unit)o;
@@ -118,14 +125,8 @@ class Unit
 			}
 		}
 
-		temp = target.unit;
-		this.tile.unit = null;
-		target.unit = this;
-		this.tile = target;
-
-		for(Object o : target.colorRegister.keySet())
+		for (Object o : target.colorRegister.keySet().toArray())
 		{
-			System.out.println("to");
 			try
 			{
 				Unit u = (Unit)o;
@@ -165,7 +166,7 @@ class Unit
 		}
 	}
 
-	public void die()
+	private void die()
 	{
 		if (isDangerZoned)
 		{
@@ -189,7 +190,7 @@ class Unit
 
 	public void draw(SpriteBatch batch)
 	{
-		WarsConst.uvGarbage(sprite, (int)(2 + 1.9 * Math.cos(Gdx.graphics.getFrameId() / 20f)));
+		WarsConst.uvTime(sprite, (int)(2 + 1.9 * Math.cos(Gdx.graphics.getFrameId() / 20f)), 4);
 		sprite.setSize(1, health / 20f + 0.5f);
 		sprite.draw(batch);
 

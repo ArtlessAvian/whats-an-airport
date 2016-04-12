@@ -14,7 +14,7 @@ import java.util.HashMap;
 
 public class WarsMain extends Game
 {
-	SpriteBatch batch;
+	public SpriteBatch batch;
 	AssetManager assetManager;
 	BitmapFont font;
 	private boolean finishedLoading;

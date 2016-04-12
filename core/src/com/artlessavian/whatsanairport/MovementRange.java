@@ -5,12 +5,12 @@ import java.util.LinkedList;
 
 public class MovementRange
 {
-	LinkedList<MapTile> movable;
-	HashMap<MapTile, Integer> movementCost;
-	HashMap<MapTile, MapTile> cameFrom;
+	public final LinkedList<MapTile> movable;
+	public final HashMap<MapTile, Integer> movementCost;
+	public final HashMap<MapTile, MapTile> cameFrom;
 
-	LinkedList<MapTile> attackable;
-	LinkedList<MapTile> edgeAttackable;
+	final LinkedList<MapTile> attackable;
+	public final LinkedList<MapTile> edgeAttackable;
 
 	public MovementRange()
 	{

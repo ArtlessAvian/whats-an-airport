@@ -1,10 +1,10 @@
-package com.artlessavian.whatsanairport;
+package com.artlessavian.whatsanairport.ControlStates;
 
-import com.badlogic.gdx.math.Vector3;
+import com.artlessavian.whatsanairport.*;
 
 import java.util.LinkedList;
 
-public class MoveUnitControlState implements ControlState
+public class MoveUnitControlState extends CursorControlState
 {
 	private final ControlStateSystem controlStateSystem;
 	private final BattleScreen battle;
@@ -17,32 +17,27 @@ public class MoveUnitControlState implements ControlState
 
 	private int originX;
 	private int originY;
-	private int cursorX;
-	private int cursorY;
-
-	private final Vector3 cursorPos;
 
 	public MoveUnitControlState(ControlStateSystem controlStateSystem)
 	{
+		super(controlStateSystem);
 		this.controlStateSystem = controlStateSystem;
 		this.battle = controlStateSystem.battle;
 
 		path = new LinkedList<WarsConst.CardinalDir>();
-
-		cursorPos = new Vector3();
 	}
 
 	@Override
 	public void enter(Object... varargs)
 	{
+		super.enter(varargs[0], varargs[1]);
+		
 		path.clear();
 		movementCost = 0;
 		wasOutside = false;
 
 		originX = (Integer)varargs[0];
 		originY = (Integer)varargs[1];
-		cursorX = originX;
-		cursorY = originY;
 
 		selectedUnit = (Unit)varargs[2];
 
@@ -128,9 +123,9 @@ public class MoveUnitControlState implements ControlState
 	@Override
 	public void up()
 	{
-		if (cursorY < battle.mapHeight - 1)
+		super.up();
+		if (cursorY < battle.mapHeight)
 		{
-			cursorY++;
 			pathStuff(WarsConst.CardinalDir.UP);
 		}
 	}
@@ -138,9 +133,9 @@ public class MoveUnitControlState implements ControlState
 	@Override
 	public void down()
 	{
-		if (cursorY > 0)
+		super.down();
+		if (cursorY >= 0)
 		{
-			cursorY--;
 			pathStuff(WarsConst.CardinalDir.DOWN);
 		}
 	}
@@ -148,9 +143,9 @@ public class MoveUnitControlState implements ControlState
 	@Override
 	public void left()
 	{
-		if (cursorX > 0)
+		super.left();
+		if (cursorX >= 0)
 		{
-			cursorX--;
 			pathStuff(WarsConst.CardinalDir.LEFT);
 		}
 	}
@@ -158,9 +153,9 @@ public class MoveUnitControlState implements ControlState
 	@Override
 	public void right()
 	{
-		if (cursorX < battle.mapWidth - 1)
+		super.right();
+		if (cursorX < battle.mapWidth)
 		{
-			cursorX++;
 			pathStuff(WarsConst.CardinalDir.RIGHT);
 		}
 	}
@@ -168,28 +163,18 @@ public class MoveUnitControlState implements ControlState
 	@Override
 	public void pick(int screenX, int screenY, int x, int y)
 	{
-		if (cursorX == x && cursorY == y)
-		{
-			select();
-		}
+		super.pick(screenX, screenY, x, y);
 		weakPick(screenX, screenY, x, y);
 	}
 
 	@Override
 	public void weakPick(int screenX, int screenY, int x, int y)
 	{
-		cursorX = x;
-		cursorY = y;
-		if (range.movable.contains(battle.map.map[x][y]))
+		super.weakPick(screenX, screenY, x, y);
+		if (range.movable.contains(battle.map.map[cursorX][cursorY]))
 		{
 			recalculatePath();
 		}
-	}
-
-	@Override
-	public void release(int screenX, int screenY, int x, int y)
-	{
-
 	}
 
 	@Override
@@ -232,38 +217,10 @@ public class MoveUnitControlState implements ControlState
 
 	}
 
-
-	@Override
-	public void moveCam()
-	{
-		cursorPos.x = cursorX + 0.5f;
-		cursorPos.y = cursorY + 0.5f;
-
-		cursorPos.sub(battle.trueCamPos);
-		if (cursorPos.x > 0.3 * battle.world.viewportWidth)
-		{
-			battle.trueCamPos.x++;
-		}
-		if (cursorPos.x < -0.3 * battle.world.viewportWidth)
-		{
-			battle.trueCamPos.x--;
-		}
-		if (cursorPos.y > 0.3 * battle.world.viewportHeight)
-		{
-			battle.trueCamPos.y++;
-		}
-		if (cursorPos.y < -0.3 * battle.world.viewportHeight)
-		{
-			battle.trueCamPos.y--;
-		}
-
-		battle.world.position.lerp(battle.trueCamPos, 0.3f);
-	}
-
 	@Override
 	public void draw()
 	{
-		battle.main.batch.draw(battle.grid, cursorX, cursorY, 1, 1);
+		super.draw();
 
 		int x = originX;
 		int y = originY;

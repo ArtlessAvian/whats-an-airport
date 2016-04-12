@@ -10,23 +10,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-class MapTile
+public class MapTile
 {
-	BattleScreen battle;
+	private final BattleScreen battle;
 
 	int x = -1;
 	int y = -1;
 
-	Unit unit;
-	final WarsConst.TerrainType terrainType;
-	final Sprite sprite;
+	public Unit unit;
+	public final WarsConst.TerrainType terrainType;
+	private final Sprite sprite;
 
 	boolean debug; // TODO remove lol
 
-	private ArrayList<Color> colorPile;
-	HashMap<Object, Color> colorRegister;
+	private final ArrayList<Color> colorPile;
+	final HashMap<Object, Color> colorRegister;
 
-	final HashMap<MapTile, WarsConst.CardinalDir> neighbors;
+	public final HashMap<MapTile, WarsConst.CardinalDir> neighbors;
 
 	public MapTile(BattleScreen battle, int x, int y, WarsConst.TerrainType tileType, Texture tiles)
 	{
@@ -42,7 +42,9 @@ class MapTile
 		colorRegister = new HashMap<Object, Color>();
 
 		sprite = new Sprite(tiles);
-		WarsConst.uvGarbage(sprite, WarsConst.getID(terrainType));
+		WarsConst.uvTime(sprite, 0, 1);
+		WarsConst.uvValue(sprite, WarsConst.getID(terrainType), WarsConst.TerrainType.values().length);
+
 		sprite.setSize(1, 1);
 		sprite.setOrigin(0.5f, 0.5f);
 		sprite.setPosition(x, y);

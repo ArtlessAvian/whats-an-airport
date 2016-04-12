@@ -8,22 +8,21 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector3;
 
 
-class BattleScreen implements Screen
+public class BattleScreen implements Screen
 {
-	final WarsMain main; // Or i could do Gdx.app.getApplicationListener()
+	public final WarsMain main; // Or i could do Gdx.app.getApplicationListener()
 	private final ControlStateSystem controlStateSystem;
 
-	final Map map; // x, y
-	final int mapHeight = 20;
-	final int mapWidth = 30;
+	public final Map map; // x, y
+	public final int mapHeight = 20;
+	public final int mapWidth = 30;
 
-	final Texture grid;
+	public final Texture grid;
 	final Texture white;
-	Sprite scrollBox;
 
-	final Vector3 trueCamPos;
-	final OrthographicCamera world;
-
+	public final Vector3 trueCamPos;
+	public final OrthographicCamera world;
+	
 	public BattleScreen(WarsMain main)
 	{
 		this.main = main;
@@ -33,7 +32,6 @@ class BattleScreen implements Screen
 
 		grid = main.assetManager.get("Grid.png", Texture.class);
 		white = main.assetManager.get("White.png", Texture.class);
-		scrollBox = new Sprite(grid);
 
 		// I can probably figure out how to do palette swaps, but nah
 		String[] teams = {"Red", "Blue"};
@@ -95,18 +93,17 @@ class BattleScreen implements Screen
 		}
 
 		controlStateSystem.update(delta);
+		world.position.lerp(trueCamPos, 0.3f);
 
 		world.update();
 
 		main.batch.setProjectionMatrix(world.combined);
 		main.batch.begin();
 
-		// Draw Tiles
+		// Draw Tiles, then Units
 		map.draw(main.batch);
 
-		scrollBox.setCenter(world.position.x, world.position.y);
-		scrollBox.draw(main.batch, 0.1f);
-
+		// Draw stuff
 		controlStateSystem.draw();
 
 		main.batch.end();
@@ -118,8 +115,6 @@ class BattleScreen implements Screen
 		world.viewportHeight = 10;
 		world.viewportWidth = (float)width * world.viewportHeight / (float)height;
 		world.update();
-
-		scrollBox.setSize(0.6f * world.viewportWidth, 0.6f * world.viewportHeight);
 
 		for (int i = 0; i < 30; i++)
 		{

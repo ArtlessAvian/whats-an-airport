@@ -1,9 +1,10 @@
-package com.artlessavian.whatsanairport;
+package com.artlessavian.whatsanairport.ControlStates;
 
-interface ControlState
+public interface ControlState
 {
 	// Not a fan of this method :/
 	void enter(Object... varargs);
+
 	void cancelReturn();
 
 	// Directionals

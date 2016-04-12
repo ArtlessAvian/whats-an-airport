@@ -17,18 +17,27 @@ public class WarsConst
 
 	static TextureRegion[] healthTextures;
 
-	public static void uvGarbage(Sprite sprite, int number)
+	// Used to be cleaner with 1D spritesheets but bleh
+
+	public static void uvTime(Sprite sprite, int timeFrame, int width)
 	{
-		sprite.setU(sprite.getTexture().getHeight() / (float)sprite.getTexture().getWidth() * number);
-		sprite.setU2(sprite.getTexture().getHeight() / (float)sprite.getTexture().getWidth() * (number + 1));
+		sprite.setU(timeFrame / (float)width);
+		sprite.setU2((timeFrame + 1) / (float)width);
+
+	}
+
+	public static void uvValue(Sprite sprite, int value, int height)
+	{
+		sprite.setV(value / (float)height);
+		sprite.setV2((value + 1) / (float)height);
 	}
 
 	// Color Stuff
-	static final Color selectBlue = new Color(0.8f, 0.8f, 1f, 1f);
-	static Color selectRed = new Color(1f, 0.6f, 0.6f, 1f);
+	public static final Color selectBlue = new Color(0.8f, 0.8f, 1f, 1f);
+	public static final Color selectRed = new Color(1f, 0.6f, 0.6f, 1f);
 
-	static LinkedList<Color> dangerZones = new LinkedList<Color>();
-	static int inUse = 0;
+	private static final LinkedList<Color> dangerZones = new LinkedList<Color>();
+	private static int inUse = 0;
 
 	public static Color registerColor()
 	{
