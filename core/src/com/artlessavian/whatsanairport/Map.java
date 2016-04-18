@@ -1,10 +1,7 @@
 package com.artlessavian.whatsanairport;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-
-import java.util.HashMap;
 
 public class Map
 {
@@ -14,17 +11,12 @@ public class Map
 	private final int mapWidth;
 	private final int mapHeight;
 
-	private final HashMap<Object, Color> highlightRegister;
-	private final HashMap<MovementRange, Object> tileToObj;
 
 	public Map(BattleScreen battle, int width, int height)
 	{
 		this.battle = battle;
 
 		map = new MapTile[width][height];
-		highlightRegister = new HashMap<Object, Color>();
-		tileToObj = new HashMap<MovementRange, Object>();
-
 		mapWidth = width;
 		mapHeight = height;
 	}
@@ -52,22 +44,26 @@ public class Map
 				// lol gross
 				try
 				{
-					map[x][y].neighbors.put(map[x + 1][y], WarsConst.CardinalDir.RIGHT);
+					map[x][y].neighborToDir.put(map[x + 1][y], WarsConst.CardinalDir.RIGHT);
+					map[x][y].dirToNeighbor.put(WarsConst.CardinalDir.RIGHT, map[x + 1][y]);
 				}
 				catch (Exception e) {}
 				try
 				{
-					map[x][y].neighbors.put(map[x - 1][y], WarsConst.CardinalDir.LEFT);
+					map[x][y].neighborToDir.put(map[x - 1][y], WarsConst.CardinalDir.LEFT);
+					map[x][y].dirToNeighbor.put(WarsConst.CardinalDir.LEFT, map[x - 1][y]);
 				}
 				catch (Exception e) {}
 				try
 				{
-					map[x][y].neighbors.put(map[x][y + 1], WarsConst.CardinalDir.UP);
+					map[x][y].neighborToDir.put(map[x][y + 1], WarsConst.CardinalDir.UP);
+					map[x][y].dirToNeighbor.put(WarsConst.CardinalDir.UP, map[x][y + 1]);
 				}
 				catch (Exception e) {}
 				try
 				{
-					map[x][y].neighbors.put(map[x][y - 1], WarsConst.CardinalDir.DOWN);
+					map[x][y].neighborToDir.put(map[x][y - 1], WarsConst.CardinalDir.DOWN);
+					map[x][y].dirToNeighbor.put(WarsConst.CardinalDir.DOWN, map[x][y - 1]);
 				}
 				catch (Exception e) {}
 			}
@@ -83,6 +79,7 @@ public class Map
 				map[x][y].draw(batch);
 			}
 		}
+
 		for (int x = 0; x < mapWidth; x++)
 		{
 			for (int y = 0; y < mapHeight; y++)

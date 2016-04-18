@@ -185,33 +185,12 @@ public class MovingUnitControlState implements ControlState
 	@Override
 	public void moveCam()
 	{
-		cursorPos.x = x + 0.5f;
-		cursorPos.y = y + 0.5f;
-
-		cursorPos.sub(battle.trueCamPos);
-		if (cursorPos.x > 0.3 * battle.world.viewportWidth)
-		{
-			battle.trueCamPos.x++;
-		}
-		if (cursorPos.x < -0.3 * battle.world.viewportWidth)
-		{
-			battle.trueCamPos.x--;
-		}
-		if (cursorPos.y > 0.3 * battle.world.viewportHeight)
-		{
-			battle.trueCamPos.y++;
-		}
-		if (cursorPos.y < -0.3 * battle.world.viewportHeight)
-		{
-			battle.trueCamPos.y--;
-		}
-
-		battle.world.position.lerp(battle.trueCamPos, 0.3f);
+		CommonStateFunctions.focus(battle, 3, selectedUnit.sprite.getX() + 0.5f, selectedUnit.sprite.getY() + 0.5f);
 	}
 
 	@Override
 	public void draw()
 	{
-
+		CommonStateFunctions.drawFocus(battle, 3);
 	}
 }

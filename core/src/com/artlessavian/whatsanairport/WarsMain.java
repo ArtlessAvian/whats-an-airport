@@ -16,10 +16,10 @@ public class WarsMain extends Game
 {
 	public SpriteBatch batch;
 	AssetManager assetManager;
-	BitmapFont font;
+	public BitmapFont font;
 	private boolean finishedLoading;
 
-	OrthographicCamera screen;
+	public OrthographicCamera screen;
 
 	@Override
 	public void create()

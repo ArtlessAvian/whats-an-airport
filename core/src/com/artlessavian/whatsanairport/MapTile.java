@@ -6,9 +6,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.*;
 
 public class MapTile
 {
@@ -26,7 +24,9 @@ public class MapTile
 	private final ArrayList<Color> colorPile;
 	final HashMap<Object, Color> colorRegister;
 
-	public final HashMap<MapTile, WarsConst.CardinalDir> neighbors;
+	// BiMap?
+	public final HashMap<MapTile, WarsConst.CardinalDir> neighborToDir;
+	public final EnumMap<WarsConst.CardinalDir, MapTile> dirToNeighbor;
 
 	public MapTile(BattleScreen battle, int x, int y, WarsConst.TerrainType tileType, Texture tiles)
 	{
@@ -36,7 +36,8 @@ public class MapTile
 		this.y = y;
 		this.terrainType = tileType;
 
-		neighbors = new HashMap<MapTile, WarsConst.CardinalDir>();
+		neighborToDir = new HashMap<MapTile, WarsConst.CardinalDir>();
+		dirToNeighbor = new EnumMap<WarsConst.CardinalDir, MapTile>(WarsConst.CardinalDir.class);
 
 		colorPile = new ArrayList<Color>();
 		colorRegister = new HashMap<Object, Color>();
@@ -55,7 +56,7 @@ public class MapTile
 		new Unit(battle, this, type);
 	}
 
-	public MovementRange getRange(int move, String team, boolean direct, int minIndir, int maxIndir)
+	public MovementRange getRange(int move, String team, boolean canAttackAfterMove, int minIndir, int maxIndir)
 	{
 		MovementRange range = new MovementRange();
 
@@ -91,7 +92,7 @@ public class MapTile
 			frontier.remove(current);
 
 			// Expand
-			for (MapTile neighbor : current.neighbors.keySet())
+			for (MapTile neighbor : current.neighborToDir.keySet())
 			{
 				if (!visited.contains(neighbor))
 				{
@@ -102,7 +103,7 @@ public class MapTile
 						visited.add(neighbor);
 						movementCost.put(neighbor, newCost);
 						cameFrom.put(neighbor, current);
-					} else if (direct && !edgeAttackable.contains(neighbor))
+					} else if (canAttackAfterMove && !edgeAttackable.contains(neighbor))
 					{
 						edgeAttackable.add(neighbor);
 					}
@@ -110,9 +111,9 @@ public class MapTile
 			}
 		}
 
-		if (!direct)
+		if (!canAttackAfterMove)
 		{
-			// TODO add indirect attack
+
 		} else
 		{
 			// Direct units should be able to reach moved areas
@@ -121,11 +122,6 @@ public class MapTile
 		}
 
 		return range;
-	}
-
-	private HashMap<MapTile, WarsConst.CardinalDir> getNeighbors()
-	{
-		return neighbors;
 	}
 
 	public void register(Object caller, Color target)

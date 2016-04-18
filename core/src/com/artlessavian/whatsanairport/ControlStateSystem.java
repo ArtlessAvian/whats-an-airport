@@ -1,9 +1,6 @@
 package com.artlessavian.whatsanairport;
 
-import com.artlessavian.whatsanairport.ControlStates.ControlState;
-import com.artlessavian.whatsanairport.ControlStates.MoveUnitControlState;
-import com.artlessavian.whatsanairport.ControlStates.MovingUnitControlState;
-import com.artlessavian.whatsanairport.ControlStates.SelectUnitControlState;
+import com.artlessavian.whatsanairport.ControlStates.*;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
@@ -28,7 +25,6 @@ public class ControlStateSystem extends InputAdapter
 	private boolean isCancelling;
 
 	private final Vector3 helper = new Vector3();
-	private float camAccumulator;
 	
 	public ControlStateSystem(BattleScreen battleScreen)
 	{
@@ -38,7 +34,6 @@ public class ControlStateSystem extends InputAdapter
 		heldDirection = null;
 		timeHeld = 0;
 		accumulator = 0;
-		camAccumulator = 0;
 
 		stateHashMap = new HashMap<Class, ControlState>();
 		// Populate States
@@ -46,6 +41,7 @@ public class ControlStateSystem extends InputAdapter
 		stateHashMap.put(MoveUnitControlState.class, new MoveUnitControlState(this));
 		stateHashMap.put(MovingUnitControlState.class, new MovingUnitControlState(this));
 		stateHashMap.put(UnitOptionsControlState.class, new UnitOptionsControlState(this));
+		stateHashMap.put(ChooseAttackControlState.class, new ChooseAttackControlState(this));
 
 		setState(SelectUnitControlState.class);
 	}
@@ -258,11 +254,6 @@ public class ControlStateSystem extends InputAdapter
 
 		// State stuff
 		state.update(delta);
-		camAccumulator += delta;
-		if (camAccumulator > 0.3f)
-		{
-			state.moveCam();
-			camAccumulator -= 0.3f;
-		}
+		state.moveCam();
 	}
 }

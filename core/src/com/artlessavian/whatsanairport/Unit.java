@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 
 public class Unit
 {
@@ -22,7 +23,7 @@ public class Unit
 
 	public final String team;
 
-	MapTile tile;
+	public MapTile tile;
 
 	public final Sprite sprite;
 	public final TextureRegion firstFrame;
@@ -48,7 +49,21 @@ public class Unit
 	public MovementRange getRange()
 	{
 		return tile.getRange(movement, team, true, 0, 0);
+	}
 
+	public LinkedList<Unit> getAttackableUnits(boolean moved)
+	{
+		MovementRange temp = tile.getRange(0, team, true, 0, 0);
+		LinkedList<Unit> attackable = new LinkedList<Unit>();
+		for (MapTile t : temp.attackable)
+		{
+			if (t.unit != null && !t.unit.team.equals(this.team))
+			{
+				attackable.add(t.unit);
+			}
+		}
+
+		return attackable;
 	}
 
 	public void makeDangerZone()
@@ -198,6 +213,5 @@ public class Unit
 		{
 			batch.draw(WarsConst.healthTextures[health - 1], sprite.getX() + 3 / 4f, sprite.getY(), 1 / 4f, 1 / 2f);
 		}
-
 	}
 }

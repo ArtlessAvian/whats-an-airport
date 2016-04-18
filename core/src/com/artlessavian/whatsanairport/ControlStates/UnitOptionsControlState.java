@@ -1,8 +1,9 @@
-package com.artlessavian.whatsanairport;
+package com.artlessavian.whatsanairport.ControlStates;
 
-import com.artlessavian.whatsanairport.ControlStates.ControlState;
-import com.artlessavian.whatsanairport.ControlStates.MoveUnitControlState;
-import com.artlessavian.whatsanairport.ControlStates.SelectUnitControlState;
+import com.artlessavian.whatsanairport.BattleScreen;
+import com.artlessavian.whatsanairport.ControlStateSystem;
+import com.artlessavian.whatsanairport.MapTile;
+import com.artlessavian.whatsanairport.Unit;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector3;
@@ -72,7 +73,7 @@ public class UnitOptionsControlState implements ControlState
 
 			// Attack if not joining and can attack
 			boolean canAttack = false;
-			for (MapTile t : selectedUnit.tile.neighbors.keySet())
+			for (MapTile t : selectedUnit.tile.neighborToDir.keySet())
 			{
 				if (t.unit != null && !t.unit.team.equals(selectedUnit.team))
 				{
@@ -223,17 +224,8 @@ public class UnitOptionsControlState implements ControlState
 			case ATTACK:
 			{
 				// Probably an attack control state
-				for (MapTile t : selectedUnit.tile.neighbors.keySet())
-				{
-					if (t.unit != null && !t.unit.team.equals(selectedUnit.team))
-					{
-						selectedUnit.attack(t.unit, false);
-						break;
-					}
-				}
-
 				selectedUnit.sprite.setRotation(0);
-				controlStateSystem.setState(SelectUnitControlState.class).enter(x, y);
+				controlStateSystem.setState(ChooseAttackControlState.class).enter(x, y, selectedUnit);
 				break;
 			}
 

@@ -18,7 +18,7 @@ public class BattleScreen implements Screen
 	public final int mapWidth = 30;
 
 	public final Texture grid;
-	final Texture white;
+	public final Texture white;
 
 	public final Vector3 trueCamPos;
 	public final OrthographicCamera world;

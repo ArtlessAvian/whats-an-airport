@@ -115,7 +115,7 @@ public class MoveUnitControlState extends CursorControlState
 		while (current != battle.map.map[originX][originY])
 		{
 			MapTile from = range.cameFrom.get(current);
-			path.addFirst(from.neighbors.get(current));
+			path.addFirst(from.neighborToDir.get(current));
 			current = from;
 		}
 	}
@@ -170,9 +170,10 @@ public class MoveUnitControlState extends CursorControlState
 	@Override
 	public void weakPick(int screenX, int screenY, int x, int y)
 	{
-		super.weakPick(screenX, screenY, x, y);
-		if (range.movable.contains(battle.map.map[cursorX][cursorY]))
+		if (range.movable.contains(battle.map.map[x][y]))
 		{
+			cursorX = x;
+			cursorY = y;
 			recalculatePath();
 		}
 	}
