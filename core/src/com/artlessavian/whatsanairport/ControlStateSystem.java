@@ -26,9 +26,9 @@ public class ControlStateSystem extends InputAdapter
 
 	private final Vector3 helper = new Vector3();
 	
-	public ControlStateSystem(BattleScreen battleScreen)
+	public ControlStateSystem()
 	{
-		battle = battleScreen;
+		this.battle = BattleScreen.getInstance();
 		Gdx.input.setInputProcessor(this);
 
 		heldDirection = null;
@@ -41,13 +41,14 @@ public class ControlStateSystem extends InputAdapter
 		stateHashMap.put(MoveUnitControlState.class, new MoveUnitControlState(this));
 		stateHashMap.put(MovingUnitControlState.class, new MovingUnitControlState(this));
 		stateHashMap.put(UnitOptionsControlState.class, new UnitOptionsControlState(this));
-		stateHashMap.put(ChooseAttackControlState.class, new ChooseAttackControlState(this));
+		stateHashMap.put(AttackControlState.class, new AttackControlState(this));
 
 		setState(SelectUnitControlState.class);
 	}
 
 	public ControlState setState(Class<? extends ControlState> clazz)
 	{
+		if (state != null) {state.onExit();}
 		state = stateHashMap.get(clazz);
 		if (state == null)
 		{
@@ -75,6 +76,8 @@ public class ControlStateSystem extends InputAdapter
 	@Override
 	public boolean keyDown(int keycode)
 	{
+		accumulator = 0;
+
 		switch (keycode)
 		{
 			case Input.Keys.W:
@@ -113,12 +116,14 @@ public class ControlStateSystem extends InputAdapter
 			}
 			case Input.Keys.K:
 			{
-				battle.world.zoom *= 2f;
+				battle.screenTileHeight += 2;
+				battle.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 				break;
 			}
 			case Input.Keys.L:
 			{
-				battle.world.zoom /= 2f;
+				battle.screenTileHeight -= 2;
+				battle.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 				break;
 			}
 
@@ -181,7 +186,7 @@ public class ControlStateSystem extends InputAdapter
 	{
 		if (this.pointer == pointer)
 		{
-			timePressed = 0;
+			timePressed = -1;
 
 			screenToWorld(screenX, screenY);
 			state.weakPick(screenX, Gdx.graphics.getHeight() - screenY, (int)helper.x, (int)helper.y);
@@ -192,29 +197,7 @@ public class ControlStateSystem extends InputAdapter
 
 	private void doDirection()
 	{
-		switch (heldDirection)
-		{
-			case UP:
-			{
-				state.up();
-				break;
-			}
-			case DOWN:
-			{
-				state.down();
-				break;
-			}
-			case LEFT:
-			{
-				state.left();
-				break;
-			}
-			case RIGHT:
-			{
-				state.right();
-				break;
-			}
-		}
+		state.doDirection(heldDirection);
 	}
 
 	public void update(float delta)
@@ -222,11 +205,15 @@ public class ControlStateSystem extends InputAdapter
 		// Touch Stuff
 		if (this.pointer != -1)
 		{
-			this.timePressed += delta;
-			if (this.timePressed > 1)
+			if (this.timePressed >= 0)
+			{
+				this.timePressed += delta;
+			}
+
+			if (this.timePressed > 0.3)
 			{
 				state.cancel();
-				this.timePressed -= 1;
+				this.timePressed = -1;
 				isCancelling = true;
 			}
 		}

@@ -35,6 +35,9 @@ public class WarsMain extends Game
 		assetManager.load("Units/Blue/Soldier.png", Texture.class);
 
 		font = new BitmapFont();
+		font.getData().setLineHeight(font.getCapHeight() + 10);
+		font.getData().padTop = 5;
+		font.getData().padBottom = 5;
 
 		screen = new OrthographicCamera();
 
@@ -67,10 +70,10 @@ public class WarsMain extends Game
 
 		screen.viewportWidth = width;
 		screen.viewportHeight = height;
-		screen.position.x = width / 2f;
-		screen.position.y = height / 2f;
+		screen.position.x = screen.viewportWidth / 2f;
+		screen.position.y = screen.viewportHeight / 2f;
 
-		font.getData().setScale(height / 20f / 12f);
+		font.getData().setScale(screen.viewportHeight / 20f / 12f);
 
 		screen.update();
 	}

@@ -1,30 +1,23 @@
 package com.artlessavian.whatsanairport.ControlStates;
 
-import com.artlessavian.whatsanairport.BattleScreen;
 import com.artlessavian.whatsanairport.ControlStateSystem;
 import com.badlogic.gdx.math.Vector3;
 
-public abstract class CursorControlState implements ControlState
+public abstract class CursorControlState extends ControlState
 {
-	private final ControlStateSystem controlStateSystem;
-	private final BattleScreen battle;
-
 	int cursorX;
 	int cursorY;
-	private final Vector3 cursorPos;
 
 	private boolean initPressReleased;
 
 	CursorControlState(ControlStateSystem controlStateSystem)
 	{
-		this.controlStateSystem = controlStateSystem;
-		this.battle = controlStateSystem.battle;
-		cursorPos = new Vector3();
+		super(controlStateSystem);
 		initPressReleased = true;
 	}
 
 	@Override
-	public void enter(Object... varargs)
+	public void onEnter(Object... varargs)
 	{
 		cursorX = (Integer)varargs[0];
 		cursorY = (Integer)varargs[1];
@@ -32,36 +25,47 @@ public abstract class CursorControlState implements ControlState
 	}
 
 	@Override
-	public void up()
+	public boolean up()
 	{
 		if (cursorY < battle.mapHeight - 1)
 		{
 			cursorY++;
+			return true;
 		}
+		return false;
 	}
 
 	@Override
-	public void down()
+	public boolean down()
 	{
 		if (cursorY > 0)
 		{
 			cursorY--;
+			return true;
 		}
+		return false;
 	}
 
 	@Override
-	public void left()
+	public boolean left()
 	{
 		if (cursorX > 0)
 		{
 			cursorX--;
+			return true;
 		}
+		return false;
 	}
 
 	@Override
-	public void right()
+	public boolean right()
 	{
-		if (cursorX < battle.mapWidth - 1) {cursorX++;}
+		if (cursorX < battle.mapWidth - 1)
+		{
+			cursorX++;
+			return true;
+		}
+		return false;
 	}
 
 	@Override
@@ -73,10 +77,13 @@ public abstract class CursorControlState implements ControlState
 			{
 				select();
 			}
-			cursorX = x;
-			cursorY = y;
+			else
+			{
+				cursorX = x;
+				cursorY = y;
 
-			moveCam();
+				moveCam();
+			}
 		}
 	}
 
@@ -89,13 +96,13 @@ public abstract class CursorControlState implements ControlState
 	@Override
 	public void moveCam()
 	{
-		CommonStateFunctions.focus(battle, 2, cursorX + 0.5f, cursorY + 0.5f);
+		CommonStateFunctions.focus(2, cursorX + 0.5f, cursorY + 0.5f);
 	}
 
 	@Override
 	public void draw()
 	{
 		battle.main.batch.draw(battle.grid, cursorX, cursorY, 1, 1);
-		CommonStateFunctions.drawFocus(battle, 2);
+		CommonStateFunctions.drawFocus(2);
 	}
 }

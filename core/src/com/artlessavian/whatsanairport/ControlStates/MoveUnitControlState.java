@@ -2,17 +2,16 @@ package com.artlessavian.whatsanairport.ControlStates;
 
 import com.artlessavian.whatsanairport.*;
 
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Deque;
 
 public class MoveUnitControlState extends CursorControlState
 {
-	private final ControlStateSystem controlStateSystem;
-	private final BattleScreen battle;
-
 	private Unit selectedUnit;
-	private final LinkedList<WarsConst.CardinalDir> path;
+	private final Deque<WarsConst.CardinalDir> path;
 	private int movementCost;
-	private MovementRange range;
+	private RangeInfo range;
 	private boolean wasOutside = false;
 
 	private int originX;
@@ -21,16 +20,14 @@ public class MoveUnitControlState extends CursorControlState
 	public MoveUnitControlState(ControlStateSystem controlStateSystem)
 	{
 		super(controlStateSystem);
-		this.controlStateSystem = controlStateSystem;
-		this.battle = controlStateSystem.battle;
 
 		path = new LinkedList<WarsConst.CardinalDir>();
 	}
 
 	@Override
-	public void enter(Object... varargs)
+	public void onEnter(Object... varargs)
 	{
-		super.enter(varargs[0], varargs[1]);
+		super.onEnter(varargs[0], varargs[1]);
 		
 		path.clear();
 		movementCost = 0;
@@ -42,7 +39,7 @@ public class MoveUnitControlState extends CursorControlState
 		selectedUnit = (Unit)varargs[2];
 
 		range = selectedUnit.getRange();
-		for (MapTile t : range.edgeAttackable)
+		for (MapTile t : range.attackable)
 		{
 			t.register(this, WarsConst.selectRed);
 			//t.debug = true;
@@ -54,9 +51,22 @@ public class MoveUnitControlState extends CursorControlState
 	}
 
 	@Override
-	public void cancelReturn()
+	public void onExit()
 	{
-		for (MapTile t : range.edgeAttackable)
+		for (MapTile t : range.attackable)
+		{
+			t.deregister(this);
+		}
+		for (MapTile t : range.movable)
+		{
+			t.deregister(this);
+		}
+	}
+
+	@Override
+	public void onReturn()
+	{
+		for (MapTile t : range.attackable)
 		{
 			t.register(this, WarsConst.selectRed);
 			//t.debug = true;
@@ -77,22 +87,26 @@ public class MoveUnitControlState extends CursorControlState
 				wasOutside = false;
 			} else
 			{
-				if (path.peekLast() == WarsConst.CardinalDir.UP && dir == WarsConst.CardinalDir.DOWN)
+				if (path.peek() == WarsConst.CardinalDir.UP && dir == WarsConst.CardinalDir.DOWN)
 				{
-					path.removeLast();
-				} else if (path.peekLast() == WarsConst.CardinalDir.DOWN && dir == WarsConst.CardinalDir.UP)
+					path.pop();
+					movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
+				} else if (path.peek() == WarsConst.CardinalDir.DOWN && dir == WarsConst.CardinalDir.UP)
 				{
-					path.removeLast();
-				} else if (path.peekLast() == WarsConst.CardinalDir.LEFT && dir == WarsConst.CardinalDir.RIGHT)
+					path.pop();
+					movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
+				} else if (path.peek() == WarsConst.CardinalDir.LEFT && dir == WarsConst.CardinalDir.RIGHT)
 				{
-					path.removeLast();
-				} else if (path.peekLast() == WarsConst.CardinalDir.RIGHT && dir == WarsConst.CardinalDir.LEFT)
+					path.pop();
+					movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
+				} else if (path.peek() == WarsConst.CardinalDir.RIGHT && dir == WarsConst.CardinalDir.LEFT)
 				{
-					path.removeLast();
+					path.pop();
+					movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
 				} else
 				{
-					path.addLast(dir);
-					movementCost += WarsConst.getFootMoveCost(battle.map.map[cursorX][cursorY].terrainType);
+					path.push(dir);
+					movementCost += battle.map.map[cursorX][cursorY].terrainType.infantryMove;
 
 					if (movementCost > selectedUnit.movement && range.movable.contains(battle.map.map[cursorX][cursorY]))
 					{
@@ -112,53 +126,25 @@ public class MoveUnitControlState extends CursorControlState
 		movementCost = range.movementCost.get(current);
 		path.clear();
 
-		while (current != battle.map.map[originX][originY])
+		while(current != battle.map.map[originX][originY])
 		{
 			MapTile from = range.cameFrom.get(current);
-			path.addFirst(from.neighborToDir.get(current));
+			path.addLast(from.neighborToDir.get(current));
 			current = from;
 		}
 	}
 
 	@Override
-	public void up()
+	public boolean doDirection(WarsConst.CardinalDir direction)
 	{
-		super.up();
-		if (cursorY < battle.mapHeight)
+		if (super.doDirection(direction))
 		{
-			pathStuff(WarsConst.CardinalDir.UP);
+			pathStuff(direction);
+			return true;
 		}
+		return false;
 	}
 
-	@Override
-	public void down()
-	{
-		super.down();
-		if (cursorY >= 0)
-		{
-			pathStuff(WarsConst.CardinalDir.DOWN);
-		}
-	}
-
-	@Override
-	public void left()
-	{
-		super.left();
-		if (cursorX >= 0)
-		{
-			pathStuff(WarsConst.CardinalDir.LEFT);
-		}
-	}
-
-	@Override
-	public void right()
-	{
-		super.right();
-		if (cursorX < battle.mapWidth)
-		{
-			pathStuff(WarsConst.CardinalDir.RIGHT);
-		}
-	}
 
 	@Override
 	public void pick(int screenX, int screenY, int x, int y)
@@ -185,15 +171,7 @@ public class MoveUnitControlState extends CursorControlState
 		{
 			if (range.movable.contains(battle.map.map[cursorX][cursorY]))
 			{
-				for (MapTile t : range.movable)
-				{
-					t.deregister(this);
-				}
-				for (MapTile t : range.edgeAttackable)
-				{
-					t.deregister(this);
-				}
-				controlStateSystem.setState(MovingUnitControlState.class).enter(selectedUnit, path, originX, originY);
+				controlStateSystem.setState(MovingUnitControlState.class).onEnter(selectedUnit, path, originX, originY);
 			}
 		}
 	}
@@ -201,14 +179,6 @@ public class MoveUnitControlState extends CursorControlState
 	@Override
 	public void cancel()
 	{
-		for (MapTile t : range.movable)
-		{
-			t.deregister(this);
-		}
-		for (MapTile t : range.edgeAttackable)
-		{
-			t.deregister(this);
-		}
 		controlStateSystem.setState(SelectUnitControlState.class);
 	}
 
@@ -226,9 +196,11 @@ public class MoveUnitControlState extends CursorControlState
 		int x = originX;
 		int y = originY;
 
-		for (WarsConst.CardinalDir dir : path)
+		Iterator<WarsConst.CardinalDir> bleh = path.descendingIterator();
+		while (bleh.hasNext())
 		{
-			switch (dir)
+			WarsConst.CardinalDir next = bleh.next();
+			switch (next)
 			{
 				case UP:
 				{

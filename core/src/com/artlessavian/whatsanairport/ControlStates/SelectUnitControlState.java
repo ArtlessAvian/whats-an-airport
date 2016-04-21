@@ -17,13 +17,19 @@ public class SelectUnitControlState extends CursorControlState
 	}
 
 	@Override
-	public void enter(Object... varargs)
+	public void onEnter(Object... varargs)
 	{
-		super.enter(varargs[0], varargs[1]);
+		super.onEnter(varargs[0], varargs[1]);
 	}
 
 	@Override
-	public void cancelReturn()
+	public void onExit()
+	{
+		// This will never happen
+	}
+
+	@Override
+	public void onReturn()
 	{
 
 	}
@@ -40,7 +46,7 @@ public class SelectUnitControlState extends CursorControlState
 		Unit unit = battle.map.map[cursorX][cursorY].unit;
 		if (unit != null)
 		{
-			controlStateSystem.setState(MoveUnitControlState.class).enter(cursorX, cursorY, unit);
+			controlStateSystem.setState(MoveUnitControlState.class).onEnter(cursorX, cursorY, unit);
 		}
 	}
 

@@ -12,8 +12,8 @@ public class MapTile
 {
 	private final BattleScreen battle;
 
-	int x = -1;
-	int y = -1;
+	public int x = -1;
+	public int y = -1;
 
 	public Unit unit;
 	public final WarsConst.TerrainType terrainType;
@@ -28,9 +28,9 @@ public class MapTile
 	public final HashMap<MapTile, WarsConst.CardinalDir> neighborToDir;
 	public final EnumMap<WarsConst.CardinalDir, MapTile> dirToNeighbor;
 
-	public MapTile(BattleScreen battle, int x, int y, WarsConst.TerrainType tileType, Texture tiles)
+	public MapTile(int x, int y, WarsConst.TerrainType tileType, Texture tiles)
 	{
-		this.battle = battle;
+		this.battle = BattleScreen.getInstance();
 
 		this.x = x;
 		this.y = y;
@@ -44,7 +44,7 @@ public class MapTile
 
 		sprite = new Sprite(tiles);
 		WarsConst.uvTime(sprite, 0, 1);
-		WarsConst.uvValue(sprite, WarsConst.getID(terrainType), WarsConst.TerrainType.values().length);
+		WarsConst.uvValue(sprite, terrainType.id, WarsConst.TerrainType.values().length);
 
 		sprite.setSize(1, 1);
 		sprite.setOrigin(0.5f, 0.5f);
@@ -53,76 +53,9 @@ public class MapTile
 
 	public void createUnit(String type)
 	{
-		new Unit(battle, this, type);
+		new Unit(this, type);
 	}
 
-	public MovementRange getRange(int move, String team, boolean canAttackAfterMove, int minIndir, int maxIndir)
-	{
-		MovementRange range = new MovementRange();
-
-		LinkedList<MapTile> visited = range.movable;
-		LinkedList<MapTile> edgeAttackable = range.edgeAttackable;
-		LinkedList<MapTile> attackable = range.attackable;
-
-		// Dijkstra's for movement
-		LinkedList<MapTile> frontier = new LinkedList<MapTile>();
-
-		HashMap<MapTile, Integer> movementCost = range.movementCost;
-		HashMap<MapTile, MapTile> cameFrom = range.cameFrom;
-
-		frontier.add(this);
-		visited.add(this);
-		movementCost.put(this, 0);
-
-		while (!frontier.isEmpty())
-		{
-			// Get least moved
-			MapTile current = null;
-			int cost = 0;
-
-			for (MapTile t : frontier)
-			{
-				if (current == null || movementCost.get(t) < cost)
-				{
-					cost = movementCost.get(t);
-					current = t;
-				}
-			}
-
-			frontier.remove(current);
-
-			// Expand
-			for (MapTile neighbor : current.neighborToDir.keySet())
-			{
-				if (!visited.contains(neighbor))
-				{
-					int newCost = cost + WarsConst.getFootMoveCost(neighbor.terrainType);
-					if (newCost <= move && (neighbor.unit == null || neighbor.unit.team.equals(team)))
-					{
-						frontier.add(neighbor);
-						visited.add(neighbor);
-						movementCost.put(neighbor, newCost);
-						cameFrom.put(neighbor, current);
-					} else if (canAttackAfterMove && !edgeAttackable.contains(neighbor))
-					{
-						edgeAttackable.add(neighbor);
-					}
-				}
-			}
-		}
-
-		if (!canAttackAfterMove)
-		{
-
-		} else
-		{
-			// Direct units should be able to reach moved areas
-			attackable.addAll(visited);
-			attackable.addAll(edgeAttackable);
-		}
-
-		return range;
-	}
 
 	public void register(Object caller, Color target)
 	{

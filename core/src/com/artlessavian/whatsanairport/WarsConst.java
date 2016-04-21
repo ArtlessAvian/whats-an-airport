@@ -68,18 +68,16 @@ public class WarsConst
 
 	public enum TerrainType
 	{
-		PLAINS, MOUNTAIN, RIVER
-	}
+		PLAINS(0, 1), MOUNTAIN(1, 2), RIVER(2, 2);
 
-	public static int getID(TerrainType type)
-	{
-		switch (type)
+		final int id;
+		public final int infantryMove;
+
+		TerrainType(int id, int infantryMove)
 		{
-			case PLAINS: {return 0;}
-			case MOUNTAIN: {return 1;}
-			case RIVER: {return 2;}
+			this.id = id;
+			this.infantryMove = infantryMove;
 		}
-		return 0;
 	}
 
 	public static TerrainType getTerrain(int id)
@@ -91,16 +89,5 @@ public class WarsConst
 			case 2: {return TerrainType.RIVER;}
 		}
 		return TerrainType.PLAINS;
-	}
-
-	public static int getFootMoveCost(TerrainType type)
-	{
-		switch (type)
-		{
-			case PLAINS: {return 1;}
-			case MOUNTAIN: {return 2;}
-			case RIVER: {return 2;}
-		}
-		return 3333;
 	}
 }

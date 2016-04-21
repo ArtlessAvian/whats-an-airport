@@ -4,15 +4,17 @@ import com.artlessavian.whatsanairport.BattleScreen;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector3;
 
-public class CommonStateFunctions
+class CommonStateFunctions
 {
-	private static Vector3 helper = new Vector3();
+	private static final Vector3 helper = new Vector3();
 	private static final Sprite scrollBox = new Sprite();
 
-	private CommonStateFunctions() {};
+	private CommonStateFunctions() {}
 
-	public static void focus(BattleScreen battle, float leeway, float focusX, float focusY)
+	public static void focus(float leeway, float focusX, float focusY)
 	{
+		BattleScreen battle = BattleScreen.getInstance();
+
 		helper.x = focusX;
 		helper.y = focusY;
 
@@ -45,8 +47,9 @@ public class CommonStateFunctions
 		}
 	}
 
-	public static void drawFocus(BattleScreen battle, float leeway)
+	public static void drawFocus(float leeway)
 	{
+		BattleScreen battle = BattleScreen.getInstance();
 		if (scrollBox.getTexture() == null) {scrollBox.setTexture(battle.grid); scrollBox.setRegion(0f,0f,1f,1f);}
 		scrollBox.setSize(battle.world.viewportWidth - 2 * leeway, battle.world.viewportHeight - 2 * leeway);
 		scrollBox.setCenter(battle.world.position.x, battle.world.position.y);

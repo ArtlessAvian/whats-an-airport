@@ -4,7 +4,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector3;
 
 
@@ -13,9 +12,23 @@ public class BattleScreen implements Screen
 	public final WarsMain main; // Or i could do Gdx.app.getApplicationListener()
 	private final ControlStateSystem controlStateSystem;
 
+	public static BattleScreen instance = null;
+
+	public void setAsInstance()
+	{
+		instance = this;
+	}
+
+	public static BattleScreen getInstance()
+	{
+		return instance;
+	}
+
 	public final Map map; // x, y
 	public final int mapHeight = 20;
 	public final int mapWidth = 30;
+
+	public int screenTileHeight = 10;
 
 	public final Texture grid;
 	public final Texture white;
@@ -26,6 +39,8 @@ public class BattleScreen implements Screen
 	public BattleScreen(WarsMain main)
 	{
 		this.main = main;
+
+		this.setAsInstance();
 
 		// Get Assets
 		Texture terrain = main.assetManager.get("Terrain.png", Texture.class);
@@ -50,11 +65,11 @@ public class BattleScreen implements Screen
 		}
 
 		// Game Stuff
-		controlStateSystem = new ControlStateSystem(this);
+		controlStateSystem = new ControlStateSystem();
 
 		// Probably bad practice idk
 		// As long as its consistent: [x][y]
-		map = new Map(this, mapWidth, mapHeight);
+		map = new Map(mapWidth, mapHeight);
 
 		map.debugGeneration(terrain);
 		map.establishNeighbors();
@@ -112,7 +127,7 @@ public class BattleScreen implements Screen
 	@Override
 	public void resize(int width, int height)
 	{
-		world.viewportHeight = 10;
+		world.viewportHeight = screenTileHeight;
 		world.viewportWidth = (float)width * world.viewportHeight / (float)height;
 		world.update();
 

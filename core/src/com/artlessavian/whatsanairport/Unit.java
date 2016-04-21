@@ -7,18 +7,18 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 
 public class Unit
 {
-	private final BattleScreen battle;
+	//private final BattleScreen battle;
 
-	private int health = 10;
+	public int health = 10;
 	public final int movement = 3;
 
 	public boolean isDangerZoned;
-	private MovementRange oldDangerZone;
+	private RangeInfo oldDangerZone;
 	private Color dangerColor;
 
 	public final String team;
@@ -30,9 +30,9 @@ public class Unit
 
 	static HashMap<String, Texture> textures;
 
-	public Unit(BattleScreen battle, MapTile tile, String type)
+	public Unit(MapTile tile, String type)
 	{
-		this.battle = battle;
+		//this.battle = BattleScreen.getInstance();
 
 		this.sprite = new Sprite(textures.get(type));
 		sprite.setRegion(0, 0, sprite.getTexture().getHeight(), sprite.getTexture().getHeight());
@@ -46,15 +46,15 @@ public class Unit
 		tile.unit = this;
 	}
 
-	public MovementRange getRange()
+	public RangeInfo getRange()
 	{
-		return tile.getRange(movement, team, true, 0, 0);
+		return new RangeInfo(tile, movement, team, true, 0, 0);
 	}
 
-	public LinkedList<Unit> getAttackableUnits(boolean moved)
+	public ArrayList<Unit> getAttackableUnits(boolean moved)
 	{
-		MovementRange temp = tile.getRange(0, team, true, 0, 0);
-		LinkedList<Unit> attackable = new LinkedList<Unit>();
+		RangeInfo temp = new RangeInfo(tile, 0, team, true, 0, 0);
+		ArrayList<Unit> attackable = new ArrayList<Unit>();
 		for (MapTile t : temp.attackable)
 		{
 			if (t.unit != null && !t.unit.team.equals(this.team))
@@ -70,7 +70,7 @@ public class Unit
 	{
 		if (dangerColor == null) {registerColor();}
 
-		oldDangerZone = tile.getRange(movement, team, true, 0, 0);
+		oldDangerZone = new RangeInfo(tile, movement, team, true, 0, 0);
 		for (MapTile t : oldDangerZone.attackable)
 		{
 			t.register(this, dangerColor);
@@ -155,7 +155,7 @@ public class Unit
 
 		if (isDangerZoned)
 		{
-			oldDangerZone = this.tile.getRange(movement, team, true, 0, 0);
+			oldDangerZone = new RangeInfo(this.tile, movement, team, true, 0, 0);
 
 			for (MapTile t : oldDangerZone.attackable)
 			{

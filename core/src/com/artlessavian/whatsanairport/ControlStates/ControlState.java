@@ -1,37 +1,79 @@
 package com.artlessavian.whatsanairport.ControlStates;
 
-public interface ControlState
-{
-	// Not a fan of this method :/
-	void enter(Object... varargs);
+import com.artlessavian.whatsanairport.BattleScreen;
+import com.artlessavian.whatsanairport.ControlStateSystem;
+import com.artlessavian.whatsanairport.WarsConst;
 
-	void cancelReturn();
+public abstract class ControlState
+{
+	final ControlStateSystem controlStateSystem;
+	final BattleScreen battle;
+
+	ControlState(ControlStateSystem controlStateSystem)
+	{
+		this.controlStateSystem = controlStateSystem;
+		this.battle = controlStateSystem.battle;
+	}
+
+	// Not a fan of this method :/
+	protected abstract void onEnter(Object... varargs);
+
+	public abstract void onExit();
+
+	protected abstract void onReturn();
 
 	// Directionals
-	void up();
+	public boolean doDirection(WarsConst.CardinalDir direction)
+	{
+		boolean worked = false;
 
-	void down();
+		switch (direction)
+		{
+			case UP:
+				worked = up();
+				break;
+			case DOWN:
+				worked = down();
+				break;
+			case LEFT:
+				worked = left();
+				break;
+			case RIGHT:
+				worked = right();
+				break;
+		}
 
-	void left();
+		return worked;
+	}
 
-	void right();
+	protected abstract boolean up();
+
+	protected abstract boolean down();
+
+	protected abstract boolean left();
+
+	protected abstract boolean right();
 
 	// Touch Click
-	void pick(int screenX, int screenY, int x, int y);
+	public abstract void pick(int screenX, int screenY, int x, int y);
 
-	void weakPick(int screenX, int screenY, int x, int y);
+	public abstract void weakPick(int screenX, int screenY, int x, int y);
 
-	void release(int screenX, int screenY, int x, int y);
+	public abstract void release(int screenX, int screenY, int x, int y);
 
 	// Stuff
-	void select();
+	public abstract void select();
 
-	void cancel();
+	public abstract void cancel();
 
 	// More Stuff
-	void update(float delta);
+	public abstract void update(float delta);
 
-	void moveCam();
+	public abstract void moveCam();
 
-	void draw();
+	public void draw()
+	{
+
+	}
+
 }

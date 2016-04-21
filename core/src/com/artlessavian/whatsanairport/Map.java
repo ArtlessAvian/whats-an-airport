@@ -12,9 +12,9 @@ public class Map
 	private final int mapHeight;
 
 
-	public Map(BattleScreen battle, int width, int height)
+	public Map(int width, int height)
 	{
-		this.battle = battle;
+		this.battle = BattleScreen.getInstance();
 
 		map = new MapTile[width][height];
 		mapWidth = width;
@@ -28,9 +28,9 @@ public class Map
 			for (int y = 0; y < mapHeight; y++)
 			{
 				// This makes a cool thingy
-				int tileID = (int)(Math.cos(x * y / 2) * 1.5 + 1.5);
+				int tileID = (int)(Math.cos((x - mapWidth/2f) * (y - mapHeight/2f) / 10f) * 1.1 + 1.1);
 
-				map[x][y] = new MapTile(battle, x, y, WarsConst.getTerrain(tileID), terrain);
+				map[x][y] = new MapTile(x, y, WarsConst.getTerrain(tileID), terrain);
 			}
 		}
 	}

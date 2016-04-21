@@ -1,16 +1,12 @@
 package com.artlessavian.whatsanairport.ControlStates;
 
 import com.artlessavian.whatsanairport.*;
-import com.badlogic.gdx.math.Vector3;
 
 import java.util.Iterator;
 import java.util.LinkedList;
 
-public class MovingUnitControlState implements ControlState
+public class MovingUnitControlState extends ControlState
 {
-	private final ControlStateSystem controlStateSystem;
-	private final BattleScreen battle;
-
 	private final float timePerTile = 0.15f;
 
 	private Unit selectedUnit;
@@ -24,21 +20,17 @@ public class MovingUnitControlState implements ControlState
 	private int originY;
 
 	private float timeAccum;
-	private final Vector3 cursorPos;
 
 	public MovingUnitControlState(ControlStateSystem controlStateSystem)
 	{
-		this.controlStateSystem = controlStateSystem;
-		this.battle = controlStateSystem.battle;
-
-		this.cursorPos = new Vector3();
+		super(controlStateSystem);
 	}
 
 	@Override
-	public void enter(Object... varargs)
+	public void onEnter(Object... varargs)
 	{
 		selectedUnit = (Unit)varargs[0];
-		path = ((LinkedList<WarsConst.CardinalDir>)((LinkedList<WarsConst.CardinalDir>)varargs[1]).clone()).iterator();
+		path = ((LinkedList<WarsConst.CardinalDir>)((LinkedList<WarsConst.CardinalDir>)(varargs[1])).clone()).descendingIterator();
 		yee = null;
 
 		timeAccum = 0;
@@ -50,33 +42,39 @@ public class MovingUnitControlState implements ControlState
 	}
 
 	@Override
-	public void cancelReturn()
+	public void onExit()
 	{
 
 	}
 
 	@Override
-	public void up()
+	public void onReturn()
 	{
 
 	}
 
 	@Override
-	public void down()
+	public boolean up()
 	{
-
+		return true;
 	}
 
 	@Override
-	public void left()
+	public boolean down()
 	{
-
+		return true;
 	}
 
 	@Override
-	public void right()
+	public boolean left()
 	{
+		return true;
+	}
 
+	@Override
+	public boolean right()
+	{
+		return true;
 	}
 
 	@Override
@@ -108,7 +106,7 @@ public class MovingUnitControlState implements ControlState
 	{
 		selectedUnit.sprite.setPosition(originX, originY);
 		selectedUnit.move(battle.map.map[originX][originY]);
-		controlStateSystem.setState(MoveUnitControlState.class).cancelReturn();
+		controlStateSystem.setState(MoveUnitControlState.class).onReturn();
 	}
 
 	@Override
@@ -124,7 +122,7 @@ public class MovingUnitControlState implements ControlState
 			} else
 			{
 				Unit displaced = selectedUnit.move(battle.map.map[x][y]);
-				controlStateSystem.setState(UnitOptionsControlState.class).enter(selectedUnit, originX, originY, x, y, displaced);
+				controlStateSystem.setState(UnitOptionsControlState.class).onEnter(selectedUnit, originX, originY, x, y, displaced);
 			}
 		} else if (timeAccum >= timePerTile)
 		{
@@ -185,12 +183,12 @@ public class MovingUnitControlState implements ControlState
 	@Override
 	public void moveCam()
 	{
-		CommonStateFunctions.focus(battle, 3, selectedUnit.sprite.getX() + 0.5f, selectedUnit.sprite.getY() + 0.5f);
+		CommonStateFunctions.focus(3, selectedUnit.sprite.getX() + 0.5f, selectedUnit.sprite.getY() + 0.5f);
 	}
 
 	@Override
 	public void draw()
 	{
-		CommonStateFunctions.drawFocus(battle, 3);
+		CommonStateFunctions.drawFocus(3);
 	}
 }
