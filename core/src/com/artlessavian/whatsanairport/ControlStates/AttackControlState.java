@@ -16,6 +16,7 @@ public class AttackControlState extends ControlState
 
 	private int cursorX;
 	private int cursorY;
+	private boolean moved;
 
 	public AttackControlState(ControlStateSystem controlStateSystem)
 	{
@@ -29,7 +30,10 @@ public class AttackControlState extends ControlState
 		cursorY = (Integer)varargs[1];
 		selectedUnit = (Unit)varargs[2];
 
-		attackable = selectedUnit.getAttackableUnits(true);
+		moved = (Boolean)varargs[3];
+
+		attackable = selectedUnit.getAttackableUnits(moved);
+		if (attackable.size() == 0) {controlStateSystem.setState(UnitOptionsControlState.class).onReturn();}
 		attackableIter = attackable.iterator();
 
 		for (Unit u : attackable)

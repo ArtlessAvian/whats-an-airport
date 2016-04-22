@@ -81,51 +81,51 @@ public class MoveUnitControlState extends CursorControlState
 	{
 		if (range.movable.contains(battle.map.map[cursorX][cursorY]))
 		{
-			if (wasOutside)
+			if (path.peek() == WarsConst.CardinalDir.UP && dir == WarsConst.CardinalDir.DOWN)
 			{
-				recalculatePath();
-				wasOutside = false;
+				path.pop();
+				movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
+			} else if (path.peek() == WarsConst.CardinalDir.DOWN && dir == WarsConst.CardinalDir.UP)
+			{
+				path.pop();
+				movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
+			} else if (path.peek() == WarsConst.CardinalDir.LEFT && dir == WarsConst.CardinalDir.RIGHT)
+			{
+				path.pop();
+				movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
+			} else if (path.peek() == WarsConst.CardinalDir.RIGHT && dir == WarsConst.CardinalDir.LEFT)
+			{
+				path.pop();
+				movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
 			} else
 			{
-				if (path.peek() == WarsConst.CardinalDir.UP && dir == WarsConst.CardinalDir.DOWN)
-				{
-					path.pop();
-					movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
-				} else if (path.peek() == WarsConst.CardinalDir.DOWN && dir == WarsConst.CardinalDir.UP)
-				{
-					path.pop();
-					movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
-				} else if (path.peek() == WarsConst.CardinalDir.LEFT && dir == WarsConst.CardinalDir.RIGHT)
-				{
-					path.pop();
-					movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
-				} else if (path.peek() == WarsConst.CardinalDir.RIGHT && dir == WarsConst.CardinalDir.LEFT)
-				{
-					path.pop();
-					movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
-				} else
-				{
-					path.push(dir);
-					movementCost += battle.map.map[cursorX][cursorY].terrainType.infantryMove;
+				path.push(dir);
+				movementCost += battle.map.map[cursorX][cursorY].terrainType.infantryMove;
 
-					if (movementCost > selectedUnit.movement && range.movable.contains(battle.map.map[cursorX][cursorY]))
-					{
-						recalculatePath();
-					}
+				if (movementCost > selectedUnit.movement && range.movable.contains(battle.map.map[cursorX][cursorY]))
+				{
+					recalculatePath(cursorX, cursorY);
 				}
 			}
-		} else
+		}
+		else if (range.attackable.contains(battle.map.map[cursorX][cursorY]))
+		{
+			recalculatePath(cursorX, cursorY);
+		}
+		else
 		{
 			wasOutside = true;
 		}
 	}
 
-	private void recalculatePath()
+	private void recalculatePath(int x, int y)
 	{
-		MapTile current = battle.map.map[cursorX][cursorY];
+		MapTile current = battle.map.map[x][y];
 
 		if (range.attackable.contains(current) || range.movable.contains(current))
 		{
+			wasOutside = false;
+
 			if (!range.movable.contains(current) && range.attackable.contains(current))
 			{
 				current = range.attackableFrom.get(current);
@@ -158,37 +158,28 @@ public class MoveUnitControlState extends CursorControlState
 	@Override
 	public void pick(int screenX, int screenY, int x, int y)
 	{
-		if (range.attackable.contains(battle.map.map[x][y]))
-		{
-			recalculatePath();
-		}
+		recalculatePath(x, y);
 		super.pick(screenX, screenY, x, y);
 	}
 
 	@Override
 	public void weakPick(int screenX, int screenY, int x, int y)
 	{
-		if (range.attackable.contains(battle.map.map[x][y]))
-		{
-			recalculatePath();
-		}
+		recalculatePath(x, y);
 		super.weakPick(screenX, screenY, x, y);
 	}
 
 	@Override
 	public void release(int screenX, int screenY, int x, int y)
 	{
-		if (range.attackable.contains(battle.map.map[x][y]))
-		{
-			recalculatePath();
-		}
+		recalculatePath(x, y);
 		super.release(screenX, screenY, x, y);
 	}
 
 	@Override
 	public void select()
 	{
-		if (range.attackable.contains(battle.map.map[cursorX][cursorY]))
+		if (range.attackable.contains(battle.map.map[cursorX][cursorY]) || range.movable.contains(battle.map.map[cursorX][cursorY]))
 		{
 			if (battle.map.map[cursorX][cursorY].unit == null || battle.map.map[cursorX][cursorY].unit.team.equals(selectedUnit.team))
 			{

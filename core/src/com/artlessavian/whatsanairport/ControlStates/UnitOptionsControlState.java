@@ -66,16 +66,7 @@ public class UnitOptionsControlState extends ControlState
 			//		pushOptionRight.addLast(0f);
 
 			// Attack if not joining and can attack
-			boolean canAttack = false;
-			for (MapTile t : selectedUnit.tile.neighborToDir.keySet())
-			{
-				if (t.unit != null && !t.unit.team.equals(selectedUnit.team))
-				{
-					canAttack = true;
-					break;
-				}
-			}
-			if (canAttack)
+			if (!selectedUnit.getAttackableUnits(originX != x || originY != y).isEmpty())
 			{
 				options.add(Options.ATTACK);
 			}
@@ -252,7 +243,7 @@ public class UnitOptionsControlState extends ControlState
 			{
 				// Probably an attack control state
 				selectedUnit.sprite.setRotation(0);
-				controlStateSystem.setState(AttackControlState.class).onEnter(x, y, selectedUnit);
+				controlStateSystem.setState(AttackControlState.class).onEnter(x, y, selectedUnit, originX != x || originY != y);
 				break;
 			}
 

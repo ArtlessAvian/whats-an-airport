@@ -127,7 +127,7 @@ public class MovingUnitControlState extends ControlState
 				Unit displaced = selectedUnit.move(battle.map.map[x][y]);
 				if (attackAfter)
 				{
-					controlStateSystem.setState(AttackControlState.class).onEnter(x, y, selectedUnit);
+					controlStateSystem.setState(AttackControlState.class).onEnter(x, y, selectedUnit, originX != x || originY != y);
 				} else
 				{
 					controlStateSystem.setState(UnitOptionsControlState.class).onEnter(selectedUnit, originX, originY, x, y, displaced);

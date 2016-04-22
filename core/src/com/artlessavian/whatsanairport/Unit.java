@@ -17,6 +17,10 @@ public class Unit
 	public int health = 10;
 	public final int movement = 3;
 
+	public final boolean isDirect = Math.random() > 0.5f;
+	public final int minIndirectRange = 3;
+	public final int maxIndirectRange = 5;
+
 	public boolean isDangerZoned;
 	private RangeInfo oldDangerZone;
 	private Color dangerColor;
@@ -39,6 +43,8 @@ public class Unit
 		sprite.setOrigin(0.5f, 0.5f);
 		sprite.setPosition(tile.x, tile.y);
 
+		if (!isDirect) {sprite.setColor(WarsConst.selectRed);}
+
 		firstFrame = TextureRegion.split(sprite.getTexture(), sprite.getTexture().getHeight(), sprite.getTexture().getHeight())[0][0];
 
 		this.team = type.replaceAll("/.+", "");
@@ -48,12 +54,14 @@ public class Unit
 
 	public RangeInfo getRange()
 	{
-		return new RangeInfo(tile, movement, team, true, 0, 0);
+		return new RangeInfo(tile, movement, this);
 	}
 
 	public ArrayList<Unit> getAttackableUnits(boolean moved)
 	{
-		RangeInfo temp = new RangeInfo(tile, 0, team, true, 0, 0);
+		if (moved && !isDirect) {return new ArrayList<Unit>();}
+
+		RangeInfo temp = new RangeInfo(tile, 0, this);
 		ArrayList<Unit> attackable = new ArrayList<Unit>();
 		for (MapTile t : temp.attackable)
 		{
@@ -70,11 +78,13 @@ public class Unit
 	{
 		if (dangerColor == null) {registerColor();}
 
-		oldDangerZone = new RangeInfo(tile, movement, team, true, 0, 0);
+		oldDangerZone = new RangeInfo(tile, movement, this);
 		for (MapTile t : oldDangerZone.attackable)
 		{
 			t.register(this, dangerColor);
 		}
+
+		sprite.setColor(dangerColor);
 
 		isDangerZoned = true;
 	}
@@ -94,6 +104,8 @@ public class Unit
 				t.deregister(this);
 			}
 		}
+
+		sprite.setColor(Color.WHITE);
 
 		isDangerZoned = false;
 		oldDangerZone = null;
@@ -155,7 +167,7 @@ public class Unit
 
 		if (isDangerZoned)
 		{
-			oldDangerZone = new RangeInfo(this.tile, movement, team, true, 0, 0);
+			oldDangerZone = new RangeInfo(this.tile, movement, this);
 
 			for (MapTile t : oldDangerZone.attackable)
 			{
@@ -177,7 +189,10 @@ public class Unit
 
 		if (!isCounter)
 		{
-			other.attack(this, true);
+			if (other.getAttackableUnits(false).contains(this))
+			{
+				other.attack(this, true);
+			}
 		}
 	}
 
