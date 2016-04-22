@@ -29,6 +29,7 @@ public class BattleScreen implements Screen
 	public final int mapWidth = 30;
 
 	public int screenTileHeight = 10;
+	public float magicNumba;
 
 	public final Texture grid;
 	public final Texture white;
@@ -121,6 +122,9 @@ public class BattleScreen implements Screen
 		// Draw stuff
 		controlStateSystem.draw();
 
+		main.batch.setProjectionMatrix(main.screen.combined);
+		main.font.draw(main.batch, magicNumba + " cm/tile", 0, main.screen.viewportHeight);
+
 		main.batch.end();
 	}
 
@@ -130,6 +134,8 @@ public class BattleScreen implements Screen
 		world.viewportHeight = screenTileHeight;
 		world.viewportWidth = (float)width * world.viewportHeight / (float)height;
 		world.update();
+
+		magicNumba = Math.round(100 * height/screenTileHeight/Gdx.graphics.getPpcY()) / 100f;
 
 		for (int i = 0; i < 30; i++)
 		{

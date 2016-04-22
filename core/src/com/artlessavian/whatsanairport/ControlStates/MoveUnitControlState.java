@@ -123,14 +123,23 @@ public class MoveUnitControlState extends CursorControlState
 	private void recalculatePath()
 	{
 		MapTile current = battle.map.map[cursorX][cursorY];
-		movementCost = range.movementCost.get(current);
-		path.clear();
 
-		while(current != battle.map.map[originX][originY])
+		if (range.attackable.contains(current) || range.movable.contains(current))
 		{
-			MapTile from = range.cameFrom.get(current);
-			path.addLast(from.neighborToDir.get(current));
-			current = from;
+			if (!range.movable.contains(current) && range.attackable.contains(current))
+			{
+				current = range.attackableFrom.get(current);
+			}
+
+			movementCost = range.movementCost.get(current);
+			path.clear();
+
+			while (current != battle.map.map[originX][originY])
+			{
+				MapTile from = range.cameFrom.get(current);
+				path.addLast(from.neighborToDir.get(current));
+				current = from;
+			}
 		}
 	}
 
@@ -149,29 +158,45 @@ public class MoveUnitControlState extends CursorControlState
 	@Override
 	public void pick(int screenX, int screenY, int x, int y)
 	{
+		if (range.attackable.contains(battle.map.map[x][y]))
+		{
+			recalculatePath();
+		}
 		super.pick(screenX, screenY, x, y);
-		weakPick(screenX, screenY, x, y);
 	}
 
 	@Override
 	public void weakPick(int screenX, int screenY, int x, int y)
 	{
-		if (range.movable.contains(battle.map.map[x][y]))
+		if (range.attackable.contains(battle.map.map[x][y]))
 		{
-			cursorX = x;
-			cursorY = y;
 			recalculatePath();
 		}
+		super.weakPick(screenX, screenY, x, y);
+	}
+
+	@Override
+	public void release(int screenX, int screenY, int x, int y)
+	{
+		if (range.attackable.contains(battle.map.map[x][y]))
+		{
+			recalculatePath();
+		}
+		super.release(screenX, screenY, x, y);
 	}
 
 	@Override
 	public void select()
 	{
-		if (battle.map.map[cursorX][cursorY].unit == null || battle.map.map[cursorX][cursorY].unit.team.equals(selectedUnit.team))
+		if (range.attackable.contains(battle.map.map[cursorX][cursorY]))
 		{
-			if (range.movable.contains(battle.map.map[cursorX][cursorY]))
+			if (battle.map.map[cursorX][cursorY].unit == null || battle.map.map[cursorX][cursorY].unit.team.equals(selectedUnit.team))
 			{
-				controlStateSystem.setState(MovingUnitControlState.class).onEnter(selectedUnit, path, originX, originY);
+				controlStateSystem.setState(MovingUnitControlState.class).onEnter(selectedUnit, path, originX, originY, false);
+			}
+			else if (battle.map.map[cursorX][cursorY].unit != null && !battle.map.map[cursorX][cursorY].unit.team.equals(selectedUnit.team))
+			{
+				controlStateSystem.setState(MovingUnitControlState.class).onEnter(selectedUnit, path, originX, originY, true);
 			}
 		}
 	}
@@ -226,5 +251,6 @@ public class MoveUnitControlState extends CursorControlState
 
 			battle.main.batch.draw(selectedUnit.firstFrame, x + 0.2f, y + 0.2f, 0.6f, 0.6f);
 		}
+
 	}
 }

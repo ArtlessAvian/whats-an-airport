@@ -82,7 +82,7 @@ public class UnitOptionsControlState extends ControlState
 
 			options.add(Options.END);
 
-			for (int i = (int)(Math.random() * 7); i >= 0; i--)
+			while (options.size() < 6)
 			{
 				options.add(Options.END);
 			}
@@ -179,21 +179,28 @@ public class UnitOptionsControlState extends ControlState
 	@Override
 	public void pick(int screenX, int screenY, int x, int y)
 	{
-		float[] thing = getBoxCoord(false, false);
-		
-		if (thing[0] < screenX && screenX < thing[0] + thing[2])
+		if (controlStateSystem.doubleTap)
 		{
-			float calculatedPosition = options.size() - (screenY - thing[1]) / thing[3];
-			if (0 <= calculatedPosition && calculatedPosition < options.size())
+			float[] thing = getBoxCoord(false, false);
+
+			if (thing[0] < screenX && screenX < thing[0] + thing[2])
 			{
-				if (position == (int)calculatedPosition)
+				float calculatedPosition = options.size() - (screenY - thing[1]) / thing[3];
+				if (0 <= calculatedPosition && calculatedPosition < options.size())
 				{
-					select();
-				} else
-				{
-					position = (int)calculatedPosition;
+					if (position == (int)calculatedPosition)
+					{
+						select();
+					} else
+					{
+						position = (int)calculatedPosition;
+					}
 				}
 			}
+		}
+		else
+		{
+			weakPick(screenX, screenY, x, y);
 		}
 	}
 
@@ -215,7 +222,25 @@ public class UnitOptionsControlState extends ControlState
 	@Override
 	public void release(int screenX, int screenY, int x, int y)
 	{
+		if (!controlStateSystem.doubleTap)
+		{
+			float[] thing = getBoxCoord(false, false);
 
+			if (thing[0] < screenX && screenX < thing[0] + thing[2])
+			{
+				float calculatedPosition = options.size() - (screenY - thing[1]) / thing[3];
+				if (0 <= calculatedPosition && calculatedPosition < options.size())
+				{
+					if (position == (int)calculatedPosition)
+					{
+						select();
+					} else
+					{
+						position = (int)calculatedPosition;
+					}
+				}
+			}
+		}
 	}
 
 	@Override

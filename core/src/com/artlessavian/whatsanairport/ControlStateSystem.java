@@ -16,6 +16,8 @@ public class ControlStateSystem extends InputAdapter
 	ControlState state;
 	private final HashMap<Class, ControlState> stateHashMap;
 
+	public boolean doubleTap = false;
+
 	private WarsConst.CardinalDir heldDirection;
 	private float timeHeld;
 	private float accumulator;

@@ -95,7 +95,7 @@ public class AttackControlState extends ControlState
 	@Override
 	public void pick(int screenX, int screenY, int x, int y)
 	{
-		if (enemyUnit != null && enemyUnit.tile.x == x && enemyUnit.tile.y == y)
+		if (controlStateSystem.doubleTap && enemyUnit != null && enemyUnit.tile.x == x && enemyUnit.tile.y == y)
 		{
 			select();
 		}
@@ -117,7 +117,10 @@ public class AttackControlState extends ControlState
 	@Override
 	public void release(int screenX, int screenY, int x, int y)
 	{
-
+		if (!controlStateSystem.doubleTap && enemyUnit != null && enemyUnit.tile.x == x && enemyUnit.tile.y == y)
+		{
+			select();
+		}
 	}
 
 	@Override

@@ -3,23 +3,27 @@ package com.artlessavian.whatsanairport;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Set;
 
 public class RangeInfo
 {
-	public final ArrayList<MapTile> movable;
 	public final HashMap<MapTile, Integer> movementCost;
 	public final HashMap<MapTile, MapTile> cameFrom;
+	public final HashMap<MapTile, MapTile> attackableFrom;
 
-	public final ArrayList<MapTile> attackable;
+	public final Set<MapTile> attackable;
+	public final Set<MapTile> movable;
 
 	public RangeInfo(MapTile start, int move, String team, boolean canAttackAfterMove, int minIndir, int maxIndir)
 	{
-		movable = new ArrayList<MapTile>();
 		movementCost = new HashMap<MapTile, Integer>();
 		cameFrom = new HashMap<MapTile, MapTile>();
-		attackable = new ArrayList<MapTile>();
+		attackableFrom = new HashMap<MapTile, MapTile>();
 
-		calculate(start, move, team, canAttackAfterMove, minIndir, maxIndir);
+		attackable = attackableFrom.keySet();
+		movable = cameFrom.keySet();
+
+		calculate(start, move, team, true, minIndir, maxIndir);
 	}
 
 	private void calculate(MapTile start, int move, String team, boolean canAttackAfterMove, int minIndir, int maxIndir)
@@ -28,7 +32,6 @@ public class RangeInfo
 		LinkedList<MapTile> frontier = new LinkedList<MapTile>();
 
 		frontier.add(start);
-		movable.add(start);
 		movementCost.put(start, 0);
 
 		while (!frontier.isEmpty())
@@ -51,13 +54,17 @@ public class RangeInfo
 			// Expand
 			for (MapTile neighbor : current.neighborToDir.keySet())
 			{
+				if (!attackable.contains(neighbor) && canAttackAfterMove)
+				{
+					attackableFrom.put(neighbor, current);
+				}
+
 				if (!movable.contains(neighbor))
 				{
 					int newCost = cost + (neighbor.terrainType.infantryMove);
 					if (newCost <= move && (neighbor.unit == null || neighbor.unit.team.equals(team)))
 					{
 						frontier.add(neighbor);
-						movable.add(neighbor);
 						movementCost.put(neighbor, newCost);
 						cameFrom.put(neighbor, current);
 					}
@@ -77,19 +84,22 @@ public class RangeInfo
 
 		if (!canAttackAfterMove)
 		{
-
-		} else
-		{
-			// Direct units should be able to reach moved areas
-			attackable.addAll(movable);
-
-			for (MapTile t : movable)
+			// Cheapo Way
+			for (int y = -maxIndir; y <= maxIndir; y++)
 			{
-				for (MapTile n : t.neighborToDir.keySet())
+				for (int x = -maxIndir; x <= maxIndir; x++)
 				{
-					if (!attackable.contains(n))
+					if (x + y < maxIndir && x + y > - maxIndir && (x + y < -minIndir || x + y > minIndir))
 					{
-						attackable.add(n);
+						try
+						{
+							BattleScreen.getInstance().map.map[start.x + x][start.y + y].debug = true;
+							attackableFrom.put(BattleScreen.getInstance().map.map[start.x + x][start.y + y], start);
+						}
+						catch (Exception e)
+						{
+							//lol
+						}
 					}
 				}
 			}

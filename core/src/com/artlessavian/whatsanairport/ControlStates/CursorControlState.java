@@ -8,12 +8,9 @@ public abstract class CursorControlState extends ControlState
 	int cursorX;
 	int cursorY;
 
-	private boolean initPressReleased;
-
 	CursorControlState(ControlStateSystem controlStateSystem)
 	{
 		super(controlStateSystem);
-		initPressReleased = true;
 	}
 
 	@Override
@@ -21,7 +18,6 @@ public abstract class CursorControlState extends ControlState
 	{
 		cursorX = (Integer)varargs[0];
 		cursorY = (Integer)varargs[1];
-		initPressReleased = false;
 	}
 
 	@Override
@@ -71,26 +67,33 @@ public abstract class CursorControlState extends ControlState
 	@Override
 	public void pick(int screenX, int screenY, int x, int y)
 	{
-		if (initPressReleased)
+		if (controlStateSystem.doubleTap && cursorX == x && cursorY == y)
 		{
-			if (cursorX == x && cursorY == y)
-			{
-				select();
-			}
-			else
-			{
-				cursorX = x;
-				cursorY = y;
-
-				moveCam();
-			}
+			select();
 		}
+		else
+		{
+			cursorX = x;
+			cursorY = y;
+
+			moveCam();
+		}
+	}
+
+	@Override
+	public void weakPick(int screenX, int screenY, int x, int y)
+	{
+		cursorX = x;
+		cursorY = y;
 	}
 
 	@Override
 	public void release(int screenX, int screenY, int x, int y)
 	{
-		initPressReleased = true;
+		if (!controlStateSystem.doubleTap && cursorX == x && cursorY == y)
+		{
+			select();
+		}
 	}
 
 	@Override

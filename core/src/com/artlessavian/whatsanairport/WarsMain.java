@@ -73,7 +73,7 @@ public class WarsMain extends Game
 		screen.position.x = screen.viewportWidth / 2f;
 		screen.position.y = screen.viewportHeight / 2f;
 
-		font.getData().setScale(screen.viewportHeight / 20f / 12f);
+		font.getData().setScale(screen.viewportHeight / 20f / 8f);
 
 		screen.update();
 	}

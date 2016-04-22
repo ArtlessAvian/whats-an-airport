@@ -20,6 +20,7 @@ public class MovingUnitControlState extends ControlState
 	private int originY;
 
 	private float timeAccum;
+	private boolean attackAfter;
 
 	public MovingUnitControlState(ControlStateSystem controlStateSystem)
 	{
@@ -39,6 +40,8 @@ public class MovingUnitControlState extends ControlState
 		y = (Integer)varargs[3];
 		originX = x;
 		originY = y;
+
+		attackAfter = (Boolean)varargs[4];
 	}
 
 	@Override
@@ -122,7 +125,13 @@ public class MovingUnitControlState extends ControlState
 			} else
 			{
 				Unit displaced = selectedUnit.move(battle.map.map[x][y]);
-				controlStateSystem.setState(UnitOptionsControlState.class).onEnter(selectedUnit, originX, originY, x, y, displaced);
+				if (attackAfter)
+				{
+					controlStateSystem.setState(AttackControlState.class).onEnter(x, y, selectedUnit);
+				} else
+				{
+					controlStateSystem.setState(UnitOptionsControlState.class).onEnter(selectedUnit, originX, originY, x, y, displaced);
+				}
 			}
 		} else if (timeAccum >= timePerTile)
 		{

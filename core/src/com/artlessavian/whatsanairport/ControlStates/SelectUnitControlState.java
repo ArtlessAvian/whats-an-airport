@@ -35,12 +35,6 @@ public class SelectUnitControlState extends CursorControlState
 	}
 
 	@Override
-	public void weakPick(int screenX, int screenY, int x, int y)
-	{
-
-	}
-
-	@Override
 	public void select()
 	{
 		Unit unit = battle.map.map[cursorX][cursorY].unit;
