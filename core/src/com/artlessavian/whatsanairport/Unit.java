@@ -43,7 +43,7 @@ public class Unit
 		sprite.setOrigin(0.5f, 0.5f);
 		sprite.setPosition(tile.x, tile.y);
 
-		if (!isDirect) {sprite.setColor(WarsConst.selectRed);}
+		if (!isDirect) {sprite.setColor(Color.CHARTREUSE);}
 
 		firstFrame = TextureRegion.split(sprite.getTexture(), sprite.getTexture().getHeight(), sprite.getTexture().getHeight())[0][0];
 
@@ -187,7 +187,7 @@ public class Unit
 			return;
 		}
 
-		if (!isCounter)
+		if (!isCounter && other.isDirect)
 		{
 			if (other.getAttackableUnits(false).contains(this))
 			{

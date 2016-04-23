@@ -6,6 +6,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.math.Vector3;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 
@@ -14,7 +15,7 @@ public class ControlStateSystem extends InputAdapter
 	public final BattleScreen battle;
 
 	ControlState state;
-	private final HashMap<Class, ControlState> stateHashMap;
+	public final HashMap<Class, ControlState> stateHashMap;
 
 	public boolean doubleTap = false;
 
@@ -23,7 +24,7 @@ public class ControlStateSystem extends InputAdapter
 	private float accumulator;
 
 	private int pointer = -1;
-	private float timePressed;
+	float timePressed;
 	private boolean isCancelling;
 
 	private final Vector3 helper = new Vector3();
@@ -37,6 +38,7 @@ public class ControlStateSystem extends InputAdapter
 		timeHeld = 0;
 		accumulator = 0;
 
+		// A pile of singleton-esque stuff. I don't like it very much.
 		stateHashMap = new HashMap<Class, ControlState>();
 		// Populate States
 		stateHashMap.put(SelectUnitControlState.class, new SelectUnitControlState(this));
@@ -157,11 +159,18 @@ public class ControlStateSystem extends InputAdapter
 		return helper;
 	}
 
+	float cancelX;
+	float cancelY;
+
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button)
 	{
 		this.pointer = pointer;
 		screenToWorld(screenX, screenY);
+
+		cancelX = helper.x;
+		cancelY = helper.y;
+
 		state.pick(screenX, Gdx.graphics.getHeight() - screenY, (int)helper.x, (int)helper.y);
 
 		return true;
@@ -188,9 +197,12 @@ public class ControlStateSystem extends InputAdapter
 	{
 		if (this.pointer == pointer)
 		{
-			timePressed = -1;
-
 			screenToWorld(screenX, screenY);
+
+			if (helper.x > cancelX + 1 || helper.x < cancelX - 1 || helper.y > cancelY + 1 || helper.y < cancelY - 1)
+			{
+				timePressed = -1;
+			}
 			state.weakPick(screenX, Gdx.graphics.getHeight() - screenY, (int)helper.x, (int)helper.y);
 		}
 

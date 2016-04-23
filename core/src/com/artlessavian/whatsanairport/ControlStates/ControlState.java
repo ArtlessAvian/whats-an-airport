@@ -20,7 +20,7 @@ public abstract class ControlState
 
 	public abstract void onExit();
 
-	protected abstract void onReturn();
+	public abstract void onReturn();
 
 	// Directionals
 	public boolean doDirection(WarsConst.CardinalDir direction)

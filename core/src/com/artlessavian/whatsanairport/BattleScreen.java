@@ -123,7 +123,9 @@ public class BattleScreen implements Screen
 		controlStateSystem.draw();
 
 		main.batch.setProjectionMatrix(main.screen.combined);
-		main.font.draw(main.batch, magicNumba + " cm/tile", 0, main.screen.viewportHeight);
+		main.font.draw(main.batch, controlStateSystem.state.getClass().getSimpleName(), 0, main.screen.viewportHeight);
+		main.font.draw(main.batch, magicNumba + " cm/tile", 0, main.screen.viewportHeight - main.font.getLineHeight());
+		main.font.draw(main.batch, Math.ceil(controlStateSystem.timePressed * 100)/100f + "", 0, main.screen.viewportHeight - 2 * main.font.getLineHeight());
 
 		main.batch.end();
 	}

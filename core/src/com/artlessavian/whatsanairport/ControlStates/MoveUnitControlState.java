@@ -10,9 +10,9 @@ public class MoveUnitControlState extends CursorControlState
 {
 	private Unit selectedUnit;
 	private final Deque<WarsConst.CardinalDir> path;
+	private boolean pathStuffInvalid;
 	private int movementCost;
 	private RangeInfo range;
-	private boolean wasOutside = false;
 
 	private int originX;
 	private int originY;
@@ -31,7 +31,7 @@ public class MoveUnitControlState extends CursorControlState
 		
 		path.clear();
 		movementCost = 0;
-		wasOutside = false;
+		pathStuffInvalid = false;
 
 		originX = (Integer)varargs[0];
 		originY = (Integer)varargs[1];
@@ -39,10 +39,13 @@ public class MoveUnitControlState extends CursorControlState
 		selectedUnit = (Unit)varargs[2];
 
 		range = selectedUnit.getRange();
-		for (MapTile t : range.attackable)
+		if (selectedUnit.isDirect)
 		{
-			t.register(this, WarsConst.selectRed);
-			//t.debug = true;
+			for (MapTile t : range.attackable)
+			{
+				t.register(this, WarsConst.selectRed);
+				//t.debug = true;
+			}
 		}
 		for (MapTile t : range.movable)
 		{
@@ -53,9 +56,12 @@ public class MoveUnitControlState extends CursorControlState
 	@Override
 	public void onExit()
 	{
-		for (MapTile t : range.attackable)
+		if (selectedUnit.isDirect)
 		{
-			t.deregister(this);
+			for (MapTile t : range.attackable)
+			{
+				t.deregister(this);
+			}
 		}
 		for (MapTile t : range.movable)
 		{
@@ -66,10 +72,13 @@ public class MoveUnitControlState extends CursorControlState
 	@Override
 	public void onReturn()
 	{
-		for (MapTile t : range.attackable)
+		if (selectedUnit.isDirect)
 		{
-			t.register(this, WarsConst.selectRed);
-			//t.debug = true;
+			for (MapTile t : range.attackable)
+			{
+				t.register(this, WarsConst.selectRed);
+			}
+
 		}
 		for (MapTile t : range.movable)
 		{
@@ -77,44 +86,48 @@ public class MoveUnitControlState extends CursorControlState
 		}
 	}
 
-	private void pathStuff(WarsConst.CardinalDir dir)
+	private void pushDirection(WarsConst.CardinalDir dir)
 	{
 		if (range.movable.contains(battle.map.map[cursorX][cursorY]))
 		{
-			if (path.peek() == WarsConst.CardinalDir.UP && dir == WarsConst.CardinalDir.DOWN)
+			if (pathStuffInvalid)
 			{
-				path.pop();
-				movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
-			} else if (path.peek() == WarsConst.CardinalDir.DOWN && dir == WarsConst.CardinalDir.UP)
+				recalculatePath(cursorX, cursorY);
+			}
+			else
 			{
-				path.pop();
-				movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
-			} else if (path.peek() == WarsConst.CardinalDir.LEFT && dir == WarsConst.CardinalDir.RIGHT)
-			{
-				path.pop();
-				movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
-			} else if (path.peek() == WarsConst.CardinalDir.RIGHT && dir == WarsConst.CardinalDir.LEFT)
-			{
-				path.pop();
-				movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
-			} else
-			{
-				path.push(dir);
-				movementCost += battle.map.map[cursorX][cursorY].terrainType.infantryMove;
-
-				if (movementCost > selectedUnit.movement && range.movable.contains(battle.map.map[cursorX][cursorY]))
+				if (path.peek() == WarsConst.CardinalDir.UP && dir == WarsConst.CardinalDir.DOWN)
 				{
-					recalculatePath(cursorX, cursorY);
+					path.pop();
+					movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
+				} else if (path.peek() == WarsConst.CardinalDir.DOWN && dir == WarsConst.CardinalDir.UP)
+				{
+					path.pop();
+					movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
+				} else if (path.peek() == WarsConst.CardinalDir.LEFT && dir == WarsConst.CardinalDir.RIGHT)
+				{
+					path.pop();
+					movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
+				} else if (path.peek() == WarsConst.CardinalDir.RIGHT && dir == WarsConst.CardinalDir.LEFT)
+				{
+					path.pop();
+					movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
+				} else
+				{
+					path.push(dir);
+					movementCost += battle.map.map[cursorX][cursorY].terrainType.infantryMove;
+
+					if (movementCost > selectedUnit.movement && range.movable.contains(battle.map.map[cursorX][cursorY]))
+					{
+						recalculatePath(cursorX, cursorY);
+					}
 				}
 			}
 		}
 		else if (range.attackable.contains(battle.map.map[cursorX][cursorY]))
 		{
 			recalculatePath(cursorX, cursorY);
-		}
-		else
-		{
-			wasOutside = true;
+			pathStuffInvalid = true;
 		}
 	}
 
@@ -122,24 +135,19 @@ public class MoveUnitControlState extends CursorControlState
 	{
 		MapTile current = battle.map.map[x][y];
 
-		if (range.attackable.contains(current) || range.movable.contains(current))
+		if (selectedUnit.isDirect && range.attackable.contains(current) && !range.movable.contains(current))
 		{
-			wasOutside = false;
+			current = range.attackableFrom.get(current);
+		}
 
-			if (!range.movable.contains(current) && range.attackable.contains(current))
-			{
-				current = range.attackableFrom.get(current);
-			}
+		movementCost = range.movementCost.get(current);
+		path.clear();
 
-			movementCost = range.movementCost.get(current);
-			path.clear();
-
-			while (current != battle.map.map[originX][originY])
-			{
-				MapTile from = range.cameFrom.get(current);
-				path.addLast(from.neighborToDir.get(current));
-				current = from;
-			}
+		while (current != battle.map.map[originX][originY])
+		{
+			MapTile from = range.cameFrom.get(current);
+			path.addLast(from.neighborToDir.get(current));
+			current = from;
 		}
 	}
 
@@ -148,7 +156,7 @@ public class MoveUnitControlState extends CursorControlState
 	{
 		if (super.doDirection(direction))
 		{
-			pathStuff(direction);
+			pushDirection(direction);
 			return true;
 		}
 		return false;

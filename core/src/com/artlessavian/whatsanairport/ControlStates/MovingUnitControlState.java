@@ -2,6 +2,7 @@ package com.artlessavian.whatsanairport.ControlStates;
 
 import com.artlessavian.whatsanairport.*;
 
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -125,8 +126,9 @@ public class MovingUnitControlState extends ControlState
 			} else
 			{
 				Unit displaced = selectedUnit.move(battle.map.map[x][y]);
-				if (attackAfter)
+				if (attackAfter && displaced == null)
 				{
+					controlStateSystem.stateHashMap.get(UnitOptionsControlState.class).onEnter(selectedUnit, originX, originY, x, y, displaced);
 					controlStateSystem.setState(AttackControlState.class).onEnter(x, y, selectedUnit, originX != x || originY != y);
 				} else
 				{

@@ -9,6 +9,9 @@ public class DesktopLauncher {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 		config.width = 960;
 		config.height = 540;
+		config.title = "What's an airport, again?";
+		config.x = -1;
+		config.y = -1;
 		new LwjglApplication(new WarsMain(), config);
 	}
 }
