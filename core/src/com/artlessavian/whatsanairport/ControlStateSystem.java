@@ -46,6 +46,7 @@ public class ControlStateSystem extends InputAdapter
 		stateHashMap.put(MovingUnitControlState.class, new MovingUnitControlState(this));
 		stateHashMap.put(UnitOptionsControlState.class, new UnitOptionsControlState(this));
 		stateHashMap.put(AttackControlState.class, new AttackControlState(this));
+		stateHashMap.put(DayOptionsControlState.class, new DayOptionsControlState(this));
 
 		setState(SelectUnitControlState.class);
 	}

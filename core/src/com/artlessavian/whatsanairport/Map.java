@@ -24,7 +24,7 @@ public class Map
 			for (int y = 0; y < mapHeight; y++)
 			{
 				// This makes a cool thingy
-				int tileID = (int)(Math.cos((x - mapWidth/2f) * (y - mapHeight/2f) / 10f) * 1.1 + 1.1);
+				int tileID = (int)(Math.cos((x + 0.5 - mapWidth/2f) * (y + 0.5 - mapHeight/2f) / 10f) * 1.1 + 1.1);
 
 				map[x][y] = new MapTile(x, y, WarsConst.getTerrain(tileID), terrain);
 			}

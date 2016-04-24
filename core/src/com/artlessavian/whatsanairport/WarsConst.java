@@ -31,8 +31,8 @@ public class WarsConst
 	}
 
 	// Color Stuff
-	public static final Color selectBlue = new Color(0.8f, 0.8f, 1f, 1f);
-	public static final Color selectRed = new Color(1f, 0.6f, 0.6f, 1f);
+	public static final Color selectBlue = new Color(0.6f, 0.6f, 1f, 1f);
+	public static final Color selectRed = new Color(1f, 0.4f, 0.4f, 1f);
 
 	private static final LinkedList<Color> dangerZones = new LinkedList<Color>();
 	private static int inUse = 0;

@@ -20,9 +20,11 @@ class CommonStateFunctions
 
 		helper.sub(battle.trueCamPos);
 
-		while (leeway > battle.worldSpace.viewportHeight / 2f || leeway > battle.worldSpace.viewportWidth / 2f)
+		if (leeway >= battle.worldSpace.viewportHeight / 2f || leeway >= battle.worldSpace.viewportWidth / 2f)
 		{
-			leeway--;
+			battle.trueCamPos.x = focusX;
+			battle.trueCamPos.y = focusY;
+			return;
 		}
 
 		while (helper.x > battle.worldSpace.viewportWidth / 2f - leeway)

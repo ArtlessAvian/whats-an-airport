@@ -42,6 +42,10 @@ public class SelectUnitControlState extends CursorControlState
 		{
 			controlStateSystem.setState(MoveUnitControlState.class).onEnter(cursorX, cursorY, unit);
 		}
+		else
+		{
+			controlStateSystem.setState(DayOptionsControlState.class).onEnter();
+		}
 	}
 
 	@Override

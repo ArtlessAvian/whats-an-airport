@@ -27,6 +27,12 @@ public class BattleScreen implements Screen
 
 	public final Map map; // x, y
 
+	private int day = 0;
+	public int turn = 0;
+	private final String[] turnToTeam = {"Red", "Blue"};
+
+	public DayAndCoHandler dayAndCoHandler;
+
 	public int screenTileHeight = 10;
 	public float magicNumba;
 
@@ -63,6 +69,8 @@ public class BattleScreen implements Screen
 			}
 		}
 
+		dayAndCoHandler = new DayAndCoHandler();
+
 		// Game Stuff
 		controlStateSystem = new ControlStateSystem();
 
@@ -78,11 +86,12 @@ public class BattleScreen implements Screen
 		map.map[0][0].debugMakeObvious = true;
 
 		worldSpace = new OrthographicCamera();
+		screenTileHeight = (int)(Gdx.graphics.getHeight()/Gdx.graphics.getPpcX()/1f);
 
 		// TODO: Temporary stuff
-		trueCamPos = new Vector3(15, 10, 0);
-		worldSpace.position.x = 15;
-		worldSpace.position.y = 10;
+		trueCamPos = new Vector3(15.5f, 10.5f, 0);
+		worldSpace.position.x = 15.5f;
+		worldSpace.position.y = 10.5f;
 	}
 
 	@Override
