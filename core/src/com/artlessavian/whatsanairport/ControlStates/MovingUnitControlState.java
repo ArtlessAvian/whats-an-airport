@@ -2,13 +2,13 @@ package com.artlessavian.whatsanairport.ControlStates;
 
 import com.artlessavian.whatsanairport.*;
 
-import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 
 public class MovingUnitControlState extends ControlState
 {
-	private final float timePerTile = 0.15f;
+	private final float timePerTileDefault = 0.15f;
+	private float timeThisTile = 0.15f;
 
 	private Unit selectedUnit;
 	private Iterator<WarsConst.CardinalDir> path;
@@ -33,16 +33,26 @@ public class MovingUnitControlState extends ControlState
 	{
 		selectedUnit = (Unit)varargs[0];
 		path = ((LinkedList<WarsConst.CardinalDir>)((LinkedList<WarsConst.CardinalDir>)(varargs[1])).clone()).descendingIterator();
-		yee = null;
 
 		timeAccum = 0;
+		timeThisTile = timePerTileDefault;
 
 		x = (Integer)varargs[2];
 		y = (Integer)varargs[3];
+		attackAfter = (Boolean)varargs[4];
+
 		originX = x;
 		originY = y;
 
-		attackAfter = (Boolean)varargs[4];
+
+		if (path.hasNext())
+		{
+			yee = path.next();
+		}
+		else
+		{
+			finish();
+		}
 	}
 
 	@Override
@@ -113,29 +123,27 @@ public class MovingUnitControlState extends ControlState
 		controlStateSystem.setState(MoveUnitControlState.class).onReturn();
 	}
 
+	public void finish()
+	{
+		selectedUnit.sprite.setPosition(x, y);
+
+		Unit displaced = selectedUnit.move(battle.map.map[x][y]);
+		if (attackAfter && displaced == null)
+		{
+			controlStateSystem.stateHashMap.get(UnitOptionsControlState.class).onEnter(selectedUnit, originX, originY, x, y, displaced);
+			controlStateSystem.setState(AttackControlState.class).onEnter(x, y, selectedUnit, originX != x || originY != y);
+		} else
+		{
+			controlStateSystem.setState(UnitOptionsControlState.class).onEnter(selectedUnit, originX, originY, x, y, displaced);
+		}
+	}
+
 	@Override
 	public void update(float delta)
 	{
 		timeAccum += delta;
 
-		if (yee == null)
-		{
-			if (path.hasNext())
-			{
-				yee = path.next();
-			} else
-			{
-				Unit displaced = selectedUnit.move(battle.map.map[x][y]);
-				if (attackAfter && displaced == null)
-				{
-					controlStateSystem.stateHashMap.get(UnitOptionsControlState.class).onEnter(selectedUnit, originX, originY, x, y, displaced);
-					controlStateSystem.setState(AttackControlState.class).onEnter(x, y, selectedUnit, originX != x || originY != y);
-				} else
-				{
-					controlStateSystem.setState(UnitOptionsControlState.class).onEnter(selectedUnit, originX, originY, x, y, displaced);
-				}
-			}
-		} else if (timeAccum >= timePerTile)
+		while (timeAccum >= timeThisTile)
 		{
 			switch (yee)
 			{
@@ -161,32 +169,41 @@ public class MovingUnitControlState extends ControlState
 				}
 			}
 			selectedUnit.sprite.setPosition(x, y);
-			timeAccum -= timePerTile;
-			yee = null;
-		} else
-		{
-			switch (yee)
+			timeAccum -= timeThisTile;
+			//timeThisTile *= 2;
+
+			if (path.hasNext())
 			{
-				case UP:
-				{
-					selectedUnit.sprite.setY(y + timeAccum / timePerTile);
-					break;
-				}
-				case DOWN:
-				{
-					selectedUnit.sprite.setY(y - timeAccum / timePerTile);
-					break;
-				}
-				case LEFT:
-				{
-					selectedUnit.sprite.setX(x - timeAccum / timePerTile);
-					break;
-				}
-				case RIGHT:
-				{
-					selectedUnit.sprite.setX(x + timeAccum / timePerTile);
-					break;
-				}
+				yee = path.next();
+			}
+			else
+			{
+				finish();
+				return;
+			}
+		}
+
+		switch (yee)
+		{
+			case UP:
+			{
+				selectedUnit.sprite.setY(y + timeAccum / timeThisTile);
+				break;
+			}
+			case DOWN:
+			{
+				selectedUnit.sprite.setY(y - timeAccum / timeThisTile);
+				break;
+			}
+			case LEFT:
+			{
+				selectedUnit.sprite.setX(x - timeAccum / timeThisTile);
+				break;
+			}
+			case RIGHT:
+			{
+				selectedUnit.sprite.setX(x + timeAccum / timeThisTile);
+				break;
 			}
 		}
 	}

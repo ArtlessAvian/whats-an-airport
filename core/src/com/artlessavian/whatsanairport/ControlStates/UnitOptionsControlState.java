@@ -1,7 +1,6 @@
 package com.artlessavian.whatsanairport.ControlStates;
 
 import com.artlessavian.whatsanairport.ControlStateSystem;
-import com.artlessavian.whatsanairport.MapTile;
 import com.artlessavian.whatsanairport.Unit;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector3;
@@ -145,22 +144,22 @@ public class UnitOptionsControlState extends ControlState
 
 //		if (rightOfCenter)
 //		{
-//			thing[0] = battle.main.screen.viewportHeight / 10f;
+//			thing[0] = battle.main.screenSpace.viewportHeight / 10f;
 //		}
 //		else
 		{
-			thing[0] = battle.main.screen.viewportWidth
-				- battle.main.screen.viewportHeight / 10f
+			thing[0] = battle.main.screenSpace.viewportWidth
+				- battle.main.screenSpace.viewportHeight / 10f
 				- thing[2];
 		}
 
 //		if (topOfCenter)
 //		{
-//			thing[1] = battle.main.screen.viewportHeight / 10f;
+//			thing[1] = battle.main.screenSpace.viewportHeight / 10f;
 //		}
 //		else
 		{
-			thing[1] = 9 * battle.main.screen.viewportHeight / 10f
+			thing[1] = 9 * battle.main.screenSpace.viewportHeight / 10f
 				- options.size() * thing[3];
 		}
 
@@ -313,7 +312,7 @@ public class UnitOptionsControlState extends ControlState
 		}
 		selectedUnit.sprite.rotate(145);
 
-		battle.main.batch.setProjectionMatrix(battle.main.screen.combined);
+		battle.main.batch.setProjectionMatrix(battle.main.screenSpace.combined);
 		
 		float[] thing = getBoxCoord(false, false);
 
@@ -338,6 +337,6 @@ public class UnitOptionsControlState extends ControlState
 		selector.setPosition(thing[0], thing[1] + (options.size() - 1 - position) * (thing[3]));
 		selector.draw(battle.main.batch);
 
-		battle.main.batch.setProjectionMatrix(battle.world.combined);
+		battle.main.batch.setProjectionMatrix(battle.worldSpace.combined);
 	}
 }

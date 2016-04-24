@@ -10,8 +10,6 @@ import java.util.*;
 
 public class MapTile
 {
-	private final BattleScreen battle;
-
 	public int x = -1;
 	public int y = -1;
 
@@ -19,7 +17,7 @@ public class MapTile
 	public final WarsConst.TerrainType terrainType;
 	private final Sprite sprite;
 
-	boolean debug; // TODO remove lol
+	boolean debugMakeObvious;
 
 	private final ArrayList<Color> colorPile;
 	final HashMap<Object, Color> colorRegister;
@@ -30,8 +28,6 @@ public class MapTile
 
 	public MapTile(int x, int y, WarsConst.TerrainType tileType, Texture tiles)
 	{
-		this.battle = BattleScreen.getInstance();
-
 		this.x = x;
 		this.y = y;
 		this.terrainType = tileType;
@@ -87,7 +83,7 @@ public class MapTile
 			}
 		}
 
-		if (debug) {sprite.rotate(Gdx.graphics.getFrameId());}
+		if (debugMakeObvious) {sprite.rotate(Gdx.graphics.getFrameId());}
 
 		sprite.draw(batch);
 	}

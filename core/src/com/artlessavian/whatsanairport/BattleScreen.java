@@ -2,6 +2,7 @@ package com.artlessavian.whatsanairport;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector3;
@@ -9,24 +10,22 @@ import com.badlogic.gdx.math.Vector3;
 
 public class BattleScreen implements Screen
 {
-	public final WarsMain main; // Or i could do Gdx.app.getApplicationListener()
-	private final ControlStateSystem controlStateSystem;
+	public final WarsMain main;
 
+	// Literal Singleton
 	public static BattleScreen instance = null;
-
-	public void setAsInstance()
+	public void setInstance()
 	{
 		instance = this;
 	}
-
 	public static BattleScreen getInstance()
 	{
 		return instance;
 	}
 
+	private final ControlStateSystem controlStateSystem;
+
 	public final Map map; // x, y
-	public final int mapHeight = 20;
-	public final int mapWidth = 30;
 
 	public int screenTileHeight = 10;
 	public float magicNumba;
@@ -35,13 +34,12 @@ public class BattleScreen implements Screen
 	public final Texture white;
 
 	public final Vector3 trueCamPos;
-	public final OrthographicCamera world;
+	public final OrthographicCamera worldSpace;
 	
 	public BattleScreen(WarsMain main)
 	{
 		this.main = main;
-
-		this.setAsInstance();
+		this.setInstance();
 
 		// Get Assets
 		Texture terrain = main.assetManager.get("Terrain.png", Texture.class);
@@ -68,9 +66,7 @@ public class BattleScreen implements Screen
 		// Game Stuff
 		controlStateSystem = new ControlStateSystem();
 
-		// Probably bad practice idk
-		// As long as its consistent: [x][y]
-		map = new Map(mapWidth, mapHeight);
+		map = new Map(30,20);
 
 		map.debugGeneration(terrain);
 		map.establishNeighbors();
@@ -79,12 +75,14 @@ public class BattleScreen implements Screen
 		map.map[3][5].createUnit("Red/Soldier");
 		map.map[5][3].createUnit("Red/Soldier");
 
-		map.map[0][0].debug = true;
+		map.map[0][0].debugMakeObvious = true;
 
-		trueCamPos = new Vector3(mapWidth / 2f, mapHeight / 2f, 0);
-		world = new OrthographicCamera();
-		world.position.x = mapWidth / 2f;
-		world.position.y = mapHeight / 2f;
+		worldSpace = new OrthographicCamera();
+
+		// TODO: Temporary stuff
+		trueCamPos = new Vector3(15, 10, 0);
+		worldSpace.position.x = 15;
+		worldSpace.position.y = 10;
 	}
 
 	@Override
@@ -96,7 +94,8 @@ public class BattleScreen implements Screen
 	@Override
 	public void render(float delta)
 	{
-		if (Gdx.graphics.getFrameId() % 60 == 0)
+		// TODO: Temporary Stuff
+		//if (Gdx.graphics.getFrameId() % 60 == 0)
 		{
 			if (map.map[1][1].unit == null)
 			{
@@ -109,11 +108,11 @@ public class BattleScreen implements Screen
 		}
 
 		controlStateSystem.update(delta);
-		world.position.lerp(trueCamPos, 0.3f);
+		worldSpace.position.lerp(trueCamPos, 0.3f);
 
-		world.update();
+		worldSpace.update();
 
-		main.batch.setProjectionMatrix(world.combined);
+		main.batch.setProjectionMatrix(worldSpace.combined);
 		main.batch.begin();
 
 		// Draw Tiles, then Units
@@ -122,10 +121,11 @@ public class BattleScreen implements Screen
 		// Draw stuff
 		controlStateSystem.draw();
 
-		main.batch.setProjectionMatrix(main.screen.combined);
-		main.font.draw(main.batch, controlStateSystem.state.getClass().getSimpleName(), 0, main.screen.viewportHeight);
-		main.font.draw(main.batch, magicNumba + " cm/tile", 0, main.screen.viewportHeight - main.font.getLineHeight());
-		main.font.draw(main.batch, Math.ceil(controlStateSystem.timePressed * 100)/100f + "", 0, main.screen.viewportHeight - 2 * main.font.getLineHeight());
+		main.batch.setProjectionMatrix(main.screenSpace.combined);
+		main.font.setColor(Color.WHITE);
+		main.font.draw(main.batch, controlStateSystem.state.getClass().getSimpleName(), 0, main.screenSpace.viewportHeight);
+		main.font.draw(main.batch, magicNumba + " cm/tile", 0, main.screenSpace.viewportHeight - main.font.getLineHeight());
+		main.font.draw(main.batch, Math.ceil(controlStateSystem.touchTime * 100)/100f + "", 0, main.screenSpace.viewportHeight - 2 * main.font.getLineHeight());
 
 		main.batch.end();
 	}
@@ -133,9 +133,9 @@ public class BattleScreen implements Screen
 	@Override
 	public void resize(int width, int height)
 	{
-		world.viewportHeight = screenTileHeight;
-		world.viewportWidth = (float)width * world.viewportHeight / (float)height;
-		world.update();
+		worldSpace.viewportHeight = screenTileHeight;
+		worldSpace.viewportWidth = (float)width * worldSpace.viewportHeight / (float)height;
+		worldSpace.update();
 
 		magicNumba = Math.round(100 * height/screenTileHeight/Gdx.graphics.getPpcY()) / 100f;
 

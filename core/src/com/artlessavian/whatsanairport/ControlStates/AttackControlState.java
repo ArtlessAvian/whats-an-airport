@@ -16,7 +16,6 @@ public class AttackControlState extends ControlState
 
 	private int cursorX;
 	private int cursorY;
-	private boolean moved;
 
 	public AttackControlState(ControlStateSystem controlStateSystem)
 	{
@@ -30,9 +29,7 @@ public class AttackControlState extends ControlState
 		cursorY = (Integer)varargs[1];
 		selectedUnit = (Unit)varargs[2];
 
-		moved = (Boolean)varargs[3];
-
-		attackable = selectedUnit.getAttackableUnits(moved);
+		attackable = selectedUnit.getAttackableUnits((Boolean)varargs[3]);
 		if (attackable.size() == 0) {controlStateSystem.setState(UnitOptionsControlState.class).onReturn();}
 		attackableIter = attackable.iterator();
 
@@ -169,7 +166,7 @@ public class AttackControlState extends ControlState
 			battle.main.batch.draw(battle.grid, enemyUnit.sprite.getX(), enemyUnit.sprite.getY(), 1, 1);
 			toWrite = (int)(selectedUnit.health * 5) + "%";
 		}
-		battle.main.batch.setProjectionMatrix(battle.main.screen.combined);
-		battle.main.font.draw(battle.main.batch, toWrite, battle.main.screen.viewportWidth/2f, battle.main.screen.viewportHeight/2f);
+		battle.main.batch.setProjectionMatrix(battle.main.screenSpace.combined);
+		battle.main.font.draw(battle.main.batch, toWrite, battle.main.screenSpace.viewportWidth/2f, battle.main.screenSpace.viewportHeight/2f);
 	}
 }

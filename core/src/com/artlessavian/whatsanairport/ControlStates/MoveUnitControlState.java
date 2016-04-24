@@ -88,39 +88,37 @@ public class MoveUnitControlState extends CursorControlState
 
 	private void pushDirection(WarsConst.CardinalDir dir)
 	{
-		if (range.movable.contains(battle.map.map[cursorX][cursorY]))
+		if (pathStuffInvalid)
 		{
-			if (pathStuffInvalid)
+			recalculatePath(cursorX, cursorY);
+			pathStuffInvalid = false;
+		}
+		else if (range.movable.contains(battle.map.map[cursorX][cursorY]))
+		{
+			if (path.peek() == WarsConst.CardinalDir.UP && dir == WarsConst.CardinalDir.DOWN)
 			{
-				recalculatePath(cursorX, cursorY);
-			}
-			else
+				path.pop();
+				movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
+			} else if (path.peek() == WarsConst.CardinalDir.DOWN && dir == WarsConst.CardinalDir.UP)
 			{
-				if (path.peek() == WarsConst.CardinalDir.UP && dir == WarsConst.CardinalDir.DOWN)
-				{
-					path.pop();
-					movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
-				} else if (path.peek() == WarsConst.CardinalDir.DOWN && dir == WarsConst.CardinalDir.UP)
-				{
-					path.pop();
-					movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
-				} else if (path.peek() == WarsConst.CardinalDir.LEFT && dir == WarsConst.CardinalDir.RIGHT)
-				{
-					path.pop();
-					movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
-				} else if (path.peek() == WarsConst.CardinalDir.RIGHT && dir == WarsConst.CardinalDir.LEFT)
-				{
-					path.pop();
-					movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
-				} else
-				{
-					path.push(dir);
-					movementCost += battle.map.map[cursorX][cursorY].terrainType.infantryMove;
+				path.pop();
+				movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
+			} else if (path.peek() == WarsConst.CardinalDir.LEFT && dir == WarsConst.CardinalDir.RIGHT)
+			{
+				path.pop();
+				movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
+			} else if (path.peek() == WarsConst.CardinalDir.RIGHT && dir == WarsConst.CardinalDir.LEFT)
+			{
+				path.pop();
+				movementCost -= battle.map.map[cursorX][cursorY].terrainType.infantryMove;
+			} else
+			{
+				path.push(dir);
+				movementCost += battle.map.map[cursorX][cursorY].terrainType.infantryMove;
 
-					if (movementCost > selectedUnit.movement && range.movable.contains(battle.map.map[cursorX][cursorY]))
-					{
-						recalculatePath(cursorX, cursorY);
-					}
+				if (movementCost > selectedUnit.movement && range.movable.contains(battle.map.map[cursorX][cursorY]))
+				{
+					recalculatePath(cursorX, cursorY);
 				}
 			}
 		}
@@ -140,14 +138,17 @@ public class MoveUnitControlState extends CursorControlState
 			current = range.attackableFrom.get(current);
 		}
 
-		movementCost = range.movementCost.get(current);
-		path.clear();
-
-		while (current != battle.map.map[originX][originY])
+		if (range.movable.contains(current))
 		{
-			MapTile from = range.cameFrom.get(current);
-			path.addLast(from.neighborToDir.get(current));
-			current = from;
+			movementCost = range.movementCost.get(current);
+			path.clear();
+
+			while (current != battle.map.map[originX][originY])
+			{
+				MapTile from = range.cameFrom.get(current);
+				path.addLast(from.neighborToDir.get(current));
+				current = from;
+			}
 		}
 	}
 
@@ -220,10 +221,13 @@ public class MoveUnitControlState extends CursorControlState
 		int x = originX;
 		int y = originY;
 
+		String out = "";
+
 		Iterator<WarsConst.CardinalDir> bleh = path.descendingIterator();
 		while (bleh.hasNext())
 		{
 			WarsConst.CardinalDir next = bleh.next();
+			out = out + next.name() + " ";
 			switch (next)
 			{
 				case UP:
@@ -251,5 +255,7 @@ public class MoveUnitControlState extends CursorControlState
 			battle.main.batch.draw(selectedUnit.firstFrame, x + 0.2f, y + 0.2f, 0.6f, 0.6f);
 		}
 
+		battle.main.batch.setProjectionMatrix(battle.main.screenSpace.combined);
+		battle.main.font.draw(battle.main.batch, out, 0, battle.main.font.getLineHeight());
 	}
 }

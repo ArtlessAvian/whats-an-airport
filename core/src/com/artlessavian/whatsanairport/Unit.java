@@ -15,7 +15,7 @@ public class Unit
 	//private final BattleScreen battle;
 
 	public int health = 10;
-	public final int movement = 3;
+	public final int movement = (int)(Math.random() * 17 + 3);
 
 	public final boolean isDirect = Math.random() > 0.5f;
 	public final int minIndirectRange = 3;

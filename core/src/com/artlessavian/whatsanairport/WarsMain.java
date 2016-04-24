@@ -16,17 +16,21 @@ public class WarsMain extends Game
 {
 	public SpriteBatch batch;
 	AssetManager assetManager;
+
+	// TODO: All the font stuff is random functions that seem to work
 	public BitmapFont font;
+	private float linesPerHeight;
+
 	private boolean finishedLoading;
 
-	public OrthographicCamera screen;
+	public OrthographicCamera screenSpace;
 
 	@Override
 	public void create()
 	{
 		batch = new SpriteBatch();
-		assetManager = new AssetManager();
 
+		assetManager = new AssetManager();
 		assetManager.load("Grid.png", Texture.class);
 		assetManager.load("White.png", Texture.class);
 		assetManager.load("Health.png", Texture.class);
@@ -39,7 +43,9 @@ public class WarsMain extends Game
 		font.getData().padTop = 5;
 		font.getData().padBottom = 5;
 
-		screen = new OrthographicCamera();
+		linesPerHeight = 8;
+
+		screenSpace = new OrthographicCamera();
 
 		Unit.textures = new HashMap<String, Texture>();
 	}
@@ -68,14 +74,15 @@ public class WarsMain extends Game
 	{
 		super.resize(width, height);
 
-		screen.viewportWidth = width;
-		screen.viewportHeight = height;
-		screen.position.x = screen.viewportWidth / 2f;
-		screen.position.y = screen.viewportHeight / 2f;
+		screenSpace.viewportWidth = width;
+		screenSpace.viewportHeight = height;
+		screenSpace.position.x = screenSpace.viewportWidth / 2f;
+		screenSpace.position.y = screenSpace.viewportHeight / 2f;
 
-		font.getData().setScale(screen.viewportHeight / 20f / 8f);
+		// TODO: Figure out why divide 20 works
+		font.getData().setScale(screenSpace.viewportHeight/ 20f / linesPerHeight);
 
-		screen.update();
+		screenSpace.update();
 	}
 
 	@Override

@@ -6,7 +6,6 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.math.Vector3;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 
@@ -20,11 +19,11 @@ public class ControlStateSystem extends InputAdapter
 	public boolean doubleTap = false;
 
 	private WarsConst.CardinalDir heldDirection;
-	private float timeHeld;
+	private float pushTime;
 	private float accumulator;
 
 	private int pointer = -1;
-	float timePressed;
+	float touchTime;
 	private boolean isCancelling;
 
 	private final Vector3 helper = new Vector3();
@@ -35,10 +34,11 @@ public class ControlStateSystem extends InputAdapter
 		Gdx.input.setInputProcessor(this);
 
 		heldDirection = null;
-		timeHeld = 0;
+		pushTime = 0;
 		accumulator = 0;
 
-		// A pile of singleton-esque stuff. I don't like it very much.
+		// TODO: Decide either to keep ControlStates as sort of singletons or nah
+		// I'm not a fan of this though.
 		stateHashMap = new HashMap<Class, ControlState>();
 		// Populate States
 		stateHashMap.put(SelectUnitControlState.class, new SelectUnitControlState(this));
@@ -87,25 +87,25 @@ public class ControlStateSystem extends InputAdapter
 			case Input.Keys.W:
 			{
 				heldDirection = WarsConst.CardinalDir.UP;
-				timeHeld = 0;
+				pushTime = 0;
 				break;
 			}
 			case Input.Keys.S:
 			{
 				heldDirection = WarsConst.CardinalDir.DOWN;
-				timeHeld = 0;
+				pushTime = 0;
 				break;
 			}
 			case Input.Keys.A:
 			{
 				heldDirection = WarsConst.CardinalDir.LEFT;
-				timeHeld = 0;
+				pushTime = 0;
 				break;
 			}
 			case Input.Keys.D:
 			{
 				heldDirection = WarsConst.CardinalDir.RIGHT;
-				timeHeld = 0;
+				pushTime = 0;
 				break;
 			}
 			case Input.Keys.J:
@@ -151,10 +151,10 @@ public class ControlStateSystem extends InputAdapter
 	{
 		helper.x = screenX;
 		helper.y = screenY;
-		battle.world.unproject(helper);
+		battle.worldSpace.unproject(helper);
 
-		helper.x = Math.max(0, Math.min(battle.mapWidth - 1, helper.x));
-		helper.y = Math.max(0, Math.min(battle.mapHeight - 1, helper.y));
+		helper.x = Math.max(0, Math.min(battle.map.mapWidth - 1, helper.x));
+		helper.y = Math.max(0, Math.min(battle.map.mapHeight - 1, helper.y));
 
 		return helper;
 	}
@@ -181,7 +181,7 @@ public class ControlStateSystem extends InputAdapter
 		if (this.pointer == pointer)
 		{
 			this.pointer = -1;
-			this.timePressed = 0;
+			this.touchTime = 0;
 			if (!isCancelling)
 			{
 				screenToWorld(screenX, screenY);
@@ -201,7 +201,7 @@ public class ControlStateSystem extends InputAdapter
 
 			if (helper.x > cancelX + 1 || helper.x < cancelX - 1 || helper.y > cancelY + 1 || helper.y < cancelY - 1)
 			{
-				timePressed = -1;
+				touchTime = -1;
 			}
 			state.weakPick(screenX, Gdx.graphics.getHeight() - screenY, (int)helper.x, (int)helper.y);
 		}
@@ -209,25 +209,20 @@ public class ControlStateSystem extends InputAdapter
 		return true;
 	}
 
-	private void doDirection()
-	{
-		state.doDirection(heldDirection);
-	}
-
 	public void update(float delta)
 	{
 		// Touch Stuff
 		if (this.pointer != -1)
 		{
-			if (this.timePressed >= 0)
+			if (this.touchTime >= 0)
 			{
-				this.timePressed += delta;
+				this.touchTime += delta;
 			}
 
-			if (this.timePressed > 0.3)
+			if (this.touchTime > 0.3)
 			{
 				state.cancel();
-				this.timePressed = -1;
+				this.touchTime = -1;
 				isCancelling = true;
 			}
 		}
@@ -235,22 +230,22 @@ public class ControlStateSystem extends InputAdapter
 		// Keyboard Stuff
 		if (heldDirection != null)
 		{
-			if (timeHeld > 0.3)
+			if (pushTime > 0.3)
 			{
 				while (accumulator > 0.03f)
 				{
-					doDirection();
+					state.doDirection(heldDirection);
 					accumulator -= 0.03f;
 				}
 				accumulator += delta;
 			}
 
-			if (timeHeld == 0)
+			if (pushTime == 0)
 			{
 				accumulator += delta;
-				doDirection();
+				state.doDirection(heldDirection);
 			}
-			timeHeld += delta;
+			pushTime += delta;
 		}
 
 		// State stuff

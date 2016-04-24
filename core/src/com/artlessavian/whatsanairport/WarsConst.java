@@ -17,8 +17,6 @@ public class WarsConst
 
 	static TextureRegion[] healthTextures;
 
-	// Used to be cleaner with 1D spritesheets but bleh
-
 	public static void uvTime(Sprite sprite, int timeFrame, int width)
 	{
 		sprite.setU(timeFrame / (float)width);

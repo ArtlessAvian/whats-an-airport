@@ -1,7 +1,6 @@
 package com.artlessavian.whatsanairport.ControlStates;
 
 import com.artlessavian.whatsanairport.ControlStateSystem;
-import com.badlogic.gdx.math.Vector3;
 
 public abstract class CursorControlState extends ControlState
 {
@@ -23,7 +22,7 @@ public abstract class CursorControlState extends ControlState
 	@Override
 	public boolean up()
 	{
-		if (cursorY < battle.mapHeight - 1)
+		if (cursorY < battle.map.mapHeight - 1)
 		{
 			cursorY++;
 			return true;
@@ -56,7 +55,7 @@ public abstract class CursorControlState extends ControlState
 	@Override
 	public boolean right()
 	{
-		if (cursorX < battle.mapWidth - 1)
+		if (cursorX < battle.map.mapWidth - 1)
 		{
 			cursorX++;
 			return true;

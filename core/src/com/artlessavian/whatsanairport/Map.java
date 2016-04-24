@@ -5,17 +5,13 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class Map
 {
-	private final BattleScreen battle;
-
 	public final MapTile[][] map;
-	private final int mapWidth;
-	private final int mapHeight;
+	public final int mapWidth;
+	public final int mapHeight;
 
 
 	public Map(int width, int height)
 	{
-		this.battle = BattleScreen.getInstance();
-
 		map = new MapTile[width][height];
 		mapWidth = width;
 		mapHeight = height;
