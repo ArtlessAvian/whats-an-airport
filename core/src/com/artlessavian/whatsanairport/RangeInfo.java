@@ -1,6 +1,5 @@
 package com.artlessavian.whatsanairport;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Set;
@@ -55,7 +54,7 @@ public class RangeInfo
 			// Expand
 			for (MapTile neighbor : current.neighborToDir.keySet())
 			{
-				if (!attackable.contains(neighbor) && unit.isDirect)
+				if (unit.isDirect && (current.unit == null || current.unit == unit) && !attackable.contains(neighbor))
 				{
 					attackableFrom.put(neighbor, current);
 				}
@@ -96,7 +95,7 @@ public class RangeInfo
 						{
 							try
 							{
-								//BattleScreen.getInstance().map.map[start.x + x][start.y + y].debug = true;
+								//BattleScreen.getInstance().map.map[start.x + x][start.y + y].debugMakeObvious = true;
 								attackableFrom.put(BattleScreen.getInstance().map.map[start.x + x][start.y + y], start);
 							}
 							catch (Exception e)
