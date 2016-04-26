@@ -94,31 +94,31 @@ public class AttackControlState extends ControlState
 	}
 
 	@Override
-	public void pick(int screenX, int screenY, int x, int y)
+	public void pick(int screenX, int screenY, int worldX, int worldY)
 	{
-		if (controlStateSystem.doubleTap && enemyUnit != null && enemyUnit.tile.x == x && enemyUnit.tile.y == y)
+		if (controlStateSystem.doubleTap && enemyUnit != null && enemyUnit.tile.x == worldX && enemyUnit.tile.y == worldY)
 		{
 			select();
 		}
 		else
 		{
-			weakPick(screenX, screenY, x, y);
+			weakPick(screenX, screenY, worldX, worldY);
 		}
 	}
 
 	@Override
-	public void weakPick(int screenX, int screenY, int x, int y)
+	public void weakPick(int screenX, int screenY, int worldX, int worldY)
 	{
-		if (attackable.contains(battle.map.map[x][y].unit))
+		if (attackable.contains(battle.map.map[worldX][worldY].unit))
 		{
-			enemyUnit = battle.map.map[x][y].unit;
+			enemyUnit = battle.map.map[worldX][worldY].unit;
 		}
 	}
 
 	@Override
-	public void release(int screenX, int screenY, int x, int y)
+	public void release(int screenX, int screenY, int worldX, int worldY)
 	{
-		if (!controlStateSystem.doubleTap && enemyUnit != null && enemyUnit.tile.x == x && enemyUnit.tile.y == y)
+		if (!controlStateSystem.doubleTap && enemyUnit != null && enemyUnit.tile.x == worldX && enemyUnit.tile.y == worldY)
 		{
 			select();
 		}
@@ -164,7 +164,7 @@ public class AttackControlState extends ControlState
 		if (enemyUnit != null)
 		{
 			battle.main.batch.draw(battle.grid, enemyUnit.sprite.getX(), enemyUnit.sprite.getY(), 1, 1);
-			toWrite = (int)(selectedUnit.health * 5) + "%";
+			toWrite = selectedUnit.health * 5 + "%";
 		}
 		battle.main.batch.setProjectionMatrix(battle.main.screenSpace.combined);
 		battle.main.font.draw(battle.main.batch, toWrite, battle.main.screenSpace.viewportWidth/2f, battle.main.screenSpace.viewportHeight/2f);

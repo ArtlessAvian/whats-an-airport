@@ -2,14 +2,14 @@ package com.artlessavian.whatsanairport.ControlStates;
 
 import com.artlessavian.whatsanairport.*;
 
-import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.Deque;
 
 public class MoveUnitControlState extends CursorControlState
 {
+	// TODO: RNG crashed here by pathing out of bounds?
+
 	private Unit selectedUnit;
-	private final Deque<WarsConst.CardinalDir> path;
+	private final LinkedList<WarsConst.CardinalDir> path;
 	private boolean pathStuffInvalid;
 	private int movementCost;
 	private RangeInfo range;
@@ -91,7 +91,6 @@ public class MoveUnitControlState extends CursorControlState
 		if (pathStuffInvalid)
 		{
 			recalculatePath(cursorX, cursorY);
-			pathStuffInvalid = false;
 		}
 		else if (range.movable.contains(battle.map.map[cursorX][cursorY]))
 		{
@@ -119,12 +118,17 @@ public class MoveUnitControlState extends CursorControlState
 				if (movementCost > selectedUnit.movement && range.movable.contains(battle.map.map[cursorX][cursorY]))
 				{
 					recalculatePath(cursorX, cursorY);
+					pathStuffInvalid = true;
 				}
 			}
 		}
 		else if (range.attackable.contains(battle.map.map[cursorX][cursorY]))
 		{
 			recalculatePath(cursorX, cursorY);
+			pathStuffInvalid = true;
+		}
+		else
+		{
 			pathStuffInvalid = true;
 		}
 	}
@@ -149,6 +153,8 @@ public class MoveUnitControlState extends CursorControlState
 				path.addLast(from.neighborToDir.get(current));
 				current = from;
 			}
+
+			pathStuffInvalid = false;
 		}
 	}
 
@@ -165,24 +171,24 @@ public class MoveUnitControlState extends CursorControlState
 
 
 	@Override
-	public void pick(int screenX, int screenY, int x, int y)
+	public void pick(int screenX, int screenY, int worldX, int worldY)
 	{
-		recalculatePath(x, y);
-		super.pick(screenX, screenY, x, y);
+		recalculatePath(worldX, worldY);
+		super.pick(screenX, screenY, worldX, worldY);
 	}
 
 	@Override
-	public void weakPick(int screenX, int screenY, int x, int y)
+	public void weakPick(int screenX, int screenY, int worldX, int worldY)
 	{
-		recalculatePath(x, y);
-		super.weakPick(screenX, screenY, x, y);
+		recalculatePath(worldX, worldY);
+		super.weakPick(screenX, screenY, worldX, worldY);
 	}
 
 	@Override
-	public void release(int screenX, int screenY, int x, int y)
+	public void release(int screenX, int screenY, int worldX, int worldY)
 	{
-		recalculatePath(x, y);
-		super.release(screenX, screenY, x, y);
+		recalculatePath(worldX, worldY);
+		super.release(screenX, screenY, worldX, worldY);
 	}
 
 	@Override
@@ -218,44 +224,10 @@ public class MoveUnitControlState extends CursorControlState
 	{
 		super.draw();
 
-		int x = originX;
-		int y = originY;
-
-		String out = "";
-
-		Iterator<WarsConst.CardinalDir> bleh = path.descendingIterator();
-		while (bleh.hasNext())
-		{
-			WarsConst.CardinalDir next = bleh.next();
-			out = out + next.name() + " ";
-			switch (next)
-			{
-				case UP:
-				{
-					y++;
-					break;
-				}
-				case DOWN:
-				{
-					y--;
-					break;
-				}
-				case LEFT:
-				{
-					x--;
-					break;
-				}
-				case RIGHT:
-				{
-					x++;
-					break;
-				}
-			}
-
-			battle.main.batch.draw(selectedUnit.firstFrame, x + 0.2f, y + 0.2f, 0.6f, 0.6f);
-		}
+		CommonStateFunctions.drawPath(path, originX, originY, 0);
 
 		battle.main.batch.setProjectionMatrix(battle.main.screenSpace.combined);
-		battle.main.font.draw(battle.main.batch, out, 0, battle.main.font.getLineHeight());
+		battle.main.font.draw(battle.main.batch, movementCost + " " + selectedUnit.movement, 0, battle.main.font.getLineHeight());
+		battle.main.font.draw(battle.main.batch, pathStuffInvalid + "", 0, 2 * battle.main.font.getLineHeight());
 	}
 }

@@ -55,11 +55,11 @@ public abstract class ControlState
 	protected abstract boolean right();
 
 	// Touch Click
-	public abstract void pick(int screenX, int screenY, int x, int y);
+	public abstract void pick(int screenX, int screenY, int worldX, int worldY);
 
-	public abstract void weakPick(int screenX, int screenY, int x, int y);
+	public abstract void weakPick(int screenX, int screenY, int worldX, int worldY);
 
-	public abstract void release(int screenX, int screenY, int x, int y);
+	public abstract void release(int screenX, int screenY, int worldX, int worldY);
 
 	// Stuff
 	public abstract void select();

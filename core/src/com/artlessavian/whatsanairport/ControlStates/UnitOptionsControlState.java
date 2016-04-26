@@ -55,7 +55,7 @@ public class UnitOptionsControlState extends MenuControlState
 
 			super.addOption("END");
 
-			while (super.options.size() < 4)
+			while (super.options.size() < 6)
 			{
 				super.addOption("END");
 			}

@@ -2,6 +2,7 @@ package com.artlessavian.whatsanairport.ControlStates;
 
 import com.artlessavian.whatsanairport.*;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -11,7 +12,7 @@ public class MovingUnitControlState extends ControlState
 	private float timeThisTile = 0.15f;
 
 	private Unit selectedUnit;
-	private Iterator<WarsConst.CardinalDir> path;
+	private Iterator<WarsConst.CardinalDir> pathIterator;
 	private WarsConst.CardinalDir yee;
 
 	private int x;
@@ -22,6 +23,8 @@ public class MovingUnitControlState extends ControlState
 
 	private float timeAccum;
 	private boolean attackAfter;
+	private LinkedList<WarsConst.CardinalDir> path;
+	private int consumed;
 
 	public MovingUnitControlState(ControlStateSystem controlStateSystem)
 	{
@@ -32,7 +35,9 @@ public class MovingUnitControlState extends ControlState
 	public void onEnter(Object... varargs)
 	{
 		selectedUnit = (Unit)varargs[0];
-		path = ((LinkedList<WarsConst.CardinalDir>)((LinkedList<WarsConst.CardinalDir>)(varargs[1])).clone()).descendingIterator();
+		path = (LinkedList<WarsConst.CardinalDir>)(varargs[1]);
+		pathIterator = path.descendingIterator();
+		consumed = 0;
 
 		timeAccum = 0;
 		timeThisTile = timePerTileDefault;
@@ -45,9 +50,9 @@ public class MovingUnitControlState extends ControlState
 		originY = y;
 
 
-		if (path.hasNext())
+		if (pathIterator.hasNext())
 		{
-			yee = path.next();
+			yee = pathIterator.next();
 		}
 		else
 		{
@@ -92,19 +97,19 @@ public class MovingUnitControlState extends ControlState
 	}
 
 	@Override
-	public void pick(int screenX, int screenY, int x, int y)
+	public void pick(int screenX, int screenY, int worldX, int worldY)
 	{
 
 	}
 
 	@Override
-	public void weakPick(int screenX, int screenY, int x, int y)
+	public void weakPick(int screenX, int screenY, int worldX, int worldY)
 	{
 
 	}
 
 	@Override
-	public void release(int screenX, int screenY, int x, int y)
+	public void release(int screenX, int screenY, int worldX, int worldY)
 	{
 
 	}
@@ -128,6 +133,7 @@ public class MovingUnitControlState extends ControlState
 		selectedUnit.sprite.setPosition(x, y);
 
 		Unit displaced = selectedUnit.move(battle.map.map[x][y]);
+
 		if (attackAfter && displaced == null)
 		{
 			controlStateSystem.stateHashMap.get(UnitOptionsControlState.class).onEnter(selectedUnit, originX, originY, x, y, displaced);
@@ -171,10 +177,11 @@ public class MovingUnitControlState extends ControlState
 			selectedUnit.sprite.setPosition(x, y);
 			timeAccum -= timeThisTile;
 			//timeThisTile *= 2;
+			consumed++;
 
-			if (path.hasNext())
+			if (pathIterator.hasNext())
 			{
-				yee = path.next();
+				yee = pathIterator.next();
 			}
 			else
 			{
@@ -218,5 +225,6 @@ public class MovingUnitControlState extends ControlState
 	public void draw()
 	{
 		CommonStateFunctions.drawFocus(3);
+		CommonStateFunctions.drawPath(path, originX, originY, consumed);
 	}
 }

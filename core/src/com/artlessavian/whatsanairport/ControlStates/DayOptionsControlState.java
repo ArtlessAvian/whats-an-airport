@@ -1,7 +1,6 @@
 package com.artlessavian.whatsanairport.ControlStates;
 
 import com.artlessavian.whatsanairport.ControlStateSystem;
-import com.badlogic.gdx.Gdx;
 
 public class DayOptionsControlState extends MenuControlState
 {
@@ -13,8 +12,7 @@ public class DayOptionsControlState extends MenuControlState
 	@Override
 	public void fillOptions()
 	{
-		addOption("ZOOM OUT");
-		addOption("ZOOM IN");
+		addOption("OPTIONS");
 		addOption("END DAY");
 	}
 
@@ -24,8 +22,11 @@ public class DayOptionsControlState extends MenuControlState
 	{
 		switch (options.get(position))
 		{
-			case "ZOOM OUT": {battle.screenTileHeight += 2; battle.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()); break;}
-			case "ZOOM IN": {if (battle.screenTileHeight > 2) {battle.screenTileHeight -= 2; battle.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());} break;}
+			case "OPTIONS":
+			{
+				controlStateSystem.setState(OptionsOptionsControlState.class).onEnter();
+				break;
+			}
 
 			case "END DAY":
 			{

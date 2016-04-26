@@ -1,9 +1,8 @@
 package com.artlessavian.whatsanairport.ControlStates;
 
 import com.artlessavian.whatsanairport.ControlStateSystem;
-import com.artlessavian.whatsanairport.Unit;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.math.Vector3;
 
 import java.util.ArrayList;
 
@@ -12,6 +11,7 @@ public abstract class MenuControlState extends ControlState
 	private final ArrayList<Float> pushOptionRight;
 	final ArrayList<String> options;
 	int position;
+	int lastReleasePosition;
 
 	private final Sprite selector;
 
@@ -95,7 +95,7 @@ public abstract class MenuControlState extends ControlState
 		float[] thing = new float[4];
 
 		thing[3] = battle.main.font.getLineHeight(); // + 10f;
-		thing[2] = 5 * thing[3];
+		thing[2] = 10 * thing[3];
 
 		if (left)
 		{
@@ -122,35 +122,13 @@ public abstract class MenuControlState extends ControlState
 	}
 
 	@Override
-	public void pick(int screenX, int screenY, int x, int y)
+	public void pick(int screenX, int screenY, int worldX, int worldY)
 	{
-		if (controlStateSystem.doubleTap)
-		{
-			float[] thing = getBoxCoord(false, true);
-
-			if (thing[0] < screenX && screenX < thing[0] + thing[2])
-			{
-				float calculatedPosition = options.size() - (screenY - thing[1]) / thing[3];
-				if (0 <= calculatedPosition && calculatedPosition < options.size())
-				{
-					if (position == (int)calculatedPosition)
-					{
-						select();
-					} else
-					{
-						position = (int)calculatedPosition;
-					}
-				}
-			}
-		}
-		else
-		{
-			weakPick(screenX, screenY, x, y);
-		}
+		weakPick(screenX, screenY, worldX, worldY);
 	}
 
 	@Override
-	public void weakPick(int screenX, int screenY, int x, int y)
+	public void weakPick(int screenX, int screenY, int worldX, int worldY)
 	{
 		float[] thing = getBoxCoord(false, true);
 
@@ -165,25 +143,28 @@ public abstract class MenuControlState extends ControlState
 	}
 
 	@Override
-	public void release(int screenX, int screenY, int x, int y)
+	public void release(int screenX, int screenY, int worldX, int worldY)
 	{
-		if (!controlStateSystem.doubleTap)
+		if (controlStateSystem.doubleTap)
+		{
+			if (lastReleasePosition == position)
+			{
+				float[] thing = getBoxCoord(false, true);
+
+				if (thing[0] < screenX && screenX < thing[0] + thing[2])
+				{
+					select();
+				}
+			}
+			lastReleasePosition = position;
+		}
+		else
 		{
 			float[] thing = getBoxCoord(false, true);
 
 			if (thing[0] < screenX && screenX < thing[0] + thing[2])
 			{
-				float calculatedPosition = options.size() - (screenY - thing[1]) / thing[3];
-				if (0 <= calculatedPosition && calculatedPosition < options.size())
-				{
-					if (position == (int)calculatedPosition)
-					{
-						select();
-					} else
-					{
-						position = (int)calculatedPosition;
-					}
-				}
+				select();
 			}
 		}
 	}
@@ -222,6 +203,8 @@ public abstract class MenuControlState extends ControlState
 	@Override
 	public void draw()
 	{
+		battle.main.setFontSize(12);
+
 		battle.main.batch.setProjectionMatrix(battle.main.screenSpace.combined);
 
 		float[] thing = getBoxCoord(false, true);
@@ -237,13 +220,15 @@ public abstract class MenuControlState extends ControlState
 			battle.main.font.getColor().set(grayval, grayval, grayval, 1);
 
 			battle.main.font.draw(battle.main.batch, options.get(i),
-				thing[0] + pushOptionRight.get(i) * thing[2] / 4f,
+				thing[0] + pushOptionRight.get(i) * thing[2] / 4f + thing[3],
 				thing[1] + (options.size() - i) * (thing[3]) - battle.main.font.getData().padTop);
 		}
 
 		selector.setSize(thing[2], thing[3]);
 		selector.setPosition(thing[0], thing[1] + (options.size() - 1 - position) * (thing[3]));
 		selector.draw(battle.main.batch);
+
+		battle.main.font.draw(battle.main.batch, thing[3] / Gdx.graphics.getPpcY() + " cm/line", 0, battle.main.font.getLineHeight());
 
 		battle.main.batch.setProjectionMatrix(battle.worldSpace.combined);
 	}

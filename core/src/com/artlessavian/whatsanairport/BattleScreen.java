@@ -14,6 +14,8 @@ public class BattleScreen implements Screen
 
 	// Literal Singleton
 	public static BattleScreen instance = null;
+	public boolean doRNGTesting;
+
 	public void setInstance()
 	{
 		instance = this;
@@ -33,14 +35,16 @@ public class BattleScreen implements Screen
 
 	public DayAndCoHandler dayAndCoHandler;
 
-	public int screenTileHeight = 10;
-	public float magicNumba;
-
 	public final Texture grid;
 	public final Texture white;
 
+	public int screenTileHeight = 10;
 	public final Vector3 trueCamPos;
+	public final Vector3 camVelocity;
 	public final OrthographicCamera worldSpace;
+	public float screenWorldScale;
+
+	public float magicNumba;
 	
 	public BattleScreen(WarsMain main)
 	{
@@ -92,6 +96,9 @@ public class BattleScreen implements Screen
 		trueCamPos = new Vector3(15.5f, 10.5f, 0);
 		worldSpace.position.x = 15.5f;
 		worldSpace.position.y = 10.5f;
+		camVelocity = new Vector3(0, 0, 0);
+		worldSpace.position.x = 0;
+		worldSpace.position.y = 0;
 	}
 
 	@Override
@@ -103,6 +110,15 @@ public class BattleScreen implements Screen
 	@Override
 	public void render(float delta)
 	{
+//		try
+//		{
+//			Thread.sleep(100);
+//		}
+//		catch (Exception e)
+//		{
+//
+//		}
+
 		// TODO: Temporary Stuff
 		//if (Gdx.graphics.getFrameId() % 60 == 0)
 		{
@@ -116,8 +132,20 @@ public class BattleScreen implements Screen
 			}
 		}
 
+		if (doRNGTesting)
+		{
+			RNGInputSpammer.doTheThing(controlStateSystem);
+
+			controlStateSystem.battle.screenTileHeight = 20;
+			controlStateSystem.battle.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		}
+
 		controlStateSystem.update(delta);
-		worldSpace.position.lerp(trueCamPos, 0.3f);
+
+		if (!doRNGTesting)
+		{
+			worldSpace.position.lerp(trueCamPos, 0.3f);
+		}
 
 		worldSpace.update();
 
@@ -134,7 +162,9 @@ public class BattleScreen implements Screen
 		main.font.setColor(Color.WHITE);
 		main.font.draw(main.batch, controlStateSystem.state.getClass().getSimpleName(), 0, main.screenSpace.viewportHeight);
 		main.font.draw(main.batch, magicNumba + " cm/tile", 0, main.screenSpace.viewportHeight - main.font.getLineHeight());
-		main.font.draw(main.batch, Math.ceil(controlStateSystem.touchTime * 100)/100f + "", 0, main.screenSpace.viewportHeight - 2 * main.font.getLineHeight());
+		main.font.draw(main.batch, Math.ceil(trueCamPos.x * 10000)/10000f + "", 0, main.screenSpace.viewportHeight - 2 * main.font.getLineHeight());
+		main.font.draw(main.batch, Math.ceil(trueCamPos.y * 10000)/10000f + "", 0, main.screenSpace.viewportHeight - 3 * main.font.getLineHeight());
+		main.font.draw(main.batch, Math.ceil(controlStateSystem.touchTime * 100)/100f + "", 0, main.screenSpace.viewportHeight - 4 * main.font.getLineHeight());
 
 		main.batch.end();
 	}
@@ -146,7 +176,9 @@ public class BattleScreen implements Screen
 		worldSpace.viewportWidth = (float)width * worldSpace.viewportHeight / (float)height;
 		worldSpace.update();
 
-		magicNumba = Math.round(100 * height/screenTileHeight/Gdx.graphics.getPpcY()) / 100f;
+		screenWorldScale = height / screenTileHeight;
+
+		magicNumba = Math.round(10000 * height/screenTileHeight/Gdx.graphics.getPpcY()) / 10000f;
 
 		for (int i = 0; i < 30; i++)
 		{

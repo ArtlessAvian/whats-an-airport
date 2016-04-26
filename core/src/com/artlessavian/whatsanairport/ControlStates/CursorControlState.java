@@ -1,11 +1,19 @@
 package com.artlessavian.whatsanairport.ControlStates;
 
 import com.artlessavian.whatsanairport.ControlStateSystem;
+import com.artlessavian.whatsanairport.WarsConst;
 
 public abstract class CursorControlState extends ControlState
 {
 	int cursorX;
 	int cursorY;
+
+	float lastX;
+	float lastY;
+
+	boolean allowTapPanning;
+	boolean wasInside;
+	boolean allowDragPanning;
 
 	CursorControlState(ControlStateSystem controlStateSystem)
 	{
@@ -17,6 +25,13 @@ public abstract class CursorControlState extends ControlState
 	{
 		cursorX = (Integer)varargs[0];
 		cursorY = (Integer)varargs[1];
+	}
+
+	@Override
+	public boolean doDirection(WarsConst.CardinalDir direction)
+	{
+		allowTapPanning = true;
+		return super.doDirection(direction);
 	}
 
 	@Override
@@ -64,41 +79,96 @@ public abstract class CursorControlState extends ControlState
 	}
 
 	@Override
-	public void pick(int screenX, int screenY, int x, int y)
+	public void pick(int screenX, int screenY, int worldX, int worldY)
 	{
-		if (controlStateSystem.doubleTap && cursorX == x && cursorY == y)
+		wasInside = CommonStateFunctions.withinFocus(2, worldX + 0.5f, worldY + 0.5f);
+
+		allowTapPanning = false;
+		allowDragPanning = false;
+
+		cursorX = worldX;
+		cursorY = worldY;
+
+		lastX = screenX;
+		lastY = screenY;
+
+		moveCam();
+	}
+
+	@Override
+	public void weakPick(int screenX, int screenY, int worldX, int worldY)
+	{
+		if (controlStateSystem.dragPan)
 		{
-			select();
+			if (!allowDragPanning && screenX < lastX - battle.screenWorldScale || screenX > lastX + battle.screenWorldScale || screenY < lastY - battle.screenWorldScale || screenY > lastY + battle.screenWorldScale)
+			{
+				allowDragPanning = true;
+			}
+
+			if (allowDragPanning)
+			{
+				battle.camVelocity.x += (lastX - screenX) / battle.screenWorldScale;
+				battle.camVelocity.y += (lastY - screenY) / battle.screenWorldScale;
+				lastX = screenX;
+				lastY = screenY;
+			}
 		}
 		else
 		{
-			cursorX = x;
-			cursorY = y;
-
-			moveCam();
+			allowTapPanning = false;
+			cursorX = worldX;
+			cursorY = worldY;
 		}
 	}
 
-	@Override
-	public void weakPick(int screenX, int screenY, int x, int y)
-	{
-		cursorX = x;
-		cursorY = y;
-	}
+	int lastReleaseX;
+	int lastReleaseY;
 
 	@Override
-	public void release(int screenX, int screenY, int x, int y)
+	public void release(int screenX, int screenY, int worldX, int worldY)
 	{
-		if (!controlStateSystem.doubleTap && cursorX == x && cursorY == y)
+		if (wasInside && !allowDragPanning) // && CommonStateFunctions.withinFocus(2, cursorX + 0.5f, cursorY + 0.5f))
 		{
-			select();
+			if (controlStateSystem.doubleTap)
+			{
+				if (lastReleaseX == worldX && lastReleaseY == worldY)
+				{
+					select();
+				}
+				lastReleaseX = worldX;
+				lastReleaseY = worldY;
+
+			} else
+			{
+				if (cursorX == worldX && cursorY == worldY)
+				{
+					select();
+				}
+			}
 		}
+		allowTapPanning = true;
 	}
 
 	@Override
 	public void moveCam()
 	{
-		CommonStateFunctions.focus(2, cursorX + 0.5f, cursorY + 0.5f);
+		if (controlStateSystem.dragPan)
+		{
+			battle.trueCamPos.add(battle.camVelocity);
+			battle.worldSpace.position.add(battle.camVelocity);
+			if (controlStateSystem.pointer != -1)
+			{
+				battle.camVelocity.scl(0);
+			}
+			else
+			{
+				battle.camVelocity.scl(0.9f);
+			}
+		}
+		if (allowTapPanning)
+		{
+			CommonStateFunctions.focus(2, cursorX + 0.5f, cursorY + 0.5f);
+		}
 	}
 
 	@Override

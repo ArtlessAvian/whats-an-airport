@@ -10,7 +10,7 @@ public class DayAndCoHandler
 	public void nextDay()
 	{
 		turn++;
-		if (turn > order.length) {turn -= order.length; day++;}
+		if (turn >= order.length) {turn -= order.length; day++;}
 		team = order[turn];
 	}
 }

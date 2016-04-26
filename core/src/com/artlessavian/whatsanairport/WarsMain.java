@@ -43,7 +43,7 @@ public class WarsMain extends Game
 		font.getData().padTop = 5;
 		font.getData().padBottom = 5;
 
-		linesPerHeight = 8;
+		linesPerHeight = 12;
 
 		screenSpace = new OrthographicCamera();
 
@@ -80,9 +80,15 @@ public class WarsMain extends Game
 		screenSpace.position.y = screenSpace.viewportHeight / 2f;
 
 		// TODO: Figure out why divide 20 works
-		font.getData().setScale(screenSpace.viewportHeight/ 20f / linesPerHeight);
+		setFontSize(linesPerHeight);
 
 		screenSpace.update();
+	}
+
+	public void setFontSize(float linesPerHeight)
+	{
+		this.linesPerHeight = linesPerHeight;
+		font.getData().setScale(screenSpace.viewportHeight/ 20f / linesPerHeight);
 	}
 
 	@Override

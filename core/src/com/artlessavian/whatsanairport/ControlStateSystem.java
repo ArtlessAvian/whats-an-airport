@@ -17,17 +17,18 @@ public class ControlStateSystem extends InputAdapter
 	public final HashMap<Class, ControlState> stateHashMap;
 
 	public boolean doubleTap = false;
+	public boolean dragPan = true;
 
 	private WarsConst.CardinalDir heldDirection;
 	private float pushTime;
 	private float accumulator;
 
-	private int pointer = -1;
+	public int pointer = -1;
 	float touchTime;
-	private boolean isCancelling;
+	public boolean isCancelling;
 
 	private final Vector3 helper = new Vector3();
-	
+
 	public ControlStateSystem()
 	{
 		this.battle = BattleScreen.getInstance();
@@ -47,6 +48,7 @@ public class ControlStateSystem extends InputAdapter
 		stateHashMap.put(UnitOptionsControlState.class, new UnitOptionsControlState(this));
 		stateHashMap.put(AttackControlState.class, new AttackControlState(this));
 		stateHashMap.put(DayOptionsControlState.class, new DayOptionsControlState(this));
+		stateHashMap.put(OptionsOptionsControlState.class, new OptionsOptionsControlState(this));
 
 		setState(SelectUnitControlState.class);
 	}
@@ -131,6 +133,10 @@ public class ControlStateSystem extends InputAdapter
 				battle.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 				break;
 			}
+			case Input.Keys.NUMPAD_9:
+			{
+				battle.doRNGTesting = !battle.doRNGTesting;
+			}
 
 			default: {return false;}
 		}
@@ -166,11 +172,11 @@ public class ControlStateSystem extends InputAdapter
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button)
 	{
-		this.pointer = pointer;
+		if (this.pointer == -1) {this.pointer = pointer;}
 		screenToWorld(screenX, screenY);
 
-		cancelX = helper.x;
-		cancelY = helper.y;
+		cancelX = screenX;
+		cancelY = screenY;
 
 		state.pick(screenX, Gdx.graphics.getHeight() - screenY, (int)helper.x, (int)helper.y);
 
@@ -200,7 +206,7 @@ public class ControlStateSystem extends InputAdapter
 		{
 			screenToWorld(screenX, screenY);
 
-			if (helper.x > cancelX + 1 || helper.x < cancelX - 1 || helper.y > cancelY + 1 || helper.y < cancelY - 1)
+			if (screenX > cancelX + battle.screenWorldScale || screenX < cancelX - battle.screenWorldScale || screenY > cancelY + battle.screenWorldScale || screenY < cancelY - battle.screenWorldScale)
 			{
 				touchTime = -1;
 			}
@@ -220,10 +226,10 @@ public class ControlStateSystem extends InputAdapter
 				this.touchTime += delta;
 			}
 
-			if (this.touchTime > 0.3)
+			if (this.touchTime > 1)
 			{
 				state.cancel();
-				this.touchTime = -1;
+				this.touchTime = -2;
 				isCancelling = true;
 			}
 		}
