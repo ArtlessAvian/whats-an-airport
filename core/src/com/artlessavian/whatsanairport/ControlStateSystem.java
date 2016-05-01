@@ -135,7 +135,14 @@ public class ControlStateSystem extends InputAdapter
 			}
 			case Input.Keys.NUMPAD_9:
 			{
-				battle.doRNGTesting = !battle.doRNGTesting;
+				if (RNGInputSpammer.doRNGTesting)
+				{
+					RNGInputSpammer.doRNGTesting = false;
+				}
+				else
+				{
+					RNGInputSpammer.activate();
+				}
 			}
 
 			default: {return false;}
@@ -226,7 +233,7 @@ public class ControlStateSystem extends InputAdapter
 				this.touchTime += delta;
 			}
 
-			if (this.touchTime > 1)
+			if (this.touchTime > 0.3f)
 			{
 				state.cancel();
 				this.touchTime = -2;

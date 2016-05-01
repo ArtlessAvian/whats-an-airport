@@ -8,8 +8,8 @@ import java.util.LinkedList;
 
 public class MovingUnitControlState extends ControlState
 {
-	private final float timePerTileDefault = 0.15f;
-	private float timeThisTile = 0.15f;
+	private final float timePerTileDefault = 0.12f;
+	private float timeThisTile = 0.12f;
 
 	private Unit selectedUnit;
 	private Iterator<WarsConst.CardinalDir> pathIterator;
@@ -134,7 +134,7 @@ public class MovingUnitControlState extends ControlState
 
 		Unit displaced = selectedUnit.move(battle.map.map[x][y]);
 
-		if (attackAfter && displaced == null)
+		if (attackAfter && (displaced == null || displaced == selectedUnit))
 		{
 			controlStateSystem.stateHashMap.get(UnitOptionsControlState.class).onEnter(selectedUnit, originX, originY, x, y, displaced);
 			controlStateSystem.setState(AttackControlState.class).onEnter(x, y, selectedUnit, originX != x || originY != y);

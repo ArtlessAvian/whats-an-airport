@@ -107,8 +107,18 @@ public abstract class CursorControlState extends ControlState
 
 			if (allowDragPanning)
 			{
-				battle.camVelocity.x += (lastX - screenX) / battle.screenWorldScale;
-				battle.camVelocity.y += (lastY - screenY) / battle.screenWorldScale;
+				if (battle.worldSpace.viewportWidth < battle.map.mapWidth)
+				{
+					battle.camVelocity.x += (lastX - screenX) / battle.screenWorldScale;
+				}
+
+				//battle.worldSpace.position.x = battle.map.mapWidth/2f;
+
+				if (battle.worldSpace.viewportHeight < battle.map.mapHeight)
+				{
+					battle.camVelocity.y += (lastY - screenY) / battle.screenWorldScale;
+				}
+
 				lastX = screenX;
 				lastY = screenY;
 			}

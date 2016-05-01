@@ -105,15 +105,14 @@ class CommonStateFunctions
 	{
 		BattleScreen battle = BattleScreen.getInstance();
 		if (scrollBox.getTexture() == null) {scrollBox.setTexture(battle.grid); scrollBox.setRegion(0f,0f,1f,1f);}
-		scrollBox.setSize(battle.worldSpace.viewportWidth / 2f - leeway, battle.worldSpace.viewportHeight / 2f - leeway);
+		scrollBox.setSize(
+			Math.max(0, battle.worldSpace.viewportWidth - 2 * leeway),
+			Math.max(0, battle.worldSpace.viewportHeight - 2 * leeway));
 
-		scrollBox.setCenter(battle.worldSpace.position.x - scrollBox.getWidth()/2f, battle.worldSpace.position.y - scrollBox.getHeight()/2f);
+		scrollBox.setCenter(battle.worldSpace.position.x, battle.worldSpace.position.y);
 		scrollBox.draw(battle.main.batch, 0.3f);
-		scrollBox.setCenter(battle.worldSpace.position.x - scrollBox.getWidth()/2f, battle.worldSpace.position.y + scrollBox.getHeight()/2f);
-		scrollBox.draw(battle.main.batch, 0.3f);
-		scrollBox.setCenter(battle.worldSpace.position.x + scrollBox.getWidth()/2f, battle.worldSpace.position.y - scrollBox.getHeight()/2f);
-		scrollBox.draw(battle.main.batch, 0.3f);
-		scrollBox.setCenter(battle.worldSpace.position.x + scrollBox.getWidth()/2f, battle.worldSpace.position.y + scrollBox.getHeight()/2f);
+		scrollBox.setSize(1f, 1f);
+		scrollBox.setCenter(battle.worldSpace.position.x, battle.worldSpace.position.y);
 		scrollBox.draw(battle.main.batch, 0.3f);
 	}
 

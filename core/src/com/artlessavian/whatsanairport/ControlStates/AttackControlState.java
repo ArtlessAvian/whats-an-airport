@@ -154,12 +154,14 @@ public class AttackControlState extends ControlState
 	@Override
 	public void moveCam()
 	{
-
+		CommonStateFunctions.focus(selectedUnit.maxIndirectRange + 1, selectedUnit.sprite.getX() + 0.5f, selectedUnit.sprite.getY() + 0.5f);
 	}
 
 	@Override
 	public void draw()
 	{
+		CommonStateFunctions.drawFocus(selectedUnit.maxIndirectRange + 1);
+
 		String toWrite = "??";
 		if (enemyUnit != null)
 		{

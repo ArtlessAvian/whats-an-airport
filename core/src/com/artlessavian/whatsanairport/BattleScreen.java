@@ -14,7 +14,6 @@ public class BattleScreen implements Screen
 
 	// Literal Singleton
 	public static BattleScreen instance = null;
-	public boolean doRNGTesting;
 
 	public void setInstance()
 	{
@@ -78,7 +77,7 @@ public class BattleScreen implements Screen
 		// Game Stuff
 		controlStateSystem = new ControlStateSystem();
 
-		map = new Map(30,20);
+		map = new Map(20,15);
 
 		map.debugGeneration(terrain);
 		map.establishNeighbors();
@@ -90,7 +89,7 @@ public class BattleScreen implements Screen
 		map.map[0][0].debugMakeObvious = true;
 
 		worldSpace = new OrthographicCamera();
-		screenTileHeight = (int)(Gdx.graphics.getHeight()/Gdx.graphics.getPpcX()/1f);
+		//screenTileHeight = (int)(Gdx.graphics.getHeight()/Gdx.graphics.getPpcX()/1f);
 
 		// TODO: Temporary stuff
 		trueCamPos = new Vector3(15.5f, 10.5f, 0);
@@ -132,22 +131,17 @@ public class BattleScreen implements Screen
 			}
 		}
 
-		if (doRNGTesting)
+		if (RNGInputSpammer.doRNGTesting)
 		{
 			RNGInputSpammer.doTheThing(controlStateSystem);
-
-			controlStateSystem.battle.screenTileHeight = 20;
-			controlStateSystem.battle.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		}
-
-		controlStateSystem.update(delta);
-
-		if (!doRNGTesting)
+		else
 		{
-			worldSpace.position.lerp(trueCamPos, 0.3f);
-		}
+			controlStateSystem.update(delta);
 
-		worldSpace.update();
+			worldSpace.position.lerp(trueCamPos, 0.3f);
+			worldSpace.update();
+		}
 
 		main.batch.setProjectionMatrix(worldSpace.combined);
 		main.batch.begin();

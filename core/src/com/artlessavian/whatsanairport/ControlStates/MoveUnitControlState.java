@@ -137,6 +137,8 @@ public class MoveUnitControlState extends CursorControlState
 	{
 		MapTile current = battle.map.map[x][y];
 
+		pathStuffInvalid = !range.movable.contains(current);
+
 		if (selectedUnit.isDirect && range.attackable.contains(current) && !range.movable.contains(current))
 		{
 			current = range.attackableFrom.get(current);
@@ -153,8 +155,6 @@ public class MoveUnitControlState extends CursorControlState
 				path.addLast(from.neighborToDir.get(current));
 				current = from;
 			}
-
-			pathStuffInvalid = false;
 		}
 	}
 
