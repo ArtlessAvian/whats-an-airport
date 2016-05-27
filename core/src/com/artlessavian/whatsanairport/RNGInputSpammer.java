@@ -16,20 +16,16 @@ public class RNGInputSpammer
 		if (action <= 0.225)
 		{
 			state.doDirection(WarsConst.CardinalDir.UP);
-		}
-		else if (action <= 0.45)
+		} else if (action <= 0.45)
 		{
 			state.doDirection(WarsConst.CardinalDir.DOWN);
-		}
-		else if (action < 0.675)
+		} else if (action < 0.675)
 		{
 			state.doDirection(WarsConst.CardinalDir.RIGHT);
-		}
-		else if (action <= 0.9)
+		} else if (action <= 0.9)
 		{
 			state.doDirection(WarsConst.CardinalDir.LEFT);
-		}
-		else if (action <= 0.98)
+		} else if (action <= 0.98)
 		{
 			state.select();
 		} else
@@ -44,13 +40,21 @@ public class RNGInputSpammer
 		BattleScreen battle = BattleScreen.getInstance();
 		battle.screenTileHeight = battle.map.mapHeight;
 		battle.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		battle.worldSpace.position.y = battle.map.mapHeight/2f;
-		battle.worldSpace.position.x = battle.map.mapWidth/2f;
+		battle.worldSpace.position.y = battle.map.mapHeight / 2f;
+		battle.worldSpace.position.x = battle.map.mapWidth / 2f;
 		battle.worldSpace.update();
 	}
 
 	public static void doTheThing(ControlStateSystem controlStateSystem)
 	{
+		if (Gdx.graphics.getDeltaTime() > 1 / 30f)
+		{
+			cyclesPerFrame -= 100;
+		} else
+		{
+			cyclesPerFrame += 100;
+		}
+
 		for (int i = 0; i < cyclesPerFrame && doRNGTesting; i++)
 		{
 			try

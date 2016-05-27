@@ -122,8 +122,7 @@ public abstract class CursorControlState extends ControlState
 				lastX = screenX;
 				lastY = screenY;
 			}
-		}
-		else
+		} else
 		{
 			allowTapPanning = false;
 			cursorX = worldX;
@@ -169,8 +168,7 @@ public abstract class CursorControlState extends ControlState
 			if (controlStateSystem.pointer != -1)
 			{
 				battle.camVelocity.scl(0);
-			}
-			else
+			} else
 			{
 				battle.camVelocity.scl(0.9f);
 			}

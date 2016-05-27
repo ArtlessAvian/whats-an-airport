@@ -1,8 +1,9 @@
 package com.artlessavian.whatsanairport.ControlStates;
 
-import com.artlessavian.whatsanairport.*;
+import com.artlessavian.whatsanairport.ControlStateSystem;
+import com.artlessavian.whatsanairport.Unit;
+import com.artlessavian.whatsanairport.WarsConst;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -53,8 +54,7 @@ public class MovingUnitControlState extends ControlState
 		if (pathIterator.hasNext())
 		{
 			yee = pathIterator.next();
-		}
-		else
+		} else
 		{
 			finish();
 		}
@@ -182,8 +182,7 @@ public class MovingUnitControlState extends ControlState
 			if (pathIterator.hasNext())
 			{
 				yee = pathIterator.next();
-			}
-			else
+			} else
 			{
 				finish();
 				return;

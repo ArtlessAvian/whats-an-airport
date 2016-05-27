@@ -1,6 +1,9 @@
 package com.artlessavian.whatsanairport.ControlStates;
 
-import com.artlessavian.whatsanairport.*;
+import com.artlessavian.whatsanairport.ControlStateSystem;
+import com.artlessavian.whatsanairport.Unit;
+import com.artlessavian.whatsanairport.WarsConst;
+import com.badlogic.gdx.graphics.Color;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -48,6 +51,9 @@ public class AttackControlState extends ControlState
 		{
 			u.tile.deregister(this);
 		}
+		selectedUnit.used = true;
+		selectedUnit.sprite.setColor(Color.GRAY);
+		selectedUnit.sprite.setRotation(180);
 	}
 
 	@Override
@@ -99,8 +105,7 @@ public class AttackControlState extends ControlState
 		if (controlStateSystem.doubleTap && enemyUnit != null && enemyUnit.tile.x == worldX && enemyUnit.tile.y == worldY)
 		{
 			select();
-		}
-		else
+		} else
 		{
 			weakPick(screenX, screenY, worldX, worldY);
 		}
@@ -154,13 +159,25 @@ public class AttackControlState extends ControlState
 	@Override
 	public void moveCam()
 	{
-		CommonStateFunctions.focus(selectedUnit.maxIndirectRange + 1, selectedUnit.sprite.getX() + 0.5f, selectedUnit.sprite.getY() + 0.5f);
+		if (selectedUnit.unitInfo.isDirect)
+		{
+			CommonStateFunctions.focus(2, selectedUnit.sprite.getX() + 0.5f, selectedUnit.sprite.getY() + 0.5f);
+		} else
+		{
+			CommonStateFunctions.focus(selectedUnit.unitInfo.maxIndirectRange / 2 + 1, selectedUnit.sprite.getX() + 0.5f, selectedUnit.sprite.getY() + 0.5f);
+		}
 	}
 
 	@Override
 	public void draw()
 	{
-		CommonStateFunctions.drawFocus(selectedUnit.maxIndirectRange + 1);
+		if (selectedUnit.unitInfo.isDirect)
+		{
+			CommonStateFunctions.drawFocus(2);
+		} else
+		{
+			CommonStateFunctions.drawFocus(selectedUnit.unitInfo.maxIndirectRange / 2 + 1);
+		}
 
 		String toWrite = "??";
 		if (enemyUnit != null)
@@ -169,6 +186,6 @@ public class AttackControlState extends ControlState
 			toWrite = selectedUnit.health * 5 + "%";
 		}
 		battle.main.batch.setProjectionMatrix(battle.main.screenSpace.combined);
-		battle.main.font.draw(battle.main.batch, toWrite, battle.main.screenSpace.viewportWidth/2f, battle.main.screenSpace.viewportHeight/2f);
+		battle.main.font.draw(battle.main.batch, toWrite, battle.main.screenSpace.viewportWidth / 2f, battle.main.screenSpace.viewportHeight / 2f);
 	}
 }

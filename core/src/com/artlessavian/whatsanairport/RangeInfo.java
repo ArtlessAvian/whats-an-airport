@@ -13,7 +13,7 @@ public class RangeInfo
 	public final Set<MapTile> attackable;
 	public final Set<MapTile> movable;
 
-	public RangeInfo(MapTile start, int move, Unit unit)
+	public RangeInfo(MapTile start, int movement, Unit unit)
 	{
 		movementCost = new HashMap<MapTile, Integer>();
 		cameFrom = new HashMap<MapTile, MapTile>();
@@ -22,10 +22,10 @@ public class RangeInfo
 		attackable = attackableFrom.keySet();
 		movable = cameFrom.keySet();
 
-		calculate(start, move, unit);
+		calculate(start, movement, unit);
 	}
 
-	private void calculate(MapTile start, int move, Unit unit)
+	private void calculate(MapTile start, int movement, Unit unit)
 	{
 		// Dijkstra's for movement
 		LinkedList<MapTile> frontier = new LinkedList<MapTile>();
@@ -54,7 +54,7 @@ public class RangeInfo
 			// Expand
 			for (MapTile neighbor : current.neighborToDir.keySet())
 			{
-				if (unit.isDirect && (current.unit == null || current.unit == unit) && !attackable.contains(neighbor))
+				if (unit.unitInfo.isDirect && (current.unit == null || current.unit == unit) && !attackable.contains(neighbor))
 				{
 					attackableFrom.put(neighbor, current);
 				}
@@ -62,7 +62,7 @@ public class RangeInfo
 				if (!movable.contains(neighbor))
 				{
 					int newCost = cost + (neighbor.terrainType.infantryMove);
-					if (newCost <= move && (neighbor.unit == null || neighbor.unit.team.equals(unit.team)))
+					if (newCost <= movement && (neighbor.unit == null || neighbor.unit.team.equals(unit.team)))
 					{
 						frontier.add(neighbor);
 						movementCost.put(neighbor, newCost);
@@ -82,20 +82,20 @@ public class RangeInfo
 //			}
 //		}
 
-		if (!unit.isDirect)
+		if (!unit.unitInfo.isDirect)
 		{
 			// Cheapo Way
-			for (int y = -unit.maxIndirectRange; y <= unit.maxIndirectRange; y++)
+			for (int y = -unit.unitInfo.maxIndirectRange; y <= unit.unitInfo.maxIndirectRange; y++)
 			{
-				for (int x = -unit.maxIndirectRange; x <= unit.maxIndirectRange; x++)
+				for (int x = -unit.unitInfo.maxIndirectRange; x <= unit.unitInfo.maxIndirectRange; x++)
 				{
-					if (x + y <= unit.maxIndirectRange && x + y >= -unit.maxIndirectRange && x - y <= unit.maxIndirectRange && x - y >= -unit.maxIndirectRange)
+					if (x + y <= unit.unitInfo.maxIndirectRange && x + y >= -unit.unitInfo.maxIndirectRange && x - y <= unit.unitInfo.maxIndirectRange && x - y >= -unit.unitInfo.maxIndirectRange)
 					{
-						if (x + y <= -unit.minIndirectRange || x + y >= unit.minIndirectRange || x - y <= -unit.minIndirectRange || x - y >= unit.minIndirectRange)
+						if (x + y <= -unit.unitInfo.minIndirectRange || x + y >= unit.unitInfo.minIndirectRange || x - y <= -unit.unitInfo.minIndirectRange || x - y >= unit.unitInfo.minIndirectRange)
 						{
 							try
 							{
-								//BattleScreen.getInstance().map.map[start.x + x][start.y + y].debugMakeObvious = true;
+								//BattleScreen.getInstance().map.map[start.x + x][start.y + y].debugSpin = true;
 								attackableFrom.put(BattleScreen.getInstance().map.map[start.x + x][start.y + y], start);
 							}
 							catch (Exception e)

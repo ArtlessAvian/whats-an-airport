@@ -12,20 +12,27 @@ import java.util.HashMap;
 
 public class Unit
 {
-	//private final BattleScreen battle;
+	public static class UnitInfo
+	{
+		public String type = "Soldier";
+
+		public final int movement = 3;
+
+		public final boolean isDirect = true;
+		public final int minIndirectRange = 0;
+		public final int maxIndirectRange = 0;
+	}
 
 	public int health = 10;
-	public final int movement = (int)(Math.random() * 17 + 3);
 
-	public final boolean isDirect = Math.random() > 0.5f;
-	public final int minIndirectRange = 3;
-	public final int maxIndirectRange = 5;
+	public UnitInfo unitInfo;
 
 	public boolean isDangerZoned;
 	private RangeInfo oldDangerZone;
-	private Color dangerColor;
+	Color dangerColor;
 
 	public final String team;
+	public boolean used = false;
 
 	public MapTile tile;
 
@@ -33,33 +40,34 @@ public class Unit
 	public final TextureRegion firstFrame;
 
 	static HashMap<String, Texture> textures;
+	private BattleScreen battle;
 
-	public Unit(MapTile tile, String type)
+	public Unit(MapTile tile, UnitInfo unitInfo, String team)
 	{
-		//this.battle = BattleScreen.getInstance();
+		this.battle = BattleScreen.getInstance();
 
-		this.sprite = new Sprite(textures.get(type));
+		this.unitInfo = unitInfo;
+
+		this.sprite = new Sprite(textures.get(team + "/" + unitInfo.type));
 		sprite.setRegion(0, 0, sprite.getTexture().getHeight(), sprite.getTexture().getHeight());
 		sprite.setOrigin(0.5f, 0.5f);
 		sprite.setPosition(tile.x, tile.y);
-
-		if (!isDirect) {sprite.setColor(Color.CHARTREUSE);}
-
 		firstFrame = TextureRegion.split(sprite.getTexture(), sprite.getTexture().getHeight(), sprite.getTexture().getHeight())[0][0];
 
-		this.team = type.replaceAll("/.+", "");
+		this.team = team;
+
 		this.tile = tile;
 		tile.unit = this;
 	}
 
 	public RangeInfo getRange()
 	{
-		return new RangeInfo(tile, movement, this);
+		return new RangeInfo(tile, unitInfo.movement, this);
 	}
 
 	public ArrayList<Unit> getAttackableUnits(boolean moved)
 	{
-		if (moved && !isDirect) {return new ArrayList<Unit>();}
+		if (moved && !unitInfo.isDirect) {return new ArrayList<Unit>();}
 
 		RangeInfo temp = new RangeInfo(tile, 0, this);
 		ArrayList<Unit> attackable = new ArrayList<Unit>();
@@ -76,17 +84,22 @@ public class Unit
 
 	public void makeDangerZone()
 	{
-		if (dangerColor == null) {registerColor();}
-
-		oldDangerZone = new RangeInfo(tile, movement, this);
-		for (MapTile t : oldDangerZone.attackable)
+		if (health > 0)
 		{
-			t.register(this, dangerColor);
+			if (dangerColor == null) {registerColor();}
+
+			oldDangerZone = new RangeInfo(tile, unitInfo.movement, this);
+			for (MapTile t : oldDangerZone.attackable)
+			{
+				t.register(this, dangerColor);
+			}
+
+			sprite.setColor(dangerColor);
+
+			isDangerZoned = true;
+
+			tile.debugSpin = true;
 		}
-
-		sprite.setColor(dangerColor);
-
-		isDangerZoned = true;
 	}
 
 	private void refreshDangerZone()
@@ -109,6 +122,9 @@ public class Unit
 
 		isDangerZoned = false;
 		oldDangerZone = null;
+
+		tile.debugSpin = false;
+		tile.sprite.setRotation(0);
 	}
 
 	private void registerColor()
@@ -167,7 +183,7 @@ public class Unit
 
 		if (isDangerZoned)
 		{
-			oldDangerZone = new RangeInfo(this.tile, movement, this);
+			oldDangerZone = new RangeInfo(this.tile, unitInfo.movement, this);
 
 			for (MapTile t : oldDangerZone.attackable)
 			{
@@ -187,7 +203,7 @@ public class Unit
 			return;
 		}
 
-		if (!isCounter && other.isDirect)
+		if (!isCounter && other.unitInfo.isDirect)
 		{
 			if (other.getAttackableUnits(false).contains(this))
 			{
@@ -204,6 +220,9 @@ public class Unit
 		}
 		deregisterColor();
 		this.tile.unit = null;
+
+		battle.screenShake.add(0, 1.2f, 0);
+		battle.screenShake.rotate((float)(Math.random() * 360), 0, 0, 1);
 	}
 
 	public void joined(Unit mainUnit)
@@ -220,6 +239,8 @@ public class Unit
 
 	public void draw(SpriteBatch batch)
 	{
+		if (!used && !unitInfo.isDirect) {sprite.rotate(1);}
+
 		WarsConst.uvTime(sprite, (int)(2 + 1.9 * Math.cos(Gdx.graphics.getFrameId() / 20f)), 4);
 		sprite.setSize(1, health / 20f + 0.5f);
 		sprite.draw(batch);

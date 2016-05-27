@@ -88,7 +88,7 @@ public class WarsMain extends Game
 	public void setFontSize(float linesPerHeight)
 	{
 		this.linesPerHeight = linesPerHeight;
-		font.getData().setScale(screenSpace.viewportHeight/ 20f / linesPerHeight);
+		font.getData().setScale(screenSpace.viewportHeight / 20f / linesPerHeight);
 	}
 
 	@Override

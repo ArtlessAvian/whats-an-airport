@@ -19,6 +19,7 @@ public class BattleScreen implements Screen
 	{
 		instance = this;
 	}
+
 	public static BattleScreen getInstance()
 	{
 		return instance;
@@ -28,10 +29,6 @@ public class BattleScreen implements Screen
 
 	public final Map map; // x, y
 
-	private int day = 0;
-	public int turn = 0;
-	private final String[] turnToTeam = {"Red", "Blue"};
-
 	public DayAndCoHandler dayAndCoHandler;
 
 	public final Texture grid;
@@ -40,6 +37,7 @@ public class BattleScreen implements Screen
 	public int screenTileHeight = 10;
 	public final Vector3 trueCamPos;
 	public final Vector3 camVelocity;
+	public final Vector3 screenShake;
 	public final OrthographicCamera worldSpace;
 	public float screenWorldScale;
 
@@ -72,21 +70,21 @@ public class BattleScreen implements Screen
 			}
 		}
 
-		dayAndCoHandler = new DayAndCoHandler();
+		dayAndCoHandler = new DayAndCoHandler(this);
 
 		// Game Stuff
 		controlStateSystem = new ControlStateSystem();
 
-		map = new Map(20,15);
+		map = new Map(20, 15);
 
 		map.debugGeneration(terrain);
 		map.establishNeighbors();
 
-		map.map[3][3].createUnit("Blue/Soldier");
-		map.map[3][5].createUnit("Red/Soldier");
-		map.map[5][3].createUnit("Red/Soldier");
+		map.map[3][3].createUnit("Blue");
+		map.map[3][5].createUnit("Red");
+		map.map[5][3].createUnit("Red");
 
-		map.map[0][0].debugMakeObvious = true;
+		map.map[0][0].debugSpin = true;
 
 		worldSpace = new OrthographicCamera();
 		//screenTileHeight = (int)(Gdx.graphics.getHeight()/Gdx.graphics.getPpcX()/1f);
@@ -96,8 +94,7 @@ public class BattleScreen implements Screen
 		worldSpace.position.x = 15.5f;
 		worldSpace.position.y = 10.5f;
 		camVelocity = new Vector3(0, 0, 0);
-		worldSpace.position.x = 0;
-		worldSpace.position.y = 0;
+		screenShake = new Vector3(0, 0, 0);
 	}
 
 	@Override
@@ -118,28 +115,20 @@ public class BattleScreen implements Screen
 //
 //		}
 
-		// TODO: Temporary Stuff
-		//if (Gdx.graphics.getFrameId() % 60 == 0)
-		{
-			if (map.map[1][1].unit == null)
-			{
-				map.map[1][1].createUnit("Red/Soldier");
-			}
-			if (map.map[3][1].unit == null)
-			{
-				map.map[3][1].createUnit("Blue/Soldier");
-			}
-		}
-
 		if (RNGInputSpammer.doRNGTesting)
 		{
 			RNGInputSpammer.doTheThing(controlStateSystem);
-		}
-		else
+		} else
 		{
 			controlStateSystem.update(delta);
 
 			worldSpace.position.lerp(trueCamPos, 0.3f);
+			if (screenShake.len2() > 0.001)
+			{
+				worldSpace.position.add(screenShake);
+				screenShake.scl(-0.95f);
+				screenShake.rotate((float)(Math.random() * 10 - 5), 0, 0, 1);
+			}
 			worldSpace.update();
 		}
 
@@ -156,9 +145,9 @@ public class BattleScreen implements Screen
 		main.font.setColor(Color.WHITE);
 		main.font.draw(main.batch, controlStateSystem.state.getClass().getSimpleName(), 0, main.screenSpace.viewportHeight);
 		main.font.draw(main.batch, magicNumba + " cm/tile", 0, main.screenSpace.viewportHeight - main.font.getLineHeight());
-		main.font.draw(main.batch, Math.ceil(trueCamPos.x * 10000)/10000f + "", 0, main.screenSpace.viewportHeight - 2 * main.font.getLineHeight());
-		main.font.draw(main.batch, Math.ceil(trueCamPos.y * 10000)/10000f + "", 0, main.screenSpace.viewportHeight - 3 * main.font.getLineHeight());
-		main.font.draw(main.batch, Math.ceil(controlStateSystem.touchTime * 100)/100f + "", 0, main.screenSpace.viewportHeight - 4 * main.font.getLineHeight());
+		main.font.draw(main.batch, Math.ceil(worldSpace.position.x * 10000) / 10000f + "", 0, main.screenSpace.viewportHeight - 2 * main.font.getLineHeight());
+		main.font.draw(main.batch, Math.ceil(worldSpace.position.y * 10000) / 10000f + "", 0, main.screenSpace.viewportHeight - 3 * main.font.getLineHeight());
+		main.font.draw(main.batch, Math.ceil(controlStateSystem.touchTime * 100) / 100f + "", 0, main.screenSpace.viewportHeight - 4 * main.font.getLineHeight());
 
 		main.batch.end();
 	}
@@ -172,7 +161,7 @@ public class BattleScreen implements Screen
 
 		screenWorldScale = height / screenTileHeight;
 
-		magicNumba = Math.round(10000 * height/screenTileHeight/Gdx.graphics.getPpcY()) / 10000f;
+		magicNumba = Math.round(10000 * height / screenTileHeight / Gdx.graphics.getPpcY()) / 10000f;
 
 		for (int i = 0; i < 30; i++)
 		{

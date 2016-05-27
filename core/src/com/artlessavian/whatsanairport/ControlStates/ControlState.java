@@ -71,9 +71,5 @@ public abstract class ControlState
 
 	public abstract void moveCam();
 
-	public void draw()
-	{
-
-	}
-
+	public abstract void draw();
 }

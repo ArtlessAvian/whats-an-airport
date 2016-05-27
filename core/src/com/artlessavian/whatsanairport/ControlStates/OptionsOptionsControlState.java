@@ -25,10 +25,31 @@ public class OptionsOptionsControlState extends MenuControlState
 	{
 		switch (options.get(position))
 		{
-			case "ZOOM OUT": {battle.screenTileHeight += 1; battle.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()); break;}
-			case "ZOOM IN": {if (battle.screenTileHeight > 1) {battle.screenTileHeight -= 1; battle.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());} break;}
-			case "doubletap sucks": {controlStateSystem.doubleTap = !controlStateSystem.doubleTap; break;}
-			case "DRAGPAN": {controlStateSystem.dragPan = !controlStateSystem.dragPan; break;}
+			case "ZOOM OUT":
+			{
+				battle.screenTileHeight += 1;
+				battle.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+				break;
+			}
+			case "ZOOM IN":
+			{
+				if (battle.screenTileHeight > 1)
+				{
+					battle.screenTileHeight -= 1;
+					battle.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+				}
+				break;
+			}
+			case "doubletap sucks":
+			{
+				controlStateSystem.doubleTap = !controlStateSystem.doubleTap;
+				break;
+			}
+			case "DRAGPAN":
+			{
+				controlStateSystem.dragPan = !controlStateSystem.dragPan;
+				break;
+			}
 		}
 	}
 

@@ -42,6 +42,7 @@ public class ControlStateSystem extends InputAdapter
 		// I'm not a fan of this though.
 		stateHashMap = new HashMap<Class, ControlState>();
 		// Populate States
+		stateHashMap.put(NewDayControlState.class, new NewDayControlState(this));
 		stateHashMap.put(SelectUnitControlState.class, new SelectUnitControlState(this));
 		stateHashMap.put(MoveUnitControlState.class, new MoveUnitControlState(this));
 		stateHashMap.put(MovingUnitControlState.class, new MovingUnitControlState(this));
@@ -59,7 +60,7 @@ public class ControlStateSystem extends InputAdapter
 		state = stateHashMap.get(clazz);
 		if (state == null)
 		{
-			System.out.println("[ControlStateSystem] You're missing a state you dunk.");
+			System.err.println("[ControlStateSystem] You're missing a state you dunk.");
 			try
 			{
 				stateHashMap.put(clazz, clazz.getConstructor(ControlStateSystem.class).newInstance(this));
@@ -138,8 +139,7 @@ public class ControlStateSystem extends InputAdapter
 				if (RNGInputSpammer.doRNGTesting)
 				{
 					RNGInputSpammer.doRNGTesting = false;
-				}
-				else
+				} else
 				{
 					RNGInputSpammer.activate();
 				}

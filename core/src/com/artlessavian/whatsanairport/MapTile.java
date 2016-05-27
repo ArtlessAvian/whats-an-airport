@@ -13,13 +13,15 @@ public class MapTile
 	public int x = -1;
 	public int y = -1;
 
+	public boolean isCapturable = false;
+
 	public Unit unit;
 	public final WarsConst.TerrainType terrainType;
-	private final Sprite sprite;
+	final Sprite sprite;
 
-	boolean debugMakeObvious;
+	boolean debugSpin;
+	boolean debugSpaz;
 
-	private final ArrayList<Color> colorPile;
 	final HashMap<Object, Color> colorRegister;
 
 	// BiMap?
@@ -35,7 +37,6 @@ public class MapTile
 		neighborToDir = new HashMap<MapTile, WarsConst.CardinalDir>();
 		dirToNeighbor = new EnumMap<WarsConst.CardinalDir, MapTile>(WarsConst.CardinalDir.class);
 
-		colorPile = new ArrayList<Color>();
 		colorRegister = new HashMap<Object, Color>();
 
 		sprite = new Sprite(tiles);
@@ -47,9 +48,9 @@ public class MapTile
 		sprite.setPosition(x, y);
 	}
 
-	public void createUnit(String type)
+	public void createUnit(String team)
 	{
-		new Unit(this, type);
+		unit = DecoratedUnitFactory.build(this, team, "Soldier");
 	}
 
 
@@ -60,30 +61,29 @@ public class MapTile
 			deregister(caller);
 		}
 		colorRegister.put(caller, target);
-		colorPile.add(target);
 	}
 
 	public void deregister(Object object)
 	{
-		colorPile.remove(colorRegister.get(object));
 		colorRegister.remove(object);
 	}
 
 	public void draw(SpriteBatch batch)
 	{
-		if (colorPile.isEmpty())
+		if (colorRegister.values().isEmpty())
 		{
-			sprite.setColor(sprite.getColor().lerp(Color.WHITE, 0.3f));
+			sprite.setColor(sprite.getColor().lerp(Color.WHITE, 0.2f));
 		} else
 		{
-			for (Color c : colorPile)
+			for (Color c : colorRegister.values())
 			{
 				// Its a bit hard to see overlap, but its better than looking like puke
-				sprite.setColor(sprite.getColor().lerp(c, 0.3f));
+				sprite.setColor(sprite.getColor().lerp(c, 0.2f));
 			}
 		}
 
-		if (debugMakeObvious) {sprite.rotate(Gdx.graphics.getFrameId());}
+		if (debugSpin) {sprite.rotate(Gdx.graphics.getFrameId());}
+		if (debugSpaz) {sprite.setPosition((float)(x + Math.random() * 0.3 - 0.15), (float)(y + Math.random() * 0.3 - 0.15));}
 
 		sprite.draw(batch);
 	}

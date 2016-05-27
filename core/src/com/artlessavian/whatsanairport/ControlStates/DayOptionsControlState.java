@@ -1,6 +1,7 @@
 package com.artlessavian.whatsanairport.ControlStates;
 
 import com.artlessavian.whatsanairport.ControlStateSystem;
+import com.artlessavian.whatsanairport.MapTile;
 
 public class DayOptionsControlState extends MenuControlState
 {
@@ -13,6 +14,7 @@ public class DayOptionsControlState extends MenuControlState
 	public void fillOptions()
 	{
 		addOption("OPTIONS");
+		addOption("CLEAR ZONES");
 		addOption("END DAY");
 	}
 
@@ -28,10 +30,25 @@ public class DayOptionsControlState extends MenuControlState
 				break;
 			}
 
+			case "CLEAR ZONES":
+			{
+				for (MapTile[] a : battle.map.map)
+				{
+					for (MapTile b : a)
+					{
+						if (b.unit != null && b.unit.isDangerZoned)
+						{
+							b.unit.removeDangerZone();
+						}
+					}
+				}
+				break;
+			}
+
 			case "END DAY":
 			{
 				battle.dayAndCoHandler.nextDay();
-				controlStateSystem.setState(SelectUnitControlState.class);
+				controlStateSystem.setState(NewDayControlState.class).onEnter();
 				break;
 			}
 		}

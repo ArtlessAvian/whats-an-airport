@@ -13,7 +13,9 @@ class CommonStateFunctions
 	private static final Vector3 helper = new Vector3();
 	private static final Sprite scrollBox = new Sprite();
 
-	private CommonStateFunctions() {}
+	private CommonStateFunctions()
+	{
+	}
 
 	public static boolean withinFocus(float leeway, float focusX, float focusY)
 	{
@@ -64,10 +66,9 @@ class CommonStateFunctions
 		// Y Positioning
 		if (battle.worldSpace.viewportHeight >= battle.map.mapHeight)
 		{
-			battle.trueCamPos.y = battle.map.mapHeight/2f;
+			battle.trueCamPos.y = battle.map.mapHeight / 2f;
 			battle.camVelocity.y = 0;
-		}
-		else
+		} else
 		{
 			if (helper.y > battle.worldSpace.viewportHeight / 2f - leeway)
 			{
@@ -83,10 +84,9 @@ class CommonStateFunctions
 
 		if (battle.worldSpace.viewportWidth >= battle.map.mapWidth)
 		{
-			battle.trueCamPos.x = battle.map.mapWidth/2f;
+			battle.trueCamPos.x = battle.map.mapWidth / 2f;
 			battle.camVelocity.x = 0;
-		}
-		else
+		} else
 		{
 			if (helper.x > battle.worldSpace.viewportWidth / 2f - leeway)
 			{
@@ -104,7 +104,11 @@ class CommonStateFunctions
 	public static void drawFocus(float leeway)
 	{
 		BattleScreen battle = BattleScreen.getInstance();
-		if (scrollBox.getTexture() == null) {scrollBox.setTexture(battle.grid); scrollBox.setRegion(0f,0f,1f,1f);}
+		if (scrollBox.getTexture() == null)
+		{
+			scrollBox.setTexture(battle.grid);
+			scrollBox.setRegion(0f, 0f, 1f, 1f);
+		}
 		scrollBox.setSize(
 			Math.max(0, battle.worldSpace.viewportWidth - 2 * leeway),
 			Math.max(0, battle.worldSpace.viewportHeight - 2 * leeway));

@@ -100,8 +100,7 @@ public abstract class MenuControlState extends ControlState
 		if (left)
 		{
 			thing[0] = battle.main.screenSpace.viewportHeight / 10f;
-		}
-		else
+		} else
 		{
 			thing[0] = battle.main.screenSpace.viewportWidth
 				- battle.main.screenSpace.viewportHeight / 10f
@@ -112,8 +111,7 @@ public abstract class MenuControlState extends ControlState
 		{
 			thing[1] = 9 * battle.main.screenSpace.viewportHeight / 10f
 				- options.size() * thing[3];
-		}
-		else
+		} else
 		{
 			thing[1] = battle.main.screenSpace.viewportHeight / 10f;
 		}
@@ -157,8 +155,7 @@ public abstract class MenuControlState extends ControlState
 				}
 			}
 			lastReleasePosition = position;
-		}
-		else
+		} else
 		{
 			float[] thing = getBoxCoord(false, true);
 

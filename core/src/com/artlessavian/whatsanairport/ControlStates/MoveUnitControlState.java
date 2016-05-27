@@ -39,7 +39,7 @@ public class MoveUnitControlState extends CursorControlState
 		selectedUnit = (Unit)varargs[2];
 
 		range = selectedUnit.getRange();
-		if (selectedUnit.isDirect)
+		if (selectedUnit.unitInfo.isDirect)
 		{
 			for (MapTile t : range.attackable)
 			{
@@ -56,7 +56,7 @@ public class MoveUnitControlState extends CursorControlState
 	@Override
 	public void onExit()
 	{
-		if (selectedUnit.isDirect)
+		if (selectedUnit.unitInfo.isDirect)
 		{
 			for (MapTile t : range.attackable)
 			{
@@ -72,7 +72,7 @@ public class MoveUnitControlState extends CursorControlState
 	@Override
 	public void onReturn()
 	{
-		if (selectedUnit.isDirect)
+		if (selectedUnit.unitInfo.isDirect)
 		{
 			for (MapTile t : range.attackable)
 			{
@@ -91,8 +91,7 @@ public class MoveUnitControlState extends CursorControlState
 		if (pathStuffInvalid)
 		{
 			recalculatePath(cursorX, cursorY);
-		}
-		else if (range.movable.contains(battle.map.map[cursorX][cursorY]))
+		} else if (range.movable.contains(battle.map.map[cursorX][cursorY]))
 		{
 			if (path.peek() == WarsConst.CardinalDir.UP && dir == WarsConst.CardinalDir.DOWN)
 			{
@@ -115,19 +114,17 @@ public class MoveUnitControlState extends CursorControlState
 				path.push(dir);
 				movementCost += battle.map.map[cursorX][cursorY].terrainType.infantryMove;
 
-				if (movementCost > selectedUnit.movement && range.movable.contains(battle.map.map[cursorX][cursorY]))
+				if (movementCost > selectedUnit.unitInfo.movement && range.movable.contains(battle.map.map[cursorX][cursorY]))
 				{
 					recalculatePath(cursorX, cursorY);
 					pathStuffInvalid = true;
 				}
 			}
-		}
-		else if (range.attackable.contains(battle.map.map[cursorX][cursorY]))
+		} else if (range.attackable.contains(battle.map.map[cursorX][cursorY]))
 		{
 			recalculatePath(cursorX, cursorY);
 			pathStuffInvalid = true;
-		}
-		else
+		} else
 		{
 			pathStuffInvalid = true;
 		}
@@ -139,7 +136,7 @@ public class MoveUnitControlState extends CursorControlState
 
 		pathStuffInvalid = !range.movable.contains(current);
 
-		if (selectedUnit.isDirect && range.attackable.contains(current) && !range.movable.contains(current))
+		if (selectedUnit.unitInfo.isDirect && range.attackable.contains(current) && !range.movable.contains(current))
 		{
 			current = range.attackableFrom.get(current);
 		}
@@ -199,8 +196,7 @@ public class MoveUnitControlState extends CursorControlState
 			if (battle.map.map[cursorX][cursorY].unit == null || battle.map.map[cursorX][cursorY].unit.team.equals(selectedUnit.team))
 			{
 				controlStateSystem.setState(MovingUnitControlState.class).onEnter(selectedUnit, path, originX, originY, false);
-			}
-			else if (battle.map.map[cursorX][cursorY].unit != null && !battle.map.map[cursorX][cursorY].unit.team.equals(selectedUnit.team))
+			} else if (battle.map.map[cursorX][cursorY].unit != null && !battle.map.map[cursorX][cursorY].unit.team.equals(selectedUnit.team))
 			{
 				controlStateSystem.setState(MovingUnitControlState.class).onEnter(selectedUnit, path, originX, originY, true);
 			}
@@ -227,7 +223,7 @@ public class MoveUnitControlState extends CursorControlState
 		CommonStateFunctions.drawPath(path, originX, originY, 0);
 
 		battle.main.batch.setProjectionMatrix(battle.main.screenSpace.combined);
-		battle.main.font.draw(battle.main.batch, movementCost + " " + selectedUnit.movement, 0, battle.main.font.getLineHeight());
+		battle.main.font.draw(battle.main.batch, movementCost + " " + selectedUnit.unitInfo.movement, 0, battle.main.font.getLineHeight());
 		battle.main.font.draw(battle.main.batch, pathStuffInvalid + "", 0, 2 * battle.main.font.getLineHeight());
 	}
 }

@@ -40,28 +40,51 @@ public class SelectUnitControlState extends CursorControlState
 		Unit unit = battle.map.map[cursorX][cursorY].unit;
 		if (unit != null)
 		{
-			controlStateSystem.setState(MoveUnitControlState.class).onEnter(cursorX, cursorY, unit);
+			if (unit.team.equals(battle.dayAndCoHandler.team))
+			{
+				if (!unit.used)
+				{
+					controlStateSystem.setState(MoveUnitControlState.class).onEnter(cursorX, cursorY, unit);
+				} else
+				{
+					// TODO: make a noise
+				}
+			}
+			else
+			{
+				if (!unit.isDangerZoned)
+				{
+					unit.makeDangerZone();
+				} else
+				{
+					unit.removeDangerZone();
+				}
+			}
+		} else
+		{
+			controlStateSystem.setState(DayOptionsControlState.class).onEnter();
 		}
 	}
 
 	@Override
 	public void cancel()
 	{
-		Unit unit = battle.map.map[cursorX][cursorY].unit;
-		if (unit != null)
-		{
-			if (!unit.isDangerZoned)
-			{
-				unit.makeDangerZone();
-			} else
-			{
-				unit.removeDangerZone();
-			}
-		}
-		else
-		{
-			controlStateSystem.setState(DayOptionsControlState.class).onEnter();
-		}
+//		Unit unit = battle.map.map[cursorX][cursorY].unit;
+//		if (unit != null)
+//		{
+//			if (!unit.team.equals(battle.dayAndCoHandler.team))
+//			{
+//				if (!unit.isDangerZoned)
+//				{
+//					unit.makeDangerZone();
+//				} else
+//				{
+//					unit.removeDangerZone();
+//				}
+//			}
+//		}
+
+		controlStateSystem.setState(DayOptionsControlState.class).onEnter();
 	}
 
 	@Override

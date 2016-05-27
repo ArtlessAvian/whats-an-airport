@@ -1,11 +1,9 @@
 package com.artlessavian.whatsanairport.ControlStates;
 
 import com.artlessavian.whatsanairport.ControlStateSystem;
+import com.artlessavian.whatsanairport.PropertyTile;
 import com.artlessavian.whatsanairport.Unit;
-import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.math.Vector3;
-
-import java.util.ArrayList;
+import com.badlogic.gdx.graphics.Color;
 
 public class UnitOptionsControlState extends MenuControlState
 {
@@ -44,8 +42,17 @@ public class UnitOptionsControlState extends MenuControlState
 		} else
 		{
 			// Capture if standing on property and not joining
-			//		options.addLast(Options.END);
-			//		pushOptionRight.addLast(0f);
+			try
+			{
+				if (((PropertyTile)selectedUnit.tile).owner != battle.dayAndCoHandler.turn)
+				{
+					super.addOption("CAPTURE");
+				}
+			}
+			catch (Exception e)
+			{
+				// my b
+			}
 
 			// Attack if not joining and can attack
 			if (!selectedUnit.getAttackableUnits(originX != x || originY != y).isEmpty())
@@ -67,6 +74,24 @@ public class UnitOptionsControlState extends MenuControlState
 	{
 		switch (options.get(position))
 		{
+			case "CAPTURE":
+			{
+				// Probably an attack control state
+				((PropertyTile)selectedUnit.tile).capProgress -= selectedUnit.health;
+				if (((PropertyTile)selectedUnit.tile).capProgress <= 0)
+				{
+					((PropertyTile)selectedUnit.tile).owner = battle.dayAndCoHandler.turn;
+					// TODO: YAAAYYY sound
+				}
+
+				selectedUnit.sprite.setRotation(0);
+				selectedUnit.used = true;
+				selectedUnit.sprite.setColor(Color.GRAY);
+				selectedUnit.sprite.setRotation(180);
+				controlStateSystem.setState(SelectUnitControlState.class).onEnter(x, y);
+				break;
+			}
+
 			case "ATTACK":
 			{
 				// Probably an attack control state
@@ -80,6 +105,9 @@ public class UnitOptionsControlState extends MenuControlState
 				displaced.joined(selectedUnit);
 
 				selectedUnit.sprite.setRotation(0);
+				selectedUnit.used = true;
+				selectedUnit.sprite.setColor(Color.GRAY);
+				selectedUnit.sprite.setRotation(180);
 				controlStateSystem.setState(SelectUnitControlState.class).onEnter(x, y);
 				break;
 			}
@@ -87,6 +115,9 @@ public class UnitOptionsControlState extends MenuControlState
 			case "END":
 			{
 				selectedUnit.sprite.setRotation(0);
+				selectedUnit.used = true;
+				selectedUnit.sprite.setColor(Color.GRAY);
+				selectedUnit.sprite.setRotation(180);
 				controlStateSystem.setState(SelectUnitControlState.class).onEnter(x, y);
 				break;
 			}
