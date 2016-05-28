@@ -65,5 +65,5 @@ build/
 
 
 
-core/src/com/artlessavian/whatsanairport/legacy/
+core/src/legacy.zip
 *.xcf
