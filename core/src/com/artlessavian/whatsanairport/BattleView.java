@@ -8,17 +8,20 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-public class BattleView
+class BattleView
 {
-	private BattleModel model;
+	private final BattleModel model;
 
-	private SpriteBatch batch;
-	private BitmapFont bitmapFont;
+	private final SpriteBatch batch;
+	private final BitmapFont bitmapFont;
 
-	private Sprite tileSet;
+	private final Sprite terrainTileSet;
+	private final Sprite unitTileSet;
+	private final Sprite box;
+	private final Sprite white;
 
-	private OrthographicCamera worldSpace;
-	private float screenTileHeight = 12;
+	private final OrthographicCamera worldSpace;
+	private final float screenTileHeight = 12;
 
 	private float screenWorldScale;
 	private float centimetersPerTile;
@@ -27,14 +30,23 @@ public class BattleView
 	public BattleView(BattleModel battleModel)
 	{
 		this.model = battleModel;
-		batch = WarsMain.getInstance().batch;
-		bitmapFont = WarsMain.getInstance().bitmapFont;
+		this.batch = WarsMain.getInstance().batch;
+		this.bitmapFont = WarsMain.getInstance().bitmapFont;
 
-		tileSet = new Sprite(new Texture("Terrain.png"));
-		tileSet.setSize(64, 64);
-		tileSet.setOrigin(32, 32);
+		this.terrainTileSet = new Sprite(new Texture("Terrain.png"));
+		this.terrainTileSet.setSize(64, 64);
+		this.terrainTileSet.setOrigin(32, 32);
+		this.unitTileSet = new Sprite(new Texture("Unit.png"));
+		this.unitTileSet.setSize(64, 64);
+		this.unitTileSet.setOrigin(32, 32);
+		this.box = new Sprite(new Texture("Grid.png"));
+		this.box.setSize(64, 64);
+		this.box.setOrigin(32, 32);
+		this.white = new Sprite(new Texture("White.png"));
+		this.white.setSize(64, 64);
+		this.white.setOrigin(32, 32);
 
-		worldSpace = new OrthographicCamera();
+		this.worldSpace = new OrthographicCamera();
 	}
 
 	public void render(float delta)
@@ -49,9 +61,11 @@ public class BattleView
 		batch.setProjectionMatrix(worldSpace.combined);
 
 		batch.begin();
-		// Stub Method
+
 		this.drawMap();
 		this.drawUnits();
+		this.drawHighlight();
+		this.drawCursor();
 		this.drawDebug();
 
 		batch.end();
@@ -59,10 +73,10 @@ public class BattleView
 
 	private void uvShenanigans(int xPos, int xTotal, int yPos, int yTotal, Sprite sprite)
 	{
-		sprite.setU((float)xPos/(float)xTotal);
-		sprite.setU2((float)(xPos+1)/(float)xTotal);
-		sprite.setV((float)yPos/(float)yTotal);
-		sprite.setV2((float)(yPos+1)/(float)yTotal);
+		sprite.setU((float)xPos / (float)xTotal);
+		sprite.setU2((float)(xPos + 1) / (float)xTotal);
+		sprite.setV((float)yPos / (float)yTotal);
+		sprite.setV2((float)(yPos + 1) / (float)yTotal);
 	}
 
 	private void drawMap()
@@ -72,17 +86,64 @@ public class BattleView
 			for (int x = 0; x < model.map.width; x++)
 			{
 				Tile tile = model.map.tileMap[y][x];
-				uvShenanigans(0,1,tile.tileInfo.id,4,tileSet);
-				tileSet.setPosition(x * 64, y * 64);
-				tileSet.draw(batch);
+				uvShenanigans(0, 1, tile.tileInfo.id, 4, terrainTileSet);
+				terrainTileSet.setPosition(x * 64, y * 64);
+				terrainTileSet.draw(batch);
 
 				//bitmapFont.draw(batch, x + " " + y, x * 64, y * 64);
 			}
 		}
 	}
 
+	private void drawHighlight()
+	{
+		for (int y = 0; y < model.map.height; y++)
+		{
+			for (int x = 0; x < model.map.width; x++)
+			{
+				Tile tile = model.map.tileMap[y][x];
+				if (tile.highlight != null)
+				{
+					tile.highlightStrength += (1 - tile.highlightStrength) * 0.05f;
+
+					white.setColor(tile.highlight);
+					white.setPosition(x * 64, y * 64);
+					white.draw(batch, 0.3f * tile.highlightStrength);
+				}
+				else
+				{
+					tile.highlightStrength += (0 - tile.highlightStrength) * 0.05f;
+				}
+			}
+		}
+	}
+
 	private void drawUnits()
 	{
+		int timeOffset = (int)(2 - 2 * Math.cos((Gdx.graphics.getFrameId() / 12)));
+
+		for (int y = 0; y < model.map.height; y++)
+		{
+			for (int x = 0; x < model.map.width; x++)
+			{
+				Unit unit = model.map.tileMap[y][x].unit;
+
+				if (unit != null)
+				{
+					uvShenanigans(4 * model.turnHandler.orderToColor[unit.owner] + timeOffset, 8, unit.unitInfo.id, 4, unitTileSet);
+					unitTileSet.setPosition(x * 64, y * 64);
+					unitTileSet.flip(unit.selected, false);
+					unitTileSet.draw(batch);
+				}
+
+			}
+		}
+	}
+
+	private void drawCursor()
+	{
+		box.setPosition(model.cursor.x * 64, model.cursor.y * 64);
+		box.draw(batch);
 	}
 
 	private void drawDebug()

@@ -2,11 +2,11 @@ package com.artlessavian.whatsanairport;
 
 import java.util.ArrayList;
 
-public class Map
+class Map
 {
-	Tile[][] tileMap;
-	int width;
-	int height;
+	final Tile[][] tileMap;
+	final int width;
+	final int height;
 
 	public Map(String mapFile)
 	{
@@ -31,8 +31,15 @@ public class Map
 			String[] row = tokens[height + 1 - y].split(",");
 			for (int x = 0; x < width; x++)
 			{
-				this.tileMap[y][x] = new Tile(mapPalette.get(Integer.parseInt(row[x])));
+				this.tileMap[y][x] = new Tile(mapPalette.get(Integer.parseInt(row[x])), x, y);
+			}
+		}
 
+		for (int y = 0; y < height; y++)
+		{
+			String[] row = tokens[height + 1 - y].split(",");
+			for (int x = 0; x < width; x++)
+			{
 				try {this.tileMap[y][x].neighbors[0] = this.tileMap[y][x+1];} catch(Exception e) {}
 				try {this.tileMap[y][x].neighbors[1] = this.tileMap[y+1][x];} catch(Exception e) {}
 				try {this.tileMap[y][x].neighbors[2] = this.tileMap[y][x-1];} catch(Exception e) {}

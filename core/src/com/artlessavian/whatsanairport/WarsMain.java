@@ -6,11 +6,13 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class WarsMain extends Game
 {
-	public static WarsMain instance = null;
-	public void setInstance()
+	private static WarsMain instance = null;
+
+	private void setInstance()
 	{
 		instance = this;
 	}
+
 	public static WarsMain getInstance()
 	{
 		return instance;
@@ -29,6 +31,7 @@ public class WarsMain extends Game
 
 		this.setScreen(new BattleModel(this));
 	}
+
 	@Override
 	public void render()
 	{
