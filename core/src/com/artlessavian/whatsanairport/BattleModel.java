@@ -6,6 +6,8 @@ import com.badlogic.gdx.files.FileHandle;
 
 class BattleModel implements Screen
 {
+	final float tileSize = 64;
+
 	private final WarsMain main;
 	private final BattleView view;
 
@@ -56,6 +58,28 @@ class BattleModel implements Screen
 	{
 		this.inputHandler.update();
 
+//		float random = (float)Math.random();
+//
+//		if (random < 0.2)
+//		{
+//			cursor.up();
+//		}
+//		else if (random < 0.4)
+//		{
+//			cursor.down();
+//		}
+//		else if (random < 0.6)
+//		{
+//			cursor.left();
+//		}
+//		else if (random < 0.8)
+//		{
+//			cursor.right();
+//		}
+//		else
+//		{
+//			cursor.select();
+//		}
 
 		this.map.update();
 

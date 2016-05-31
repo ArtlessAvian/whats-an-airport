@@ -11,8 +11,6 @@ public class Cursor implements InputReceiver
 	int x;
 	int y;
 	Unit selectedUnit;
-	boolean wasOutside = false;
-	boolean dontModify = false;
 	int movementCost;
 	LinkedList<UnitInstruction> instructions;
 
@@ -80,55 +78,7 @@ public class Cursor implements InputReceiver
 
 	public void pushDir(UnitInstruction unitInstr)
 	{
-		if (!selectedUnit.getRangeInfo().rangeCalcd) {selectedUnit.calculateMovement();}
-
-		if (!selectedUnit.getRangeInfo().attackable.contains(map.tileMap[y][x]))
-		{
-			dontModify = true;
-			wasOutside = true;
-			instructions.clear();
-		} // Attackable does contain
-		else if (wasOutside || movementCost >= selectedUnit.unitInfo.movement)
-		{
-			wasOutside = false;
-			instructions.clear();
-
-			Tile current = map.tileMap[y][x];
-			if (!selectedUnit.getRangeInfo().movable.contains(map.tileMap[y][x]))
-			{
-				Tile next = selectedUnit.getRangeInfo().attackableFrom.get(current);
-				instructions.addFirst(next.getNeighbor(current));
-				current = next;
-			}
-			movementCost = selectedUnit.getRangeInfo().movementCost.get(current);
-			while (!current.equals(selectedUnit.tile))
-			{
-				Tile next = selectedUnit.getRangeInfo().cameFrom.get(current);
-				instructions.addFirst(next.getNeighbor(current));
-				current = next;
-			}
-		}
-		else if (selectedUnit.getRangeInfo().movable.contains(map.tileMap[y][x]))
-		{
-			if (dontModify) {dontModify = false;}
-			else
-			{
-				if (!instructions.isEmpty() && (instructions.getLast().id + 2) % 4 == unitInstr.id)
-				{
-					instructions.removeLast();
-					movementCost -= map.tileMap[y][x].tileInfo.movementCost;
-				}
-				else
-				{
-					instructions.add(unitInstr);
-					movementCost += map.tileMap[y][x].tileInfo.movementCost;
-				}
-			}
-		}
-		else
-		{
-			dontModify = true;
-		}
+		// TODO Fix me!!!!!
 		System.out.println(this.instructions);
 	}
 
