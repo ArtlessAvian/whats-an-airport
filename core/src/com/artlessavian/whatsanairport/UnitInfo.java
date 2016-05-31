@@ -9,6 +9,7 @@ public enum UnitInfo
 	final int id;
 	final int movement;
 	public final boolean isDirect;
+	public int moveFrames = 15;
 
 	UnitInfo(int id, int movement, boolean isDirect)
 	{

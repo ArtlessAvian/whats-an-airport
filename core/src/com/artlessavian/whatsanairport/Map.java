@@ -5,6 +5,8 @@ import java.util.ArrayList;
 class Map
 {
 	final Tile[][] tileMap;
+	ArrayList<Unit> units;
+
 	final int width;
 	final int height;
 
@@ -25,6 +27,7 @@ class Map
 		this.height = Integer.parseInt(size[1]);
 
 		this.tileMap = new Tile[height][width];
+		this.units = new ArrayList<>();
 
 		for (int y = 0; y < height; y++)
 		{
@@ -44,6 +47,17 @@ class Map
 				try {this.tileMap[y][x].neighbors[1] = this.tileMap[y+1][x];} catch(Exception e) {}
 				try {this.tileMap[y][x].neighbors[2] = this.tileMap[y][x-1];} catch(Exception e) {}
 				try {this.tileMap[y][x].neighbors[3] = this.tileMap[y-1][x];} catch(Exception e) {}
+			}
+		}
+	}
+
+	void update()
+	{
+		for (Unit unit : units)
+		{
+			if (unit != null)
+			{
+				unit.update();
 			}
 		}
 	}

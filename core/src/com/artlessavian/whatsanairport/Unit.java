@@ -1,119 +1,106 @@
 package com.artlessavian.whatsanairport;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.*;
 
 class Unit
 {
 	final UnitInfo unitInfo;
 	int owner;
-	private final Tile tile;
+	Tile tile;
 
-	boolean selected = false;
+	private RangeInfo rangeInfo;
 
-	boolean rangeCalcd = false;
+	public RangeInfo getRangeInfo()
+	{
+		if (!rangeInfo.rangeCalcd)
+		{
+			rangeInfo.calculateMovement();
+		}
+		return rangeInfo;
+	}
 
-	private final HashMap<Tile, Integer> movementCost;
-	private final HashMap<Tile, Tile> cameFrom;
-	final Set<Tile> movable;
-	private final HashMap<Tile, Tile> attackableFrom;
-	final Set<Tile> attackable;
-
+	Cursor selector;
+	LinkedList<UnitInstruction> instructions;
+	float accumulator;
 
 	public Unit(UnitInfo info, Tile tile)
 	{
 		this.unitInfo = info;
 		this.tile = tile;
 
-		this.movementCost = new HashMap<>();
-		this.cameFrom = new HashMap<>();
-		this.movable = cameFrom.keySet();
-		this.attackableFrom = new HashMap<>();
-		this.attackable = attackableFrom.keySet();
+		this.rangeInfo = new RangeInfo(this);
 
-		//this.calculateMovement();
+		this.selector = null;
+		this.instructions = new LinkedList<>();
+		this.accumulator = 0;
 	}
 
-	void calculateMovement()
+	public void invalidateMovement()
 	{
-		rangeCalcd = true;
+		rangeInfo.invalidateMovement();
+	}
 
-		// Dijkstra's for movement
-		ArrayList<Tile> frontier = new ArrayList<>();
+	public void calculateMovement()
+	{
+		rangeInfo.calculateMovement();
+	}
 
-		frontier.add(tile);
-		movementCost.put(tile, 0);
-		cameFrom.put(tile, tile);
-
-		while (!frontier.isEmpty())
-		{
-			// Get least moved
-			Tile current = null;
-			int cost = 0;
-
-			for (Tile t : frontier)
-			{
-				if (movementCost.get(t) < cost || current == null)
-				{
-					cost = movementCost.get(t);
-					current = t;
-				}
-			}
-			frontier.remove(current);
-
-			// Expand
-			for (Tile neighbor : current.neighbors)
-			{
-				if (neighbor == null) {continue;}
-
-				if (unitInfo.isDirect && (current.unit == null || current.unit == this) && !attackable.contains(neighbor))
-				{
-					attackableFrom.put(neighbor, current);
-				}
-
-				if (!movable.contains(neighbor))
-				{
-					int newCost = cost + (1); // TODO: Replace with Tile Thingy
-					if (newCost <= unitInfo.movement && (neighbor.unit == null || neighbor.unit.owner == this.owner))
-					{
-						frontier.add(neighbor);
-						movementCost.put(neighbor, newCost);
-						cameFrom.put(neighbor, current);
-					}
-				}
-			}
-		}
-
-//		if (!unitInfo.isDirect)
+	public boolean goTo(Tile other)
+	{
+		invalidateMovement();
+//		if (other.unit != null) // TODO
 //		{
-//			// Cheapo Way
-//			for (int y = -unitInfo.maxIndirectRange; y <= unitInfo.maxIndirectRange; y++)
-//			{
-//				for (int x = -unitInfo.maxIndirectRange; x <= unitInfo.maxIndirectRange; x++)
-//				{
-//					if (x + y <= unitInfo.maxIndirectRange && x + y >= -unitInfo.maxIndirectRange && x - y <= unitInfo.maxIndirectRange && x - y >= -unitInfo.maxIndirectRange)
-//					{
-//						if (x + y <= -unitInfo.minIndirectRange || x + y >= unitInfo.minIndirectRange || x - y <= -unitInfo.minIndirectRange || x - y >= unitInfo.minIndirectRange)
-//						{
-//							try
-//							{
-//								//BattleScreen.getInstance().map.map[start.x + x][start.y + y].debugSpin = true;
-//								attackableFrom.put(BattleScreen.getInstance().map.map[start.x + x][start.y + y], start);
-//							}
-//							catch (Exception e)
-//							{
-//								//lol
-//							}
-//						}
-//					}
-//				}
-//			}
+//			return true;
 //		}
 
-		for (Tile t : attackable)
+		this.tile = other;
+		return false;
+	}
+
+	public void doNext()
+	{
+		UnitInstruction instruction = instructions.removeFirst();
+		if (instruction.isDir)
 		{
-			t.hasRangeHere.add(this);
+			if (this.goTo(tile.neighbors[instruction.id]))
+			{
+				instructions.clear();
+			}
+		}
+		else
+		{
+			switch (instruction)
+			{
+				case WAIT: {break;}
+				case ATTACK: {break;} // TODO
+			}
+		}
+	}
+
+	void receiveInstructions(LinkedList<UnitInstruction> received, Tile finalTile)
+	{
+		Iterator<UnitInstruction> iter = received.iterator();
+		while (iter.hasNext())
+		{
+			this.instructions.add(iter.next());
+		}
+		this.tile.unit = null;
+		finalTile.unit = this;
+	}
+
+	public void update()
+	{
+		if (instructions != null && !instructions.isEmpty())
+		{
+			this.accumulator++;
+			while (!instructions.isEmpty() && (accumulator >= unitInfo.moveFrames || !instructions.peekFirst().isDir))
+			{
+				if (instructions.peekFirst().isDir)
+				{
+					accumulator -= unitInfo.moveFrames;
+				}
+				this.doNext();
+			}
 		}
 	}
 }

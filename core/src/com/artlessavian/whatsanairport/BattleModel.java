@@ -36,9 +36,13 @@ class BattleModel implements Screen
 		this.view = new BattleView(this);
 
 		// Testing
-		//this.map.tileMap[2][2].unit = new Unit(UnitInfo.SOLDIER, this.map.tileMap[2][2]);
-		//this.map.tileMap[4][2].unit = new Unit(UnitInfo.SOLDIER, this.map.tileMap[4][2]);
-		this.map.tileMap[7][7].unit = new Unit(UnitInfo.SOLDIER, this.map.tileMap[7][7]);
+		this.map.tileMap[5][2].unit = new Unit(UnitInfo.SOLDIER, this.map.tileMap[5][2]);
+		this.map.tileMap[4][2].unit = new Unit(UnitInfo.SOLDIER, this.map.tileMap[4][2]);
+		this.map.tileMap[4][3].unit = new Unit(UnitInfo.SOLDIER, this.map.tileMap[4][3]);
+
+		this.map.units.add(this.map.tileMap[5][2].unit);
+		this.map.units.add(this.map.tileMap[4][2].unit);
+		this.map.units.add(this.map.tileMap[4][3].unit);
 	}
 
 	@Override
@@ -50,7 +54,10 @@ class BattleModel implements Screen
 	@Override
 	public void render(float delta)
 	{
-		inputHandler.update();
+		this.inputHandler.update();
+
+
+		this.map.update();
 
 		this.view.render(delta);
 	}

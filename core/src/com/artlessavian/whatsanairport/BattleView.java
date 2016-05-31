@@ -1,12 +1,15 @@
 package com.artlessavian.whatsanairport;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+
+import java.util.Iterator;
 
 class BattleView
 {
@@ -90,6 +93,13 @@ class BattleView
 				terrainTileSet.setPosition(x * 64, y * 64);
 				terrainTileSet.draw(batch);
 
+				if (tile.unit != null)
+				{
+					white.setColor(Color.BLACK);
+					white.setPosition(x * 64, y * 64);
+					white.draw(batch, 0.3f);
+				}
+
 				//bitmapFont.draw(batch, x + " " + y, x * 64, y * 64);
 			}
 		}
@@ -102,17 +112,11 @@ class BattleView
 			for (int x = 0; x < model.map.width; x++)
 			{
 				Tile tile = model.map.tileMap[y][x];
-				if (tile.highlight != null)
+				if (!tile.highlight.isEmpty())
 				{
-					tile.highlightStrength += (1 - tile.highlightStrength) * 0.05f;
-
-					white.setColor(tile.highlight);
+					white.setColor(tile.highlight.get(tile.highlight.size()-1));
 					white.setPosition(x * 64, y * 64);
-					white.draw(batch, 0.3f * tile.highlightStrength);
-				}
-				else
-				{
-					tile.highlightStrength += (0 - tile.highlightStrength) * 0.05f;
+					white.draw(batch, 0.3f);
 				}
 			}
 		}
@@ -122,32 +126,89 @@ class BattleView
 	{
 		int timeOffset = (int)(2 - 2 * Math.cos((Gdx.graphics.getFrameId() / 12)));
 
-		for (int y = 0; y < model.map.height; y++)
+		for (Unit unit : model.map.units)
 		{
-			for (int x = 0; x < model.map.width; x++)
+			uvShenanigans(4 * model.turnHandler.orderToColor[unit.owner] + timeOffset, 8, unit.unitInfo.id, 4, unitTileSet);
+			unitTileSet.setPosition(unit.tile.x * 64, unit.tile.y * 64);
+
+			if (!unit.instructions.isEmpty())
 			{
-				Unit unit = model.map.tileMap[y][x].unit;
-
-				if (unit != null)
+				switch (unit.instructions.getFirst())
 				{
-					uvShenanigans(4 * model.turnHandler.orderToColor[unit.owner] + timeOffset, 8, unit.unitInfo.id, 4, unitTileSet);
-					unitTileSet.setPosition(x * 64, y * 64);
-					unitTileSet.flip(unit.selected, false);
-					unitTileSet.draw(batch);
+					case RIGHT:
+					{
+						unitTileSet.translateX(unit.accumulator * 64f / unit.unitInfo.moveFrames);
+						break;
+					}
+					case UP:
+					{
+						unitTileSet.translateY(unit.accumulator * 64f / unit.unitInfo.moveFrames);
+						break;
+					}
+					case LEFT:
+					{
+						unitTileSet.translateX(unit.accumulator * -64f / unit.unitInfo.moveFrames);
+						break;
+					}
+					case DOWN:
+					{
+						unitTileSet.translateY(unit.accumulator * -64f / unit.unitInfo.moveFrames);
+						break;
+					}
 				}
+			}
 
+			unitTileSet.draw(batch);
+
+			if (unit.selector != null)
+			{
+				box.setPosition(unit.tile.x * 64, unit.tile.y * 64);
+				box.setSize(32, 32);
+				if (!unit.selector.instructions.isEmpty())
+				{
+					Iterator<UnitInstruction> iter = model.cursor.instructions.iterator();
+					while (iter.hasNext())
+					{
+						switch (iter.next())
+						{
+							case RIGHT:
+							{
+								box.translateX(64f);
+								break;
+							}
+							case UP:
+							{
+								box.translateY(64f);
+								break;
+							}
+							case LEFT:
+							{
+								box.translateX(-64f);
+								break;
+							}
+							case DOWN:
+							{
+								box.translateY(-64f);
+								break;
+							}
+						}
+						box.draw(batch);
+					}
+				}
 			}
 		}
 	}
 
 	private void drawCursor()
 	{
+		box.setSize(64,64);
 		box.setPosition(model.cursor.x * 64, model.cursor.y * 64);
 		box.draw(batch);
 	}
 
 	private void drawDebug()
 	{
+
 	}
 
 	public void resize(int width, int height)
