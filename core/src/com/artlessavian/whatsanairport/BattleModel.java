@@ -6,10 +6,8 @@ import com.badlogic.gdx.files.FileHandle;
 
 class BattleModel implements Screen
 {
-	final float tileSize = 64;
-
 	private final WarsMain main;
-	private final BattleView view;
+	final BattleView view;
 
 	private final InputHandler inputHandler;
 
@@ -21,7 +19,7 @@ class BattleModel implements Screen
 	{
 		this.main = warsMain;
 
-		this.inputHandler = new InputHandler();
+		this.inputHandler = new InputHandler(this);
 		Gdx.input.setInputProcessor(inputHandler);
 
 		// Everything
@@ -38,13 +36,13 @@ class BattleModel implements Screen
 		this.view = new BattleView(this);
 
 		// Testing
-		this.map.tileMap[5][2].unit = new Unit(UnitInfo.SOLDIER, this.map.tileMap[5][2]);
-		this.map.tileMap[4][2].unit = new Unit(UnitInfo.SOLDIER, this.map.tileMap[4][2]);
-		this.map.tileMap[4][3].unit = new Unit(UnitInfo.SOLDIER, this.map.tileMap[4][3]);
+		this.map.tileMap[5][2].setUnit(new Unit(UnitInfo.SOLDIER, this.map.tileMap[5][2]));
+		this.map.tileMap[4][2].setUnit(new Unit(UnitInfo.SOLDIER, this.map.tileMap[4][2]));
+		this.map.tileMap[4][3].setUnit(new Unit(UnitInfo.SOLDIER, this.map.tileMap[4][3]));
 
-		this.map.units.add(this.map.tileMap[5][2].unit);
-		this.map.units.add(this.map.tileMap[4][2].unit);
-		this.map.units.add(this.map.tileMap[4][3].unit);
+		this.map.units.add(this.map.tileMap[5][2].getUnit());
+		this.map.units.add(this.map.tileMap[4][2].getUnit());
+		this.map.units.add(this.map.tileMap[4][3].getUnit());
 	}
 
 	@Override
@@ -58,27 +56,32 @@ class BattleModel implements Screen
 	{
 		this.inputHandler.update();
 
-//		float random = (float)Math.random();
+//		for (int i = 0; i < 100; i++)
+//		{
+//			float random = (float)Math.random();
 //
-//		if (random < 0.2)
-//		{
-//			cursor.up();
-//		}
-//		else if (random < 0.4)
-//		{
-//			cursor.down();
-//		}
-//		else if (random < 0.6)
-//		{
-//			cursor.left();
-//		}
-//		else if (random < 0.8)
-//		{
-//			cursor.right();
-//		}
-//		else
-//		{
-//			cursor.select();
+//			if (random < 0.2)
+//			{
+//				cursor.up();
+//			}
+//			else if (random < 0.4)
+//			{
+//				cursor.down();
+//			}
+//			else if (random < 0.6)
+//			{
+//				cursor.left();
+//			}
+//			else if (random < 0.8)
+//			{
+//				cursor.right();
+//			}
+//			else
+//			{
+//				cursor.select();
+//			}
+//
+//			this.map.update();
 //		}
 
 		this.map.update();

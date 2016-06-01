@@ -8,8 +8,8 @@ import java.util.HashSet;
 class Tile
 {
 	final TileInfo tileInfo;
-	Unit unit;
 
+	private Unit unit;
 	final HashSet<Unit> hasRangeHere;
 
 	final int x;
@@ -58,5 +58,23 @@ class Tile
 		{}
 
 		return UnitInstruction.WAIT;
+	}
+
+	public Unit getUnit()
+	{
+		return this.unit;
+	}
+
+	public void setUnit(Unit newUnit)
+	{
+		for (Unit u : hasRangeHere)
+		{
+			if (!u.equals(newUnit))
+			{
+				u.invalidateMovement();
+			}
+		}
+
+		this.unit = newUnit;
 	}
 }

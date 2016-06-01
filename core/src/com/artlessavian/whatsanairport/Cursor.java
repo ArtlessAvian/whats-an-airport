@@ -14,10 +14,76 @@ public class Cursor implements InputReceiver
 	int movementCost;
 	LinkedList<UnitInstruction> instructions;
 
+	int lastTileCursored = 0;
+
 	public Cursor(Map map)
 	{
 		this.map = map;
 		instructions = new LinkedList<>();
+	}
+
+	public void rePath(boolean attackMove)
+	{
+		instructions.clear();
+
+		Tile current = map.tileMap[y][x];
+		if (attackMove)
+		{
+			current = selectedUnit.getRangeInfo().attackableFrom.get(current);
+		}
+		movementCost = selectedUnit.getRangeInfo().movementCost.get(current);
+		while (!current.equals(selectedUnit.tile))
+		{
+			Tile next = selectedUnit.getRangeInfo().cameFrom.get(current);
+			instructions.addFirst(next.getNeighbor(current));
+			current = next;
+		}
+	}
+
+	public void pushDir(UnitInstruction unitInstr)
+	{
+		if (!instructions.isEmpty() && (instructions.getLast().id + 2) % 4 == unitInstr.id)
+		{
+			instructions.removeLast();
+			movementCost -= map.tileMap[y][x].tileInfo.movementCost;
+		}
+		else
+		{
+			instructions.add(unitInstr);
+			movementCost += map.tileMap[y][x].tileInfo.movementCost;
+
+			if (movementCost > selectedUnit.unitInfo.movement) {rePath(false);}
+		}
+	}
+
+	public void inputtedDir(UnitInstruction unitInstr)
+	{
+		// 0 Movable, 1 Attackable, 2 Non
+		int thisTileCursored = 0;
+
+		if (!selectedUnit.getRangeInfo().movable.contains(map.tileMap[y][x]))
+		{
+			thisTileCursored++;
+			if (!selectedUnit.getRangeInfo().attackable.contains(map.tileMap[y][x]))
+			{
+				thisTileCursored++;
+			}
+		}
+
+		switch (thisTileCursored + lastTileCursored * 3)
+		{
+			case 0: {pushDir(unitInstr); break;} // move to move
+			case 1: {break;} // move to attack
+			case 2: {instructions.clear(); movementCost = 0; break;} // move to empty (wont happen)
+			case 3: {rePath(false); break;} // attack to move
+			case 4: {rePath(true); break;} // attack to attack
+			case 5: {instructions.clear(); movementCost = 0; break;} // attack to empty
+			case 6: {rePath(false); break;} // empty to move (wont happen)
+			case 7: {rePath(true); break;} // empty to attack
+			case 8: {break;} // empty to empty
+		}
+
+		lastTileCursored = thisTileCursored;
 	}
 
 	@Override
@@ -28,7 +94,7 @@ public class Cursor implements InputReceiver
 			y++;
 			if (selectedUnit != null)
 			{
-				this.pushDir(UnitInstruction.UP);
+				this.inputtedDir(UnitInstruction.UP);
 			}
 		}
 		return true;
@@ -42,7 +108,7 @@ public class Cursor implements InputReceiver
 			y--;
 			if (selectedUnit != null)
 			{
-				this.pushDir(UnitInstruction.DOWN);
+				this.inputtedDir(UnitInstruction.DOWN);
 			}
 		}
 		return true;
@@ -56,7 +122,7 @@ public class Cursor implements InputReceiver
 			x--;
 			if (selectedUnit != null)
 			{
-				this.pushDir(UnitInstruction.LEFT);
+				this.inputtedDir(UnitInstruction.LEFT);
 			}
 		}
 		return true;
@@ -70,16 +136,10 @@ public class Cursor implements InputReceiver
 			x++;
 			if (selectedUnit != null)
 			{
-				this.pushDir(UnitInstruction.RIGHT);
+				this.inputtedDir(UnitInstruction.RIGHT);
 			}
 		}
 		return true;
-	}
-
-	public void pushDir(UnitInstruction unitInstr)
-	{
-		// TODO Fix me!!!!!
-		System.out.println(this.instructions);
 	}
 
 	@Override
@@ -87,9 +147,12 @@ public class Cursor implements InputReceiver
 	{
 		if (selectedUnit == null)
 		{
-			if (map.tileMap[y][x].unit != null && map.tileMap[y][x].unit.instructions.isEmpty())
+			if (map.tileMap[y][x].getUnit() != null && map.tileMap[y][x].getUnit().instructions.isEmpty())
 			{
-				selectedUnit = map.tileMap[y][x].unit;
+				lastTileCursored = 0;
+				movementCost = 0;
+
+				selectedUnit = map.tileMap[y][x].getUnit();
 				selectedUnit.selector = this;
 
 				if (!selectedUnit.getRangeInfo().rangeCalcd) {selectedUnit.calculateMovement();}
@@ -123,7 +186,6 @@ public class Cursor implements InputReceiver
 				finalDestination = finalDestination.neighbors[ui.id];
 			}
 
-			movementCost = 0;
 			instructions.add(UnitInstruction.WAIT);
 			selectedUnit.receiveInstructions(instructions, finalDestination);
 			selectedUnit.selector = null;
@@ -141,20 +203,28 @@ public class Cursor implements InputReceiver
 	}
 
 	@Override
-	public boolean touchDown(int screenX, int screenY, int pointer, int button)
+	public boolean touchDown(int screenX, int screenY, float tileX, float tileY)
 	{
+		touchDragged(screenX, screenY, tileX,tileY);
+
+		return true;
+	}
+
+	@Override
+	public boolean touchUp(int screenX, int screenY, float tileX, float tileY)
+	{
+		select();
 		return false;
 	}
 
 	@Override
-	public boolean touchUp(int screenX, int screenY, int pointer, int button)
+	public boolean touchDragged(int screenX, int screenY, float tileX, float tileY)
 	{
-		return false;
-	}
+		while ((int)tileX > x) {this.right();}
+		while ((int)tileX < x) {this.left();}
+		while ((int)tileY > y) {this.up();}
+		while ((int)tileY < y) {this.down();}
 
-	@Override
-	public boolean touchDragged(int screenX, int screenY, int pointer)
-	{
-		return false;
+		return true;
 	}
 }

@@ -84,8 +84,15 @@ class Unit
 		{
 			this.instructions.add(iter.next());
 		}
-		this.tile.unit = null;
-		finalTile.unit = this;
+		this.tile.setUnit(null);
+		if (finalTile.getUnit() != null)
+		{
+			System.err.println("Yo something died");
+		}
+		else
+		{
+			finalTile.setUnit(this);
+		}
 	}
 
 	public void update()

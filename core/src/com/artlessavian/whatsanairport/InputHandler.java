@@ -2,15 +2,24 @@ package com.artlessavian.whatsanairport;
 
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 
 import java.util.ArrayList;
 
 class InputHandler implements InputProcessor
 {
+	BattleModel model;
+
 	final ArrayList<InputReceiver> receivers = new ArrayList<>();
 
 	private int framesHeld = 0;
 	private int lastDirectional = -1;
+
+	public InputHandler(BattleModel model)
+	{
+		this.model = model;
+	}
 
 	public void update()
 	{
@@ -129,12 +138,23 @@ class InputHandler implements InputProcessor
 		return false;
 	}
 
+	static Vector3 helper = new Vector3();
+
+	public void helperScreenToTile(int screenX, int screenY)
+	{
+		helper.set(screenX, screenY, 0);
+		model.view.worldSpace.unproject(helper);
+		helper.scl(1f/model.view.tileSize);
+	}
+
+
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button)
 	{
+		helperScreenToTile(screenX, screenY);
 		for (int i = receivers.size() - 1; i >= 0; i--)
 		{
-			if (receivers.get(i).touchDown(screenX, screenY, pointer, button)) {return true;}
+			if (receivers.get(i).touchDown(screenX, screenY, helper.x, helper.y)) {return true;}
 		}
 		return false;
 	}
@@ -142,9 +162,10 @@ class InputHandler implements InputProcessor
 	@Override
 	public boolean touchUp(int screenX, int screenY, int pointer, int button)
 	{
+		helperScreenToTile(screenX, screenY);
 		for (int i = receivers.size() - 1; i >= 0; i--)
 		{
-			if (receivers.get(i).touchUp(screenX, screenY, pointer, button)) {return true;}
+			if (receivers.get(i).touchUp(screenX, screenY, helper.x, helper.y)) {return true;}
 		}
 		return false;
 	}
@@ -152,9 +173,10 @@ class InputHandler implements InputProcessor
 	@Override
 	public boolean touchDragged(int screenX, int screenY, int pointer)
 	{
+		helperScreenToTile(screenX, screenY);
 		for (int i = receivers.size() - 1; i >= 0; i--)
 		{
-			if (receivers.get(i).touchDragged(screenX, screenY, pointer)) {return true;}
+			if (receivers.get(i).touchDragged(screenX, screenY, helper.x, helper.y)) {return true;}
 		}
 		return false;
 	}

@@ -14,7 +14,7 @@ import java.util.Iterator;
 class BattleView
 {
 	private final BattleModel model;
-
+	
 	private final SpriteBatch batch;
 	private final BitmapFont bitmapFont;
 
@@ -23,10 +23,10 @@ class BattleView
 	private final Sprite box;
 	private final Sprite white;
 
-	private final OrthographicCamera worldSpace;
-	private final float screenTileHeight = 12;
+	final OrthographicCamera worldSpace;
 
-	private float screenWorldScale;
+	private final float screenTileHeight = 12;
+	final float tileSize = 64;
 	private float centimetersPerTile;
 
 
@@ -37,17 +37,20 @@ class BattleView
 		this.bitmapFont = WarsMain.getInstance().bitmapFont;
 
 		this.terrainTileSet = new Sprite(new Texture("Terrain.png"));
-		this.terrainTileSet.setSize(model.tileSize, model.tileSize);
-		this.terrainTileSet.setOrigin(model.tileSize/2f, model.tileSize/2f);
+		this.terrainTileSet.setSize(tileSize, tileSize);
+		this.terrainTileSet.setOrigin(tileSize/2f, tileSize/2f);
+
 		this.unitTileSet = new Sprite(new Texture("Unit.png"));
-		this.unitTileSet.setSize(model.tileSize, model.tileSize);
-		this.unitTileSet.setOrigin(model.tileSize/2f, model.tileSize/2f);
+		this.unitTileSet.setSize(tileSize, tileSize);
+		this.unitTileSet.setOrigin(tileSize/2f, tileSize/2f);
+
 		this.box = new Sprite(new Texture("Grid.png"));
-		this.box.setSize(model.tileSize, model.tileSize);
-		this.box.setOrigin(model.tileSize/2f, model.tileSize/2f);
+		this.box.setSize(tileSize, tileSize);
+		this.box.setOrigin(tileSize/2f, tileSize/2f);
+
 		this.white = new Sprite(new Texture("White.png"));
-		this.white.setSize(model.tileSize, model.tileSize);
-		this.white.setOrigin(model.tileSize/2f, model.tileSize/2f);
+		this.white.setSize(tileSize, tileSize);
+		this.white.setOrigin(tileSize/2f, tileSize/2f);
 
 		this.worldSpace = new OrthographicCamera();
 	}
@@ -57,8 +60,8 @@ class BattleView
 		Gdx.gl.glClearColor(0.1f, 0.0f, 0.1f, 1f);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-		worldSpace.position.x = model.map.width * model.tileSize/2f;
-		worldSpace.position.y = model.map.height * model.tileSize/2f;
+		worldSpace.position.x = model.map.width * tileSize/2f;
+		worldSpace.position.y = model.map.height * tileSize/2f;
 		worldSpace.update();
 
 		batch.setProjectionMatrix(worldSpace.combined);
@@ -90,17 +93,17 @@ class BattleView
 			{
 				Tile tile = model.map.tileMap[y][x];
 				uvShenanigans(0, 1, tile.tileInfo.id, 4, terrainTileSet);
-				terrainTileSet.setPosition(x * model.tileSize, y * model.tileSize);
+				terrainTileSet.setPosition(x * tileSize, y * tileSize);
 				terrainTileSet.draw(batch);
 
-				if (tile.unit != null)
+				if (tile.getUnit() != null)
 				{
 					white.setColor(Color.BLACK);
-					white.setPosition(x * model.tileSize, y * model.tileSize);
+					white.setPosition(x * tileSize, y * tileSize);
 					white.draw(batch, 0.3f);
 				}
 
-				//bitmapFont.draw(batch, x + " " + y, x * model.tileSize, y * model.tileSize);
+				//bitmapFont.draw(batch, x + " " + y, x * tileSize, y * tileSize);
 			}
 		}
 	}
@@ -115,7 +118,7 @@ class BattleView
 				if (!tile.highlight.isEmpty())
 				{
 					white.setColor(tile.highlight.get(tile.highlight.size()-1));
-					white.setPosition(x * model.tileSize, y * model.tileSize);
+					white.setPosition(x * tileSize, y * tileSize);
 					white.draw(batch, 0.3f);
 				}
 			}
@@ -129,7 +132,7 @@ class BattleView
 		for (Unit unit : model.map.units)
 		{
 			uvShenanigans(4 * model.turnHandler.orderToColor[unit.owner] + timeOffset, 8, unit.unitInfo.id, 4, unitTileSet);
-			unitTileSet.setPosition(unit.tile.x * model.tileSize, unit.tile.y * model.tileSize);
+			unitTileSet.setPosition(unit.tile.x * tileSize, unit.tile.y * tileSize);
 
 			if (!unit.instructions.isEmpty())
 			{
@@ -137,22 +140,22 @@ class BattleView
 				{
 					case RIGHT:
 					{
-						unitTileSet.translateX(unit.accumulator * model.tileSize / unit.unitInfo.moveFrames);
+						unitTileSet.translateX(unit.accumulator * tileSize / unit.unitInfo.moveFrames);
 						break;
 					}
 					case UP:
 					{
-						unitTileSet.translateY(unit.accumulator * model.tileSize / unit.unitInfo.moveFrames);
+						unitTileSet.translateY(unit.accumulator * tileSize / unit.unitInfo.moveFrames);
 						break;
 					}
 					case LEFT:
 					{
-						unitTileSet.translateX(unit.accumulator * -model.tileSize / unit.unitInfo.moveFrames);
+						unitTileSet.translateX(unit.accumulator * -tileSize / unit.unitInfo.moveFrames);
 						break;
 					}
 					case DOWN:
 					{
-						unitTileSet.translateY(unit.accumulator * -model.tileSize / unit.unitInfo.moveFrames);
+						unitTileSet.translateY(unit.accumulator * -tileSize / unit.unitInfo.moveFrames);
 						break;
 					}
 				}
@@ -162,8 +165,8 @@ class BattleView
 
 			if (unit.selector != null)
 			{
-				box.setPosition(unit.tile.x * model.tileSize, unit.tile.y * model.tileSize);
-				box.setSize(model.tileSize/2f, model.tileSize/2f);
+				box.setPosition(unit.tile.x * tileSize, unit.tile.y * tileSize);
+				box.setSize(tileSize/2f, tileSize/2f);
 				if (!unit.selector.instructions.isEmpty())
 				{
 					Iterator<UnitInstruction> iter = model.cursor.instructions.iterator();
@@ -173,22 +176,22 @@ class BattleView
 						{
 							case RIGHT:
 							{
-								box.translateX(model.tileSize);
+								box.translateX(tileSize);
 								break;
 							}
 							case UP:
 							{
-								box.translateY(model.tileSize);
+								box.translateY(tileSize);
 								break;
 							}
 							case LEFT:
 							{
-								box.translateX(-model.tileSize);
+								box.translateX(-tileSize);
 								break;
 							}
 							case DOWN:
 							{
-								box.translateY(-model.tileSize);
+								box.translateY(-tileSize);
 								break;
 							}
 						}
@@ -201,8 +204,8 @@ class BattleView
 
 	private void drawCursor()
 	{
-		box.setSize(model.tileSize,model.tileSize);
-		box.setPosition(model.cursor.x * model.tileSize, model.cursor.y * model.tileSize);
+		box.setSize(tileSize,tileSize);
+		box.setPosition(model.cursor.x * tileSize, model.cursor.y * tileSize);
 		box.draw(batch);
 
 
@@ -211,16 +214,26 @@ class BattleView
 	private void drawDebug()
 	{
 		bitmapFont.draw(batch, model.cursor.x + " " + model.cursor.y, 5, 35);
+
+		for (int y = 0; y < model.map.height; y++)
+		{
+			for (int x = 0; x < model.map.width; x++)
+			{
+				Unit unit = model.map.tileMap[y][x].getUnit();
+				if (unit != null)
+				{
+					bitmapFont.draw(batch, unit.instructions + "", x * tileSize, y * tileSize);
+				}
+			}
+		}
 	}
 
 	public void resize(int width, int height)
 	{
-		worldSpace.viewportHeight = screenTileHeight * model.tileSize;
+		worldSpace.viewportHeight = screenTileHeight * tileSize;
 		worldSpace.viewportWidth = (float)width * worldSpace.viewportHeight / (float)height;
 		worldSpace.update();
 
-		screenWorldScale = height / screenTileHeight;
-
-		centimetersPerTile = Math.round(10000 * screenWorldScale / Gdx.graphics.getPpcY()) / 10000f;
+		centimetersPerTile = Math.round(10000 * tileSize / Gdx.graphics.getPpcY()) / 10000f;
 	}
 }

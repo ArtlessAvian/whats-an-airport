@@ -78,7 +78,7 @@ public class RangeInfo
 			{
 				if (neighbor == null) {continue;}
 
-				if (unit.unitInfo.isDirect && (current.unit == null || current.unit == unit) && !this.attackable.contains(neighbor))
+				if (unit.unitInfo.isDirect && (current.getUnit() == null || current.getUnit() == unit) && !this.attackable.contains(neighbor))
 				{
 					this.attackableFrom.put(neighbor, current);
 				}
@@ -86,7 +86,7 @@ public class RangeInfo
 				if (!this.movable.contains(neighbor))
 				{
 					int newCost = cost + neighbor.tileInfo.movementCost;
-					if (newCost <= unit.unitInfo.movement && (neighbor.unit == null || neighbor.unit.owner == unit.owner))
+					if (newCost <= unit.unitInfo.movement && (neighbor.getUnit() == null || neighbor.getUnit().owner == unit.owner))
 					{
 						frontier.add(neighbor);
 						this.movementCost.put(neighbor, newCost);
@@ -100,7 +100,7 @@ public class RangeInfo
 		while (iter.hasNext())
 		{
 			Tile t = iter.next();
-			if (t.unit != null && !t.unit.equals(this))
+			if (t.getUnit() != null && !t.getUnit().equals(unit))
 			{
 				iter.remove();
 			}
