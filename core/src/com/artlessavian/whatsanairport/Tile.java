@@ -37,25 +37,32 @@ class Tile
 	{
 		try
 		{
-			if (neighbors[0].equals(other)) {return UnitInstruction.RIGHT;}}
+			if (neighbors[0].equals(other)) {return UnitInstruction.RIGHT;}
+		}
 		catch (Exception e)
-		{}
+		{
+		}
 		try
 		{
 			if (neighbors[1].equals(other)) {return UnitInstruction.UP;}
 		}
 		catch (Exception e)
-		{}
+		{
+		}
 		try
 		{
-			if (neighbors[2].equals(other)) {return UnitInstruction.LEFT;}}
+			if (neighbors[2].equals(other)) {return UnitInstruction.LEFT;}
+		}
 		catch (Exception e)
-		{}
+		{
+		}
 		try
 		{
-			if (neighbors[3].equals(other)) {return UnitInstruction.DOWN;}}
+			if (neighbors[3].equals(other)) {return UnitInstruction.DOWN;}
+		}
 		catch (Exception e)
-		{}
+		{
+		}
 
 		return UnitInstruction.WAIT;
 	}

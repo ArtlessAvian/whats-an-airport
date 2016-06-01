@@ -4,15 +4,16 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.files.FileHandle;
 
+import java.util.ArrayList;
+
 class BattleModel implements Screen
 {
 	private final WarsMain main;
 	final BattleView view;
 
-	private final InputHandler inputHandler;
+	final InputHandler inputHandler;
 
 	final Map map;
-	final Cursor cursor;
 	final TurnHandler turnHandler;
 
 	public BattleModel(WarsMain warsMain)
@@ -22,13 +23,16 @@ class BattleModel implements Screen
 		this.inputHandler = new InputHandler(this);
 		Gdx.input.setInputProcessor(inputHandler);
 
-		// Everything
+		// Init Stuff
 		FileHandle file = Gdx.files.internal("map.txt");
 		String text = file.readString();
 		this.map = new Map(text);
 
-		this.cursor = new Cursor(map);
-		inputHandler.receivers.add(cursor);
+		this.inputHandler.cursor = new Cursor(this.inputHandler, map);
+		this.inputHandler.activeMenu = null;
+		this.inputHandler.menus = new ArrayList<>();
+		this.inputHandler.menus.add(new UnitMenu(this.inputHandler));
+		this.inputHandler.receivers.add(this.inputHandler.cursor);
 
 		this.turnHandler = new TurnHandler();
 
@@ -86,7 +90,7 @@ class BattleModel implements Screen
 
 		this.map.update();
 
-		this.view.render(delta);
+		this.view.render();
 	}
 
 	@Override

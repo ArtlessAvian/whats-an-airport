@@ -1,6 +1,7 @@
 package com.artlessavian.whatsanairport;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedList;
 
 class Unit
 {
@@ -19,7 +20,8 @@ class Unit
 		return rangeInfo;
 	}
 
-	Cursor selector;
+	public boolean done = false;
+	public boolean selected;
 	LinkedList<UnitInstruction> instructions;
 	float accumulator;
 
@@ -30,7 +32,7 @@ class Unit
 
 		this.rangeInfo = new RangeInfo(this);
 
-		this.selector = null;
+		this.selected = false;
 		this.instructions = new LinkedList<>();
 		this.accumulator = 0;
 	}
@@ -48,10 +50,10 @@ class Unit
 	public boolean goTo(Tile other)
 	{
 		invalidateMovement();
-//		if (other.unit != null) // TODO
-//		{
-//			return true;
-//		}
+		if (other.getUnit() != null && !other.getUnit().equals(this) && (other.getUnit().owner != this.owner || instructions.size() == 1)) // TODO
+		{
+			return true;
+		}
 
 		this.tile = other;
 		return false;
@@ -65,13 +67,18 @@ class Unit
 			if (this.goTo(tile.neighbors[instruction.id]))
 			{
 				instructions.clear();
+				instructions.add(UnitInstruction.WAIT);
 			}
 		}
 		else
 		{
 			switch (instruction)
 			{
-				case WAIT: {break;}
+				case WAIT:
+				{
+					done = true;
+					break;
+				}
 				case ATTACK: {break;} // TODO
 			}
 		}

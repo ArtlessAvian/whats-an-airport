@@ -6,6 +6,7 @@ import java.util.LinkedList;
 
 public class Cursor implements InputReceiver
 {
+	private InputHandler inputHandler;
 	private final Map map;
 
 	int x;
@@ -16,8 +17,9 @@ public class Cursor implements InputReceiver
 
 	int lastTileCursored = 0;
 
-	public Cursor(Map map)
+	public Cursor(InputHandler inputHandler, Map map)
 	{
+		this.inputHandler = inputHandler;
 		this.map = map;
 		instructions = new LinkedList<>();
 	}
@@ -72,14 +74,44 @@ public class Cursor implements InputReceiver
 
 		switch (thisTileCursored + lastTileCursored * 3)
 		{
-			case 0: {pushDir(unitInstr); break;} // move to move
+			case 0:
+			{
+				pushDir(unitInstr);
+				break;
+			} // move to move
 			case 1: {break;} // move to attack
-			case 2: {instructions.clear(); movementCost = 0; break;} // move to empty (wont happen)
-			case 3: {rePath(false); break;} // attack to move
-			case 4: {rePath(true); break;} // attack to attack
-			case 5: {instructions.clear(); movementCost = 0; break;} // attack to empty
-			case 6: {rePath(false); break;} // empty to move (wont happen)
-			case 7: {rePath(true); break;} // empty to attack
+			case 2:
+			{
+				instructions.clear();
+				movementCost = 0;
+				break;
+			} // move to empty (wont happen)
+			case 3:
+			{
+				rePath(false);
+				break;
+			} // attack to move
+			case 4:
+			{
+				rePath(true);
+				break;
+			} // attack to attack
+			case 5:
+			{
+				instructions.clear();
+				movementCost = 0;
+				break;
+			} // attack to empty
+			case 6:
+			{
+				rePath(false);
+				break;
+			} // empty to move (wont happen)
+			case 7:
+			{
+				rePath(true);
+				break;
+			} // empty to attack
 			case 8: {break;} // empty to empty
 		}
 
@@ -147,21 +179,24 @@ public class Cursor implements InputReceiver
 	{
 		if (selectedUnit == null)
 		{
-			if (map.tileMap[y][x].getUnit() != null && map.tileMap[y][x].getUnit().instructions.isEmpty())
+			Unit cursored = map.tileMap[y][x].getUnit();
+			if (cursored != null && cursored.instructions.isEmpty() && !cursored.done)
 			{
+				instructions.clear();
+				selectedUnit = cursored;
+
 				lastTileCursored = 0;
 				movementCost = 0;
 
-				selectedUnit = map.tileMap[y][x].getUnit();
-				selectedUnit.selector = this;
+				cursored.selected = true;
 
-				if (!selectedUnit.getRangeInfo().rangeCalcd) {selectedUnit.calculateMovement();}
+				if (!cursored.getRangeInfo().rangeCalcd) {cursored.calculateMovement();}
 
-				for (Tile t : selectedUnit.getRangeInfo().attackable)
+				for (Tile t : cursored.getRangeInfo().attackable)
 				{
 					t.highlight.add(Color.RED);
 				}
-				for (Tile t : selectedUnit.getRangeInfo().movable)
+				for (Tile t : cursored.getRangeInfo().movable)
 				{
 					t.highlight.add(Color.BLUE);
 				}
@@ -186,10 +221,13 @@ public class Cursor implements InputReceiver
 				finalDestination = finalDestination.neighbors[ui.id];
 			}
 
-			instructions.add(UnitInstruction.WAIT);
+			inputHandler.receivers.add(inputHandler.menus.get(0));
+			inputHandler.activeMenu = inputHandler.menus.get(0);
+			inputHandler.menus.get(0).init(selectedUnit, finalDestination, selectedUnit.tile);
+
 			selectedUnit.receiveInstructions(instructions, finalDestination);
-			selectedUnit.selector = null;
-			instructions.clear();
+
+			selectedUnit.selected = false;
 			selectedUnit = null;
 		}
 
@@ -205,7 +243,7 @@ public class Cursor implements InputReceiver
 	@Override
 	public boolean touchDown(int screenX, int screenY, float tileX, float tileY)
 	{
-		touchDragged(screenX, screenY, tileX,tileY);
+		touchDragged(screenX, screenY, tileX, tileY);
 
 		return true;
 	}

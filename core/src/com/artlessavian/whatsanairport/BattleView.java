@@ -6,8 +6,10 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector3;
 
 import java.util.Iterator;
 
@@ -17,17 +19,18 @@ class BattleView
 	
 	private final SpriteBatch batch;
 	private final BitmapFont bitmapFont;
+	private final GlyphLayout glyphLayout;
 
 	private final Sprite terrainTileSet;
 	private final Sprite unitTileSet;
 	private final Sprite box;
 	private final Sprite white;
+	private final Sprite options;
 
 	final OrthographicCamera worldSpace;
 
 	private final float screenTileHeight = 12;
 	final float tileSize = 64;
-	private float centimetersPerTile;
 
 
 	public BattleView(BattleModel battleModel)
@@ -35,33 +38,36 @@ class BattleView
 		this.model = battleModel;
 		this.batch = WarsMain.getInstance().batch;
 		this.bitmapFont = WarsMain.getInstance().bitmapFont;
+		this.glyphLayout = WarsMain.getInstance().glyphLayout;
 
 		this.terrainTileSet = new Sprite(new Texture("Terrain.png"));
 		this.terrainTileSet.setSize(tileSize, tileSize);
-		this.terrainTileSet.setOrigin(tileSize/2f, tileSize/2f);
+		this.terrainTileSet.setOrigin(tileSize / 2f, tileSize / 2f);
 
 		this.unitTileSet = new Sprite(new Texture("Unit.png"));
 		this.unitTileSet.setSize(tileSize, tileSize);
-		this.unitTileSet.setOrigin(tileSize/2f, tileSize/2f);
+		this.unitTileSet.setOrigin(tileSize / 2f, tileSize / 2f);
 
 		this.box = new Sprite(new Texture("Grid.png"));
 		this.box.setSize(tileSize, tileSize);
-		this.box.setOrigin(tileSize/2f, tileSize/2f);
+		this.box.setOrigin(tileSize / 2f, tileSize / 2f);
 
 		this.white = new Sprite(new Texture("White.png"));
 		this.white.setSize(tileSize, tileSize);
-		this.white.setOrigin(tileSize/2f, tileSize/2f);
+		this.white.setOrigin(tileSize / 2f, tileSize / 2f);
+
+		this.options = new Sprite(new Texture("Options.png"));
 
 		this.worldSpace = new OrthographicCamera();
 	}
 
-	public void render(float delta)
+	public void render()
 	{
 		Gdx.gl.glClearColor(0.1f, 0.0f, 0.1f, 1f);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-		worldSpace.position.x = model.map.width * tileSize/2f;
-		worldSpace.position.y = model.map.height * tileSize/2f;
+		worldSpace.position.x = model.map.width * tileSize / 2f;
+		worldSpace.position.y = model.map.height * tileSize / 2f;
 		worldSpace.update();
 
 		batch.setProjectionMatrix(worldSpace.combined);
@@ -72,6 +78,7 @@ class BattleView
 		this.drawUnits();
 		this.drawHighlight();
 		this.drawCursor();
+		this.drawMenu();
 		this.drawDebug();
 
 		batch.end();
@@ -117,7 +124,7 @@ class BattleView
 				Tile tile = model.map.tileMap[y][x];
 				if (!tile.highlight.isEmpty())
 				{
-					white.setColor(tile.highlight.get(tile.highlight.size()-1));
+					white.setColor(tile.highlight.get(tile.highlight.size() - 1));
 					white.setPosition(x * tileSize, y * tileSize);
 					white.draw(batch, 0.3f);
 				}
@@ -161,15 +168,24 @@ class BattleView
 				}
 			}
 
+			if (unit.done)
+			{
+				unitTileSet.setColor(Color.DARK_GRAY);
+			}
+			else
+			{
+				unitTileSet.setColor(Color.WHITE);
+			}
+
 			unitTileSet.draw(batch);
 
-			if (unit.selector != null)
+			if (unit.selected)
 			{
 				box.setPosition(unit.tile.x * tileSize, unit.tile.y * tileSize);
-				box.setSize(tileSize/2f, tileSize/2f);
-				if (!unit.selector.instructions.isEmpty())
+				box.setSize(tileSize / 2f, tileSize / 2f);
+				if (!model.inputHandler.cursor.instructions.isEmpty())
 				{
-					Iterator<UnitInstruction> iter = model.cursor.instructions.iterator();
+					Iterator<UnitInstruction> iter = model.inputHandler.cursor.instructions.iterator();
 					while (iter.hasNext())
 					{
 						switch (iter.next())
@@ -204,16 +220,91 @@ class BattleView
 
 	private void drawCursor()
 	{
-		box.setSize(tileSize,tileSize);
-		box.setPosition(model.cursor.x * tileSize, model.cursor.y * tileSize);
+		box.setSize(tileSize, tileSize);
+		box.setPosition(model.inputHandler.cursor.x * tileSize, model.inputHandler.cursor.y * tileSize);
 		box.draw(batch);
+	}
 
+	Vector3 helper = new Vector3();
 
+	public void menuHelper(UnitMenu menu)
+	{
+		if (menu.xSize == 0)
+		{
+			for (MenuOptions options : menu.options)
+			{
+				glyphLayout.setText(bitmapFont, options.name);
+				menu.xSize = Math.max(menu.xSize, glyphLayout.width);
+			}
+
+			menu.xSize += 100;
+			menu.ySize = bitmapFont.getLineHeight() * menu.options.size();
+		}
+
+		switch (menu.position)
+		{
+			case 0:
+			{
+				helper.set(Gdx.graphics.getWidth() - menu.xPadding, menu.yPadding, 0);
+				worldSpace.unproject(helper);
+				options.setPosition(helper.x - menu.xSize, helper.y);
+				break;
+			}
+			case 1:
+			{
+				helper.set(menu.xPadding, menu.yPadding, 0);
+				worldSpace.unproject(helper);
+				options.setPosition(helper.x, helper.y);
+				break;
+			}
+			case 2:
+			{
+				helper.set(menu.xPadding, Gdx.graphics.getHeight() - menu.yPadding, 0);
+				worldSpace.unproject(helper);
+				options.setPosition(helper.x, helper.y - menu.ySize);
+				break;
+			}
+			case 3:
+			{
+				helper.set(Gdx.graphics.getWidth() - menu.xPadding, Gdx.graphics.getHeight() - menu.yPadding, 0);
+				worldSpace.unproject(helper);
+				options.setPosition(helper.x - menu.xSize, helper.y - menu.ySize);
+				break;
+			}
+		}
+	}
+
+	private void drawMenu()
+	{
+		if (model.inputHandler.activeMenu != null)
+		{
+			UnitMenu activeMenu = model.inputHandler.activeMenu;
+
+			menuHelper(activeMenu);
+			options.setSize(activeMenu.xSize, bitmapFont.getLineHeight());
+			for (int i = 0; i < activeMenu.options.size(); i++)
+			{
+				if (i == activeMenu.selected)
+				{
+					activeMenu.pushOptionRight.set(i, activeMenu.pushOptionRight.get(i) * 0.8f + 0.2f);
+				}
+				else
+				{
+					activeMenu.pushOptionRight.set(i, activeMenu.pushOptionRight.get(i) * 0.2f);
+				}
+
+				options.translateY(-options.getHeight());
+				options.draw(batch);
+				bitmapFont.draw(batch, activeMenu.options.get(i).name,
+					options.getX() + 25 + 50 * activeMenu.pushOptionRight.get(i),
+					options.getY() + options.getHeight() * 0.9f);
+			}
+		}
 	}
 
 	private void drawDebug()
 	{
-		bitmapFont.draw(batch, model.cursor.x + " " + model.cursor.y, 5, 35);
+		bitmapFont.draw(batch, model.inputHandler.cursor.x + " " + model.inputHandler.cursor.y, 5, 35);
 
 		for (int y = 0; y < model.map.height; y++)
 		{
@@ -234,6 +325,11 @@ class BattleView
 		worldSpace.viewportWidth = (float)width * worldSpace.viewportHeight / (float)height;
 		worldSpace.update();
 
-		centimetersPerTile = Math.round(10000 * tileSize / Gdx.graphics.getPpcY()) / 10000f;
+		bitmapFont.getData().setScale(Gdx.graphics.getPpcX() / 12f);
+
+		if (model.inputHandler.activeMenu != null)
+		{
+			model.inputHandler.activeMenu.xSize = 0;
+		}
 	}
 }

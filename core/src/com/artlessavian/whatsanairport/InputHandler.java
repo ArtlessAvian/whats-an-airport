@@ -2,7 +2,6 @@ package com.artlessavian.whatsanairport;
 
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
 import java.util.ArrayList;
@@ -12,6 +11,10 @@ class InputHandler implements InputProcessor
 	BattleModel model;
 
 	final ArrayList<InputReceiver> receivers = new ArrayList<>();
+
+	Cursor cursor;
+	UnitMenu activeMenu;
+	ArrayList<UnitMenu> menus;
 
 	private int framesHeld = 0;
 	private int lastDirectional = -1;
@@ -144,7 +147,7 @@ class InputHandler implements InputProcessor
 	{
 		helper.set(screenX, screenY, 0);
 		model.view.worldSpace.unproject(helper);
-		helper.scl(1f/model.view.tileSize);
+		helper.scl(1f / model.view.tileSize);
 	}
 
 
