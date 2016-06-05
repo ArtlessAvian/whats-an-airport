@@ -51,6 +51,16 @@ class Map
 		}
 	}
 
+	public void makeUnit(UnitInfo unitInfo, int team, int x, int y)
+	{
+		if (tileMap[y][x].getUnit() == null)
+		{
+			Unit u = new Unit(unitInfo, this.tileMap[y][x], team);
+			this.tileMap[y][x].setUnit(u);
+			units.add(u);
+		}
+	}
+
 	void update()
 	{
 		for (Unit unit : units)

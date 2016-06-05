@@ -1,5 +1,6 @@
 package com.artlessavian.whatsanairport;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -25,10 +26,11 @@ class Unit
 	LinkedList<UnitInstruction> instructions;
 	float accumulator;
 
-	public Unit(UnitInfo info, Tile tile)
+	public Unit(UnitInfo info, Tile tile, int owner)
 	{
 		this.unitInfo = info;
 		this.tile = tile;
+		this.owner = owner;
 
 		this.rangeInfo = new RangeInfo(this);
 

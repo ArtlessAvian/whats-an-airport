@@ -2,9 +2,13 @@ package com.artlessavian.whatsanairport;
 
 public enum MenuOptions
 {
+	DEBUGFILLER("ayyyyyyyy lmao"),
+
 	WAIT("Wait"),
 	ATTACK("Attack"),
-	CAPTURE("Capture");
+	CAPTURE("Capture"),
+
+	ENDTURN("End Turn");
 
 	String name;
 

@@ -13,8 +13,8 @@ class InputHandler implements InputProcessor
 	final ArrayList<InputReceiver> receivers = new ArrayList<>();
 
 	Cursor cursor;
-	UnitMenu activeMenu;
-	ArrayList<UnitMenu> menus;
+	BasicMenu activeMenu;
+	ArrayList<BasicMenu> menus;
 
 	private int framesHeld = 0;
 	private int lastDirectional = -1;

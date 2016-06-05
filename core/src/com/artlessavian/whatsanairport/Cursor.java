@@ -177,29 +177,38 @@ public class Cursor implements InputReceiver
 	@Override
 	public boolean select()
 	{
+		Unit cursored = map.tileMap[y][x].getUnit();
 		if (selectedUnit == null)
 		{
-			Unit cursored = map.tileMap[y][x].getUnit();
-			if (cursored != null && cursored.instructions.isEmpty() && !cursored.done)
+			if (cursored != null)
 			{
-				instructions.clear();
-				selectedUnit = cursored;
-
-				lastTileCursored = 0;
-				movementCost = 0;
-
-				cursored.selected = true;
-
-				if (!cursored.getRangeInfo().rangeCalcd) {cursored.calculateMovement();}
-
-				for (Tile t : cursored.getRangeInfo().attackable)
+				if (cursored.owner == inputHandler.model.turnHandler.turn && cursored.instructions.isEmpty() && !cursored.done)
 				{
-					t.highlight.add(Color.RED);
+					instructions.clear();
+					selectedUnit = cursored;
+
+					lastTileCursored = 0;
+					movementCost = 0;
+
+					cursored.selected = true;
+
+					if (!cursored.getRangeInfo().rangeCalcd) {cursored.calculateMovement();}
+
+					for (Tile t : cursored.getRangeInfo().attackable)
+					{
+						t.highlight.add(Color.RED);
+					}
+					for (Tile t : cursored.getRangeInfo().movable)
+					{
+						t.highlight.add(Color.BLUE);
+					}
 				}
-				for (Tile t : cursored.getRangeInfo().movable)
-				{
-					t.highlight.add(Color.BLUE);
-				}
+			}
+			else
+			{
+				inputHandler.receivers.add(inputHandler.menus.get(1));
+				inputHandler.activeMenu = inputHandler.menus.get(1);
+				inputHandler.menus.get(1).init();
 			}
 		}
 		else
@@ -230,7 +239,6 @@ public class Cursor implements InputReceiver
 			selectedUnit.selected = false;
 			selectedUnit = null;
 		}
-
 		return true;
 	}
 
@@ -258,10 +266,10 @@ public class Cursor implements InputReceiver
 	@Override
 	public boolean touchDragged(int screenX, int screenY, float tileX, float tileY)
 	{
-		while ((int)tileX > x) {this.right();}
-		while ((int)tileX < x) {this.left();}
-		while ((int)tileY > y) {this.up();}
-		while ((int)tileY < y) {this.down();}
+		for (int i = (int)tileX; i < x; i++) {this.left();}
+		for (int i = x; i < (int)tileX; i++) {this.right();}
+		for (int i = (int)tileY; i < y; i++) {this.down();}
+		for (int i = y; i < (int)tileY; i++) {this.up();}
 
 		return true;
 	}

@@ -97,13 +97,16 @@ public abstract class BasicMenu implements InputReceiver
 	@Override
 	public boolean touchUp(int screenX, int screenY, float tileX, float tileY)
 	{
+		select();
 		return true;
 	}
 
 	@Override
 	public boolean touchDragged(int screenX, int screenY, float tileX, float tileY)
 	{
-		float toSelect = 0;
+		// TODO: Fix?
+
+		double toSelect = 0;
 
 		switch (position)
 		{
@@ -111,7 +114,7 @@ public abstract class BasicMenu implements InputReceiver
 			{
 				if (screenX <= Gdx.graphics.getWidth() - xPadding && screenX >= Gdx.graphics.getWidth() - xPadding - xSize)
 				{
-					toSelect = ((screenY - yPadding) / (ySize / options.size()));
+					toSelect = (screenY - yPadding) * (options.size()) / ySize;
 				}
 				break;
 			}
@@ -119,7 +122,7 @@ public abstract class BasicMenu implements InputReceiver
 			{
 				if (screenX <= xPadding + xSize && screenX >= xPadding)
 				{
-					toSelect = ((screenY - yPadding) / (ySize / options.size()));
+					toSelect = (screenY - yPadding) * (options.size()) / ySize;
 				}
 				break;
 			}
@@ -127,21 +130,21 @@ public abstract class BasicMenu implements InputReceiver
 			{
 				if (screenX <= xPadding + xSize && screenX >= xPadding)
 				{
-					toSelect = ((screenY - (Gdx.graphics.getHeight() - yPadding - ySize)) / (ySize / options.size()));
+					toSelect = (screenY - (Gdx.graphics.getHeight() - yPadding - ySize)) * (options.size()) / ySize;
 				}
 			}
 			case 3:
 			{
 				if (screenX <= Gdx.graphics.getWidth() - xPadding && screenX >= Gdx.graphics.getWidth() - xPadding - xSize)
 				{
-					toSelect = ((screenY - (Gdx.graphics.getHeight() - yPadding - ySize)) / (ySize / options.size()));
+					toSelect = (screenY - (Gdx.graphics.getHeight() - yPadding - ySize)) * (options.size()) / ySize;
 				}
 			}
 		}
 
 		System.out.println(toSelect);
 
-		if (toSelect < options.size())
+		if (toSelect < options.size() && toSelect >= 0)
 		{
 			selected = (int)toSelect;
 		}

@@ -8,12 +8,6 @@ public class UnitMenu extends BasicMenu
 	private Tile finalDestination;
 	private Tile originalTile;
 
-	int position; // Counterclockwise from top right
-	float xPadding;
-	float yPadding;
-	float xSize;
-	float ySize;
-
 	public UnitMenu(InputHandler inputHandler)
 	{
 		super(inputHandler);
@@ -30,45 +24,7 @@ public class UnitMenu extends BasicMenu
 		this.originalTile = (Tile)objects[2];
 
 		//Buncha if statements
-		this.options.add(MenuOptions.ATTACK);
-		this.options.add(MenuOptions.ATTACK);
-		this.options.add(MenuOptions.CAPTURE);
-
 		this.options.add(MenuOptions.WAIT);
-	}
-
-	@Override
-	public boolean up()
-	{
-		selected--;
-		if (selected < 0)
-		{
-			selected += options.size();
-		}
-		return true;
-	}
-
-	@Override
-	public boolean down()
-	{
-		selected++;
-		if (selected >= options.size())
-		{
-			selected -= options.size();
-		}
-		return true;
-	}
-
-	@Override
-	public boolean left()
-	{
-		return true;
-	}
-
-	@Override
-	public boolean right()
-	{
-		return true;
 	}
 
 	@Override
@@ -111,26 +67,6 @@ public class UnitMenu extends BasicMenu
 
 		inputHandler.activeMenu = null;
 		inputHandler.receivers.remove(this);
-		return true;
-	}
-
-	@Override
-	public boolean touchDown(int screenX, int screenY, float tileX, float tileY)
-	{
-		touchDragged(screenX, screenY, tileX, tileY);
-		return true;
-	}
-
-	@Override
-	public boolean touchUp(int screenX, int screenY, float tileX, float tileY)
-	{
-		return true;
-	}
-
-	@Override
-	public boolean touchDragged(int screenX, int screenY, float tileX, float tileY)
-	{
-
 		return true;
 	}
 }

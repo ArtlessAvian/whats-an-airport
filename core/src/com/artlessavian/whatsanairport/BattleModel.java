@@ -32,21 +32,26 @@ class BattleModel implements Screen
 		this.inputHandler.activeMenu = null;
 		this.inputHandler.menus = new ArrayList<>();
 		this.inputHandler.menus.add(new UnitMenu(this.inputHandler));
+		this.inputHandler.menus.add(new DayMenu(this.inputHandler));
 		this.inputHandler.receivers.add(this.inputHandler.cursor);
 
-		this.turnHandler = new TurnHandler();
+		this.turnHandler = new TurnHandler(this.map);
 
 		// Then view
 		this.view = new BattleView(this);
 
 		// Testing
-		this.map.tileMap[5][2].setUnit(new Unit(UnitInfo.SOLDIER, this.map.tileMap[5][2]));
-		this.map.tileMap[4][2].setUnit(new Unit(UnitInfo.SOLDIER, this.map.tileMap[4][2]));
-		this.map.tileMap[4][3].setUnit(new Unit(UnitInfo.SOLDIER, this.map.tileMap[4][3]));
+		this.map.makeUnit(UnitInfo.SOLDIER, 0, 4, 2);
+		this.map.makeUnit(UnitInfo.MECH, 0, 2, 2);
+		this.map.makeUnit(UnitInfo.SOLDIER, 0, 2, 4);
+		this.map.makeUnit(UnitInfo.MOTORCYCLE, 0, 2, 6);
+		this.map.makeUnit(UnitInfo.MECH, 0, 6, 4);
 
-		this.map.units.add(this.map.tileMap[5][2].getUnit());
-		this.map.units.add(this.map.tileMap[4][2].getUnit());
-		this.map.units.add(this.map.tileMap[4][3].getUnit());
+		this.map.makeUnit(UnitInfo.SOLDIER, 1, 4 + 6, 2);
+		this.map.makeUnit(UnitInfo.MECH, 1, 2 + 6, 2);
+		this.map.makeUnit(UnitInfo.SOLDIER, 1, 2 + 6, 4);
+		this.map.makeUnit(UnitInfo.MOTORCYCLE, 1, 2 + 6, 6);
+		this.map.makeUnit(UnitInfo.MECH, 1, 6 + 6, 4);
 	}
 
 	@Override

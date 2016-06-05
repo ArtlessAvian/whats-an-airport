@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
 import java.util.Iterator;
@@ -26,8 +27,12 @@ class BattleView
 	private final Sprite box;
 	private final Sprite white;
 	private final Sprite options;
+	private final Sprite path;
+
+	Vector3 helper = new Vector3();
 
 	final OrthographicCamera worldSpace;
+	final Vector3 trueCamPos;
 
 	private final float screenTileHeight = 12;
 	final float tileSize = 64;
@@ -58,7 +63,60 @@ class BattleView
 
 		this.options = new Sprite(new Texture("Options.png"));
 
+		this.path = new Sprite(new Texture("Path.png"));
+		this.path.setSize(tileSize, tileSize);
+		this.path.setOrigin(tileSize / 2f, tileSize / 2f);
+
 		this.worldSpace = new OrthographicCamera();
+		this.trueCamPos = new Vector3(model.map.width * tileSize / 2f, model.map.height * tileSize / 2f, 0);
+
+		worldSpace.position.x = model.map.width * tileSize / 2f;
+		worldSpace.position.y = model.map.height * tileSize / 2f;
+		worldSpace.update();
+	}
+
+	public void focus(float tileLeeway, float tileX, float tileY)
+	{
+		tileLeeway *= tileSize;
+		tileX *= tileSize;
+		tileY *= tileSize;
+
+		helper.set(tileX, tileY, 0);
+
+		// Terrible fix imo.
+		// I dunno how costly recalculating the camera is, but it shouldnt be too bad.
+		float tempX = worldSpace.position.x;
+		float tempY = worldSpace.position.y;
+		worldSpace.position.set(trueCamPos);
+		worldSpace.update();
+		worldSpace.project(helper);
+		worldSpace.position.set(tempX, tempY, 0);
+
+		if (Gdx.graphics.getWidth() > model.map.width * tileSize)
+		{
+			trueCamPos.x = model.map.width * tileSize/2f;
+		}
+		else if (helper.x < tileLeeway)
+		{
+			trueCamPos.x -= tileSize;
+		}
+		else if (helper.x > Gdx.graphics.getWidth() - tileLeeway)
+		{
+			trueCamPos.x += tileSize;
+		}
+
+		if (screenTileHeight > model.map.height)
+		{
+			trueCamPos.y = model.map.height * tileSize/2f;
+		}
+		else if (helper.y < tileLeeway)
+		{
+			trueCamPos.y -= tileSize;
+		}
+		else if (helper.y > Gdx.graphics.getHeight() - tileLeeway)
+		{
+			trueCamPos.y += tileSize;
+		}
 	}
 
 	public void render()
@@ -66,10 +124,10 @@ class BattleView
 		Gdx.gl.glClearColor(0.1f, 0.0f, 0.1f, 1f);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-		worldSpace.position.x = model.map.width * tileSize / 2f;
-		worldSpace.position.y = model.map.height * tileSize / 2f;
-		worldSpace.update();
+		focus(3, model.inputHandler.cursor.x, model.inputHandler.cursor.y);
 
+		worldSpace.position.lerp(trueCamPos, 0.05f);
+		worldSpace.update();
 		batch.setProjectionMatrix(worldSpace.combined);
 
 		batch.begin();
@@ -181,38 +239,93 @@ class BattleView
 
 			if (unit.selected)
 			{
-				box.setPosition(unit.tile.x * tileSize, unit.tile.y * tileSize);
-				box.setSize(tileSize / 2f, tileSize / 2f);
+				path.setPosition(unit.tile.x * tileSize, unit.tile.y * tileSize);
 				if (!model.inputHandler.cursor.instructions.isEmpty())
 				{
 					Iterator<UnitInstruction> iter = model.inputHandler.cursor.instructions.iterator();
+					UnitInstruction last = iter.next();
 					while (iter.hasNext())
 					{
-						switch (iter.next())
+						UnitInstruction current = iter.next();
+
+						path.setRotation(0);
+
+						if (current.id == last.id)
+						{
+							uvShenanigans(0,3,0,1,path);
+						}
+						else
+						{
+							uvShenanigans(2, 3, 0, 1, path);
+							if ((last.id + 1) % 4 == current.id)
+							{
+								path.rotate(-90);
+							}
+						}
+
+						switch (last)
 						{
 							case RIGHT:
 							{
-								box.translateX(tileSize);
+								path.rotate(-90);
+								path.translateX(tileSize);
+
 								break;
 							}
 							case UP:
 							{
-								box.translateY(tileSize);
+								path.rotate(0);
+								path.translateY(tileSize);
+
 								break;
 							}
 							case LEFT:
 							{
-								box.translateX(-tileSize);
+								path.rotate(90);
+								path.translateX(-tileSize);
 								break;
 							}
 							case DOWN:
 							{
-								box.translateY(-tileSize);
+								path.rotate(180);
+								path.translateY(-tileSize);
 								break;
 							}
 						}
-						box.draw(batch);
+						path.draw(batch);
+						last = current;
 					}
+
+					uvShenanigans(1,3,0,1,path);
+					switch (last)
+					{
+						case RIGHT:
+						{
+							path.translateX(tileSize);
+							path.setRotation(-90);
+							break;
+						}
+						case UP:
+						{
+							path.translateY(tileSize);
+							path.setRotation(0);
+							break;
+						}
+						case LEFT:
+						{
+							path.translateX(-tileSize);
+							path.setRotation(90);
+							break;
+						}
+						case DOWN:
+						{
+							path.translateY(-tileSize);
+							path.setRotation(180);
+							break;
+						}
+					}
+
+					path.draw(batch);
 				}
 			}
 		}
@@ -225,9 +338,7 @@ class BattleView
 		box.draw(batch);
 	}
 
-	Vector3 helper = new Vector3();
-
-	public void menuHelper(UnitMenu menu)
+	public void menuHelper(BasicMenu menu)
 	{
 		if (menu.xSize == 0)
 		{
@@ -278,7 +389,7 @@ class BattleView
 	{
 		if (model.inputHandler.activeMenu != null)
 		{
-			UnitMenu activeMenu = model.inputHandler.activeMenu;
+			BasicMenu activeMenu = model.inputHandler.activeMenu;
 
 			menuHelper(activeMenu);
 			options.setSize(activeMenu.xSize, bitmapFont.getLineHeight());
@@ -305,6 +416,7 @@ class BattleView
 	private void drawDebug()
 	{
 		bitmapFont.draw(batch, model.inputHandler.cursor.x + " " + model.inputHandler.cursor.y, 5, 35);
+		bitmapFont.draw(batch, model.turnHandler.day + " " + model.turnHandler.turn, 5, 70);
 
 		for (int y = 0; y < model.map.height; y++)
 		{
