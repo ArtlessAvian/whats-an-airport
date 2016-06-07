@@ -1,14 +1,15 @@
 package com.artlessavian.whatsanairport;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.ListIterator;
 
 class Unit
 {
 	final UnitInfo unitInfo;
 	int owner;
 	Tile tile;
+	Tile lastTile;
 
 	private RangeInfo rangeInfo;
 
@@ -23,19 +24,25 @@ class Unit
 
 	public boolean done = false;
 	public boolean selected;
-	LinkedList<UnitInstruction> instructions;
+
+	ListIterator<UnitInstruction> instructions;
+	UnitInstruction finalInstruction;
+	ArrayList<UnitInstruction> instructionsList;
+
 	float accumulator;
 
 	public Unit(UnitInfo info, Tile tile, int owner)
 	{
 		this.unitInfo = info;
 		this.tile = tile;
+		this.lastTile = tile;
 		this.owner = owner;
 
 		this.rangeInfo = new RangeInfo(this);
 
 		this.selected = false;
-		this.instructions = new LinkedList<>();
+		this.finalInstruction = null;
+		this.instructionsList = new ArrayList<>();
 		this.accumulator = 0;
 	}
 
@@ -49,73 +56,54 @@ class Unit
 		rangeInfo.calculateMovement();
 	}
 
-	public boolean goTo(Tile other)
+	void receiveInstructions(LinkedList<UnitInstruction> received)
+	{
+		instructionsList.clear();
+		instructionsList.addAll(received);
+		this.instructions = instructionsList.listIterator();
+	}
+
+	public void doNextDirection()
 	{
 		invalidateMovement();
-		if (other.getUnit() != null && !other.getUnit().equals(this) && (other.getUnit().owner != this.owner || instructions.size() == 1)) // TODO
-		{
-			return true;
-		}
 
-		this.tile = other;
-		return false;
-	}
+		UnitInstruction instruction = instructions.next();
+		Tile next = tile.neighbors[instruction.id];
 
-	public void doNext()
-	{
-		UnitInstruction instruction = instructions.removeFirst();
-		if (instruction.isDir)
-		{
-			if (this.goTo(tile.neighbors[instruction.id]))
-			{
-				instructions.clear();
-				instructions.add(UnitInstruction.WAIT);
-			}
-		}
-		else
-		{
-			switch (instruction)
-			{
-				case WAIT:
-				{
-					done = true;
-					break;
-				}
-				case ATTACK: {break;} // TODO
-			}
-		}
-	}
-
-	void receiveInstructions(LinkedList<UnitInstruction> received, Tile finalTile)
-	{
-		Iterator<UnitInstruction> iter = received.iterator();
-		while (iter.hasNext())
-		{
-			this.instructions.add(iter.next());
-		}
-		this.tile.setUnit(null);
-		if (finalTile.getUnit() != null)
-		{
-			System.err.println("Yo something died");
-		}
-		else
-		{
-			finalTile.setUnit(this);
-		}
+		this.tile = next;
 	}
 
 	public void update()
 	{
-		if (instructions != null && !instructions.isEmpty())
+		if (instructions != null && instructions.hasNext())
 		{
 			this.accumulator++;
-			while (!instructions.isEmpty() && (accumulator >= unitInfo.moveFrames || !instructions.peekFirst().isDir))
+			while (instructions.hasNext() && accumulator >= unitInfo.moveFrames)
 			{
-				if (instructions.peekFirst().isDir)
+				accumulator -= unitInfo.moveFrames;
+				this.doNextDirection();
+			}
+		}
+		else
+		{
+			if (finalInstruction != null)
+			{
+				switch (finalInstruction)
 				{
-					accumulator -= unitInfo.moveFrames;
+					case WAIT:
+					{
+						done = true;
+						finalInstruction = null;
+
+						this.lastTile.setUnit(null);
+						this.tile.setUnit(this);
+						this.lastTile = this.tile;
+
+						this.instructions = null;
+						break;
+					}
+					case ATTACK: {break;} // TODO
 				}
-				this.doNext();
 			}
 		}
 	}

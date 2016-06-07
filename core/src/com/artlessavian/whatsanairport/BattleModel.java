@@ -12,6 +12,7 @@ class BattleModel implements Screen
 	final BattleView view;
 
 	final InputHandler inputHandler;
+	final InputSpammer inputSpammer;
 
 	final Map map;
 	final TurnHandler turnHandler;
@@ -22,6 +23,7 @@ class BattleModel implements Screen
 
 		this.inputHandler = new InputHandler(this);
 		Gdx.input.setInputProcessor(inputHandler);
+		this.inputSpammer = new InputSpammer(this, inputHandler);
 
 		// Init Stuff
 		FileHandle file = Gdx.files.internal("map.txt");
@@ -63,35 +65,9 @@ class BattleModel implements Screen
 	@Override
 	public void render(float delta)
 	{
-		this.inputHandler.update();
+		//this.inputSpammer.run(300);
 
-//		for (int i = 0; i < 100; i++)
-//		{
-//			float random = (float)Math.random();
-//
-//			if (random < 0.2)
-//			{
-//				cursor.up();
-//			}
-//			else if (random < 0.4)
-//			{
-//				cursor.down();
-//			}
-//			else if (random < 0.6)
-//			{
-//				cursor.left();
-//			}
-//			else if (random < 0.8)
-//			{
-//				cursor.right();
-//			}
-//			else
-//			{
-//				cursor.select();
-//			}
-//
-//			this.map.update();
-//		}
+		this.inputHandler.update();
 
 		this.map.update();
 

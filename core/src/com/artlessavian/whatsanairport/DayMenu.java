@@ -1,7 +1,5 @@
 package com.artlessavian.whatsanairport;
 
-import com.badlogic.gdx.graphics.Color;
-
 public class DayMenu extends BasicMenu
 {
 	public DayMenu(InputHandler inputHandler)

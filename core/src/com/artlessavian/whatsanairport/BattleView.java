@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
 import java.util.Iterator;
@@ -36,7 +35,6 @@ class BattleView
 
 	private final float screenTileHeight = 12;
 	final float tileSize = 64;
-
 
 	public BattleView(BattleModel battleModel)
 	{
@@ -94,7 +92,7 @@ class BattleView
 
 		if (Gdx.graphics.getWidth() > model.map.width * tileSize)
 		{
-			trueCamPos.x = model.map.width * tileSize/2f;
+			trueCamPos.x = model.map.width * tileSize / 2f;
 		}
 		else if (helper.x < tileLeeway)
 		{
@@ -107,7 +105,7 @@ class BattleView
 
 		if (screenTileHeight > model.map.height)
 		{
-			trueCamPos.y = model.map.height * tileSize/2f;
+			trueCamPos.y = model.map.height * tileSize / 2f;
 		}
 		else if (helper.y < tileLeeway)
 		{
@@ -199,9 +197,9 @@ class BattleView
 			uvShenanigans(4 * model.turnHandler.orderToColor[unit.owner] + timeOffset, 8, unit.unitInfo.id, 4, unitTileSet);
 			unitTileSet.setPosition(unit.tile.x * tileSize, unit.tile.y * tileSize);
 
-			if (!unit.instructions.isEmpty())
+			if (unit.instructions != null && unit.instructions.hasNext())
 			{
-				switch (unit.instructions.getFirst())
+				switch (unit.instructions.next())
 				{
 					case RIGHT:
 					{
@@ -224,6 +222,7 @@ class BattleView
 						break;
 					}
 				}
+				unit.instructions.previous();
 			}
 
 			if (unit.done)
@@ -252,7 +251,7 @@ class BattleView
 
 						if (current.id == last.id)
 						{
-							uvShenanigans(0,3,0,1,path);
+							uvShenanigans(0, 3, 0, 1, path);
 						}
 						else
 						{
@@ -296,7 +295,7 @@ class BattleView
 						last = current;
 					}
 
-					uvShenanigans(1,3,0,1,path);
+					uvShenanigans(1, 3, 0, 1, path);
 					switch (last)
 					{
 						case RIGHT:
@@ -425,7 +424,7 @@ class BattleView
 				Unit unit = model.map.tileMap[y][x].getUnit();
 				if (unit != null)
 				{
-					bitmapFont.draw(batch, unit.instructions + "", x * tileSize, y * tileSize);
+					bitmapFont.draw(batch, unit.instructionsList + "", x * tileSize, y * tileSize);
 				}
 			}
 		}

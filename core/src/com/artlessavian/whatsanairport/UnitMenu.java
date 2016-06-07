@@ -34,7 +34,7 @@ public class UnitMenu extends BasicMenu
 		{
 			case WAIT:
 			{
-				selectedUnit.instructions.add(UnitInstruction.WAIT);
+				selectedUnit.finalInstruction = UnitInstruction.WAIT;
 				inputHandler.activeMenu = null;
 				inputHandler.receivers.remove(this);
 			}
@@ -49,7 +49,6 @@ public class UnitMenu extends BasicMenu
 		selectedUnit.tile = originalTile;
 		originalTile.setUnit(selectedUnit);
 		finalDestination.setUnit(null);
-		selectedUnit.instructions.clear();
 
 		inputHandler.cursor.selectedUnit = selectedUnit;
 		selectedUnit.selected = true;

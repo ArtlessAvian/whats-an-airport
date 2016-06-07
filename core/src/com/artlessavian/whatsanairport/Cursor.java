@@ -182,7 +182,7 @@ public class Cursor implements InputReceiver
 		{
 			if (cursored != null)
 			{
-				if (cursored.owner == inputHandler.model.turnHandler.turn && cursored.instructions.isEmpty() && !cursored.done)
+				if (cursored.owner == inputHandler.model.turnHandler.turn && cursored.instructions == null && !cursored.done)
 				{
 					instructions.clear();
 					selectedUnit = cursored;
@@ -234,7 +234,7 @@ public class Cursor implements InputReceiver
 			inputHandler.activeMenu = inputHandler.menus.get(0);
 			inputHandler.menus.get(0).init(selectedUnit, finalDestination, selectedUnit.tile);
 
-			selectedUnit.receiveInstructions(instructions, finalDestination);
+			selectedUnit.receiveInstructions(instructions);
 
 			selectedUnit.selected = false;
 			selectedUnit = null;

@@ -1,7 +1,5 @@
 package com.artlessavian.whatsanairport;
 
-import com.badlogic.gdx.graphics.Color;
-
 class TurnHandler
 {
 	private Map map;
@@ -19,12 +17,12 @@ class TurnHandler
 
 	public void endTurn()
 	{
-		turn++;
-		if (turn >= orderToColor.length)
-		{
-			day++;
-			turn = 0;
-		}
+//		turn++;
+//		if (turn >= orderToColor.length)
+//		{
+		day++;
+		turn = 0;
+//		}
 
 		for (int y = 0; y < map.height; y++)
 		{

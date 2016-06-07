@@ -40,38 +40,58 @@ class InputHandler implements InputProcessor
 				{
 					case Input.Keys.W:
 					{
-						for (int i = receivers.size() - 1; i >= 0; i--)
-						{
-							if (receivers.get(i).up()) {break;}
-						}
+						this.up();
 						break;
 					}
 					case Input.Keys.S:
 					{
-						for (int i = receivers.size() - 1; i >= 0; i--)
-						{
-							if (receivers.get(i).down()) {break;}
-						}
+						this.down();
 						break;
 					}
 					case Input.Keys.A:
 					{
-						for (int i = receivers.size() - 1; i >= 0; i--)
-						{
-							if (receivers.get(i).left()) {break;}
-						}
+						this.left();
 						break;
 					}
 					case Input.Keys.D:
 					{
-						for (int i = receivers.size() - 1; i >= 0; i--)
-						{
-							if (receivers.get(i).right()) {break;}
-						}
+						this.right();
 						break;
 					}
 				}
 			}
+		}
+	}
+
+	public void up()
+	{
+		for (int i = receivers.size() - 1; i >= 0; i--)
+		{
+			if (receivers.get(i).up()) {break;}
+		}
+	}
+
+	public void down()
+	{
+		for (int i = receivers.size() - 1; i >= 0; i--)
+		{
+			if (receivers.get(i).down()) {break;}
+		}
+	}
+
+	public void left()
+	{
+		for (int i = receivers.size() - 1; i >= 0; i--)
+		{
+			if (receivers.get(i).left()) {break;}
+		}
+	}
+
+	public void right()
+	{
+		for (int i = receivers.size() - 1; i >= 0; i--)
+		{
+			if (receivers.get(i).right()) {break;}
 		}
 	}
 
@@ -150,6 +170,7 @@ class InputHandler implements InputProcessor
 		helper.scl(1f / model.view.tileSize);
 	}
 
+	// TODO: oh my god these functions race condition
 
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button)
