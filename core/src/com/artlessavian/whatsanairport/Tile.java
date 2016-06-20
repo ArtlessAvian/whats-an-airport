@@ -7,6 +7,10 @@ import java.util.HashSet;
 
 class Tile
 {
+	Map map;
+
+	boolean debug;
+
 	final TileInfo tileInfo;
 
 	private Unit unit;
@@ -18,8 +22,10 @@ class Tile
 	final Tile[] neighbors;
 	public ArrayList<Color> highlight;
 
-	public Tile(TileInfo tileInfo, int x, int y)
+	public Tile(Map map, TileInfo tileInfo, int x, int y)
 	{
+		this.map = map;
+
 		this.tileInfo = tileInfo;
 		this.unit = null;
 
@@ -83,5 +89,10 @@ class Tile
 		}
 
 		this.unit = newUnit;
+	}
+
+	public void getAttackable(int minRange, int maxRange, ArrayList<Tile> tiles)
+	{
+		map.getAttackable(this.x, this.y, minRange, maxRange, tiles);
 	}
 }

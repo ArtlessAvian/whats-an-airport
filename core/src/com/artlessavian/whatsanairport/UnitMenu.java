@@ -1,16 +1,24 @@
 package com.artlessavian.whatsanairport;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.maps.*;
+
+import java.util.ArrayList;
 
 public class UnitMenu extends BasicMenu
 {
+	private Map map;
+	private ArrayList<Tile> tiles;
+
 	private Unit selectedUnit;
 	private Tile finalDestination;
 	private Tile originalTile;
 
-	public UnitMenu(InputHandler inputHandler)
+	public UnitMenu(InputHandler inputHandler, Map map)
 	{
 		super(inputHandler);
+		this.map = map;
+		this.tiles = new ArrayList<>();
 
 		xPadding = 64;
 		yPadding = 64;
@@ -25,6 +33,29 @@ public class UnitMenu extends BasicMenu
 
 		//Buncha if statements
 		this.options.add(MenuOptions.WAIT);
+
+		tiles.clear();
+		if (this.finalDestination != this.originalTile)
+		{
+			if (this.selectedUnit.unitInfo.isDirect)
+			{
+				map.getAttackable(finalDestination.x, finalDestination.y, 1, 1, tiles);
+			}
+		}
+		else
+		{
+
+		}
+
+		for (Tile t : tiles)
+		{
+			t.debug = true;
+			if (t.getUnit() != null)
+			{
+				this.options.add(MenuOptions.ATTACK);
+				break;
+			}
+		}
 	}
 
 	@Override
@@ -37,6 +68,10 @@ public class UnitMenu extends BasicMenu
 				selectedUnit.finalInstruction = UnitInstruction.WAIT;
 				inputHandler.activeMenu = null;
 				inputHandler.receivers.remove(this);
+			}
+			case ATTACK:
+			{
+				inputHandler.receivers.add(new AttackInputReceiver());
 			}
 		}
 		return true;

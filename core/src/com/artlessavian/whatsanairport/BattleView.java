@@ -157,11 +157,19 @@ class BattleView
 				Tile tile = model.map.tileMap[y][x];
 				uvShenanigans(0, 1, tile.tileInfo.id, 4, terrainTileSet);
 				terrainTileSet.setPosition(x * tileSize, y * tileSize);
+
 				terrainTileSet.draw(batch);
 
 				if (tile.getUnit() != null)
 				{
 					white.setColor(Color.BLACK);
+					white.setPosition(x * tileSize, y * tileSize);
+					white.draw(batch, 0.3f);
+				}
+
+				if (tile.debug)
+				{
+					white.setColor(Color.PINK);
 					white.setPosition(x * tileSize, y * tileSize);
 					white.draw(batch, 0.3f);
 				}
@@ -414,6 +422,8 @@ class BattleView
 
 	private void drawDebug()
 	{
+		bitmapFont.setColor(1, 1, 1, 0.5f);
+
 		bitmapFont.draw(batch, model.inputHandler.cursor.x + " " + model.inputHandler.cursor.y, 5, 35);
 		bitmapFont.draw(batch, model.turnHandler.day + " " + model.turnHandler.turn, 5, 70);
 
@@ -428,6 +438,8 @@ class BattleView
 				}
 			}
 		}
+
+		bitmapFont.setColor(1, 1, 1, 1);
 	}
 
 	public void resize(int width, int height)

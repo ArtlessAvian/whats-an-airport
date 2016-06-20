@@ -72,6 +72,11 @@ public class Cursor implements InputReceiver
 			}
 		}
 
+		if (!selectedUnit.unitInfo.isDirect && thisTileCursored == 1)
+		{
+			thisTileCursored--;
+		}
+
 		switch (thisTileCursored + lastTileCursored * 3)
 		{
 			case 0:

@@ -106,48 +106,48 @@ public abstract class BasicMenu implements InputReceiver
 	{
 		// TODO: Fix?
 
-		double toSelect = 0;
-
-		switch (position)
-		{
-			case 0:
-			{
-				if (screenX <= Gdx.graphics.getWidth() - xPadding && screenX >= Gdx.graphics.getWidth() - xPadding - xSize)
-				{
-					toSelect = (screenY - yPadding) * (options.size()) / ySize;
-				}
-				break;
-			}
-			case 1:
-			{
-				if (screenX <= xPadding + xSize && screenX >= xPadding)
-				{
-					toSelect = (screenY - yPadding) * (options.size()) / ySize;
-				}
-				break;
-			}
-			case 2:
-			{
-				if (screenX <= xPadding + xSize && screenX >= xPadding)
-				{
-					toSelect = (screenY - (Gdx.graphics.getHeight() - yPadding - ySize)) * (options.size()) / ySize;
-				}
-			}
-			case 3:
-			{
-				if (screenX <= Gdx.graphics.getWidth() - xPadding && screenX >= Gdx.graphics.getWidth() - xPadding - xSize)
-				{
-					toSelect = (screenY - (Gdx.graphics.getHeight() - yPadding - ySize)) * (options.size()) / ySize;
-				}
-			}
-		}
-
-		System.out.println(toSelect);
-
-		if (toSelect < options.size() && toSelect >= 0)
-		{
-			selected = (int)toSelect;
-		}
+//		double toSelect = 0;
+//
+//		switch (position)
+//		{
+//			case 0:
+//			{
+//				if (screenX <= Gdx.graphics.getWidth() - xPadding && screenX >= Gdx.graphics.getWidth() - xPadding - xSize)
+//				{
+//					toSelect = (screenY - yPadding) * (options.size()) / ySize;
+//				}
+//				break;
+//			}
+//			case 1:
+//			{
+//				if (screenX <= xPadding + xSize && screenX >= xPadding)
+//				{
+//					toSelect = (screenY - yPadding) * (options.size()) / ySize;
+//				}
+//				break;
+//			}
+//			case 2:
+//			{
+//				if (screenX <= xPadding + xSize && screenX >= xPadding)
+//				{
+//					toSelect = (screenY - (Gdx.graphics.getHeight() - yPadding - ySize)) * (options.size()) / ySize;
+//				}
+//			}
+//			case 3:
+//			{
+//				if (screenX <= Gdx.graphics.getWidth() - xPadding && screenX >= Gdx.graphics.getWidth() - xPadding - xSize)
+//				{
+//					toSelect = (screenY - (Gdx.graphics.getHeight() - yPadding - ySize)) * (options.size()) / ySize;
+//				}
+//			}
+//		}
+//
+//		System.out.println(toSelect);
+//
+//		if (toSelect < options.size() && toSelect >= 0)
+//		{
+//			selected = (int)toSelect;
+//		}
 		return true;
 	}
 }

@@ -15,7 +15,7 @@ public class DayMenu extends BasicMenu
 	{
 		//Buncha if statements
 
-		for (double i = Math.random() * 9; i > 0; i--)
+		for (double i = Math.random() * 0; i > 0; i--)
 		{
 			this.options.add(MenuOptions.DEBUGFILLER);
 		}

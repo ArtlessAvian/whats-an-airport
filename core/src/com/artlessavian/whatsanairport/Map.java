@@ -1,6 +1,8 @@
 package com.artlessavian.whatsanairport;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 class Map
 {
@@ -34,7 +36,7 @@ class Map
 			String[] row = tokens[height + 1 - y].split(",");
 			for (int x = 0; x < width; x++)
 			{
-				this.tileMap[y][x] = new Tile(mapPalette.get(Integer.parseInt(row[x])), x, y);
+				this.tileMap[y][x] = new Tile(this, mapPalette.get(Integer.parseInt(row[x])), x, y);
 			}
 		}
 
@@ -68,6 +70,32 @@ class Map
 			if (unit != null)
 			{
 				unit.update();
+			}
+		}
+	}
+
+	public void getAttackable(int x, int y, int minRange, int maxRange, ArrayList<Tile> tiles)
+	{
+		// Cheapo Way
+		for (int deltaY = -maxRange; deltaY <= maxRange; deltaY++)
+		{
+			for (int deltaX = -maxRange; deltaX <= maxRange; deltaX++)
+			{
+				if (deltaX + deltaY <= maxRange && deltaX + deltaY >= -maxRange && deltaX - deltaY <= maxRange && deltaX - deltaY >= -maxRange)
+				{
+					if (deltaX + deltaY <= -minRange || deltaX + deltaY >= minRange || deltaX - deltaY <= -minRange || deltaX - deltaY >= minRange)
+					{
+						try
+						{
+							//attackableFrom.put(tileMap[x + deltaX][y + deltaY], tileMap[x][y]);
+							tiles.add(tileMap[y + deltaY][x + deltaX]);
+						}
+						catch (Exception e)
+						{
+							//lol
+						}
+					}
+				}
 			}
 		}
 	}

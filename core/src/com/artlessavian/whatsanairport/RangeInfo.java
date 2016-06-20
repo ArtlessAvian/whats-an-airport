@@ -106,31 +106,15 @@ public class RangeInfo
 			}
 		}
 
-//		if (!unitInfo.isDirect)
-//		{
-//			// Cheapo Way
-//			for (int y = -unitInfo.maxIndirectRange; y <= unitInfo.maxIndirectRange; y++)
-//			{
-//				for (int x = -unitInfo.maxIndirectRange; x <= unitInfo.maxIndirectRange; x++)
-//				{
-//					if (x + y <= unitInfo.maxIndirectRange && x + y >= -unitInfo.maxIndirectRange && x - y <= unitInfo.maxIndirectRange && x - y >= -unitInfo.maxIndirectRange)
-//					{
-//						if (x + y <= -unitInfo.minIndirectRange || x + y >= unitInfo.minIndirectRange || x - y <= -unitInfo.minIndirectRange || x - y >= unitInfo.minIndirectRange)
-//						{
-//							try
-//							{
-//								//BattleScreen.getInstance().map.map[start.x + x][start.y + y].debugSpin = true;
-//								attackableFrom.put(BattleScreen.getInstance().map.map[start.x + x][start.y + y], start);
-//							}
-//							catch (Exception e)
-//							{
-//								//lol
-//							}
-//						}
-//					}
-//				}
-//			}
-//		}
+		if (!unit.unitInfo.isDirect)
+		{
+			ArrayList<Tile> tiles = new ArrayList<>();
+			unit.tile.getAttackable(2, 3, tiles);
+			for (Tile t : tiles)
+			{
+				attackableFrom.put(t, unit.tile);
+			}
+		}
 
 		for (Tile t : attackable)
 		{

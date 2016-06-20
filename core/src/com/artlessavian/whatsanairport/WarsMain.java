@@ -30,7 +30,6 @@ public class WarsMain extends Game
 
 		this.batch = new SpriteBatch();
 		this.bitmapFont = new BitmapFont();
-		this.bitmapFont.getData().setScale(2.5f);
 		this.glyphLayout = new GlyphLayout();
 
 		this.setScreen(new BattleModel(this));
