@@ -24,6 +24,8 @@ public class AttackInputReceiver implements InputReceiver
 		this.tiles.clear();
 		this.tiles.addAll(incomingTiles);
 
+		// Units only
+
 		Iterator<Tile> tilesIter = this.tiles.iterator();
 		while (tilesIter.hasNext())
 		{
@@ -34,7 +36,11 @@ public class AttackInputReceiver implements InputReceiver
 			}
 		}
 
-		grading = new float[tiles.size()];
+		// Current = Taxicab closest
+		if (grading == null || tiles.size() > grading.length)
+		{
+			grading = new float[tiles.size()];
+		}
 
 		for (int i = 0; i < tiles.size(); i++)
 		{
@@ -113,7 +119,7 @@ public class AttackInputReceiver implements InputReceiver
 				continue;
 			}
 
-			grading[i] = 2520f/(tXPrime - currentXPrime) - Math.abs(currentYPrime - tYPrime);
+			grading[i] = 2520f / (tXPrime - currentXPrime) - Math.abs(currentYPrime - tYPrime);
 		}
 
 		int id = -1;

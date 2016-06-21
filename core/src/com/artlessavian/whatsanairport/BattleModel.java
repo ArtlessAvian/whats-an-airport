@@ -48,11 +48,14 @@ class BattleModel implements Screen
 		this.map.makeUnit(UnitInfo.MOTORCYCLE, 0, 2, 6);
 		this.map.makeUnit(UnitInfo.MECH, 0, 6, 4);
 
-		this.map.makeUnit(UnitInfo.SOLDIER, 1, 4 + 6, 2);
-		this.map.makeUnit(UnitInfo.MECH, 1, 2 + 6, 2);
-		this.map.makeUnit(UnitInfo.SOLDIER, 1, 2 + 6, 4);
-		this.map.makeUnit(UnitInfo.MOTORCYCLE, 1, 2 + 6, 6);
-		this.map.makeUnit(UnitInfo.MECH, 1, 6 + 6, 4);
+		for (int i = 0; i < 4; i++)
+		{
+			this.map.makeUnit(UnitInfo.SOLDIER, 1, (int)(Math.random() * map.width), (int)(Math.random() * map.height));
+			this.map.makeUnit(UnitInfo.MECH, 1, (int)(Math.random() * map.width), (int)(Math.random() * map.height));
+			this.map.makeUnit(UnitInfo.SOLDIER, 1, (int)(Math.random() * map.width), (int)(Math.random() * map.height));
+			this.map.makeUnit(UnitInfo.MOTORCYCLE, 1, (int)(Math.random() * map.width), (int)(Math.random() * map.height));
+			this.map.makeUnit(UnitInfo.MECH, 1, (int)(Math.random() * map.width), (int)(Math.random() * map.height));
+		}
 	}
 
 	@Override

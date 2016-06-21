@@ -16,7 +16,7 @@ import java.util.Iterator;
 class BattleView
 {
 	private final BattleModel model;
-	
+
 	private final SpriteBatch batch;
 	private final BitmapFont bitmapFont;
 	private final GlyphLayout glyphLayout;
@@ -476,7 +476,7 @@ class BattleView
 
 		bitmapFont.draw(batch, model.inputHandler.cursor.x + " " + model.inputHandler.cursor.y, 5, 35);
 		bitmapFont.draw(batch, model.turnHandler.day + " " + model.turnHandler.turn, 5, 70);
-		bitmapFont.draw(batch, model.inputHandler.receivers.get(model.inputHandler.receivers.size()-1).getClass().getSimpleName(), 5, 105);
+		bitmapFont.draw(batch, model.inputHandler.receivers.get(model.inputHandler.receivers.size() - 1).getClass().getSimpleName(), 5, 105);
 
 		for (Unit unit : model.map.units)
 		{

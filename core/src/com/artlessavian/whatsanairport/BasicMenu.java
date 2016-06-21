@@ -1,7 +1,5 @@
 package com.artlessavian.whatsanairport;
 
-import com.badlogic.gdx.Gdx;
-
 import java.util.ArrayList;
 
 public abstract class BasicMenu implements InputReceiver

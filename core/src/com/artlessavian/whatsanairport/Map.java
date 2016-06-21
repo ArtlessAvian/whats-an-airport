@@ -1,8 +1,6 @@
 package com.artlessavian.whatsanairport;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 class Map
 {

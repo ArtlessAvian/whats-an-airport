@@ -235,6 +235,8 @@ public class Cursor implements InputReceiver
 			for (UnitInstruction ui : instructions)
 			{
 				// TODO This can crash for some reason
+				// Moving and then canceling out asap causes the instructions to still be carried out
+				// I might have fixed it?
 				finalDestination = finalDestination.neighbors[ui.id];
 			}
 

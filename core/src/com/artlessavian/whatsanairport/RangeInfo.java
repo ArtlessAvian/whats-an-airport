@@ -79,7 +79,7 @@ public class RangeInfo
 			if (unit.unitInfo.isDirect && (current.getUnit() == null || current.getUnit() == unit))
 			{
 				temp.clear();
-				unit.tile.map.getAttackable(current.x, current.y, unit.unitInfo.minRange, unit.unitInfo.maxRange, temp);
+				unit.tile.getAttackable(unit.unitInfo.minRange, unit.unitInfo.maxRange, temp);
 				for (Tile currentRange : temp)
 				{
 					if (!this.attackable.contains(currentRange))

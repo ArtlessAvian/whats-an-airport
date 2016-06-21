@@ -11,7 +11,6 @@ class TurnHandler
 
 	public TurnHandler(Map map)
 	{
-
 		this.map = map;
 	}
 

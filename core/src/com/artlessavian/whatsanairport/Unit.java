@@ -111,7 +111,7 @@ class Unit
 
 	public void attack(Unit other)
 	{
-		other.health -= this.health/2;
+		other.health -= this.health / 2;
 		if (other.checkDead())
 		{
 			return;
@@ -120,7 +120,7 @@ class Unit
 		{
 			for (Tile t : other.tile.neighbors)
 			{
-				if (t.equals(this.tile))
+				if (t != null && t.equals(this.tile))
 				{
 					other.counterAttack(this);
 					break;
@@ -131,7 +131,7 @@ class Unit
 
 	public void counterAttack(Unit other)
 	{
-		other.health -= this.health/2;
+		other.health -= this.health / 2;
 		other.checkDead();
 	}
 

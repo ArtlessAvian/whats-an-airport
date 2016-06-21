@@ -1,7 +1,6 @@
 package com.artlessavian.whatsanairport;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.maps.*;
 
 import java.util.ArrayList;
 
@@ -39,7 +38,7 @@ public class UnitMenu extends BasicMenu
 
 		// Attack
 		tiles.clear();
-		map.getAttackable(finalDestination.x, finalDestination.y, selectedUnit.unitInfo.minRange, selectedUnit.unitInfo.maxRange, tiles);
+		finalDestination.getAttackable(selectedUnit.unitInfo.minRange, selectedUnit.unitInfo.maxRange, tiles);
 
 		for (Tile t : tiles)
 		{
@@ -108,6 +107,8 @@ public class UnitMenu extends BasicMenu
 		// TODO: Make work
 		selectedUnit.tile = originalTile;
 		originalTile.setUnit(selectedUnit);
+		selectedUnit.instructionsList.clear();
+		selectedUnit.instructions = null;
 		finalDestination.setUnit(null);
 
 		inputHandler.cursor.selectedUnit = selectedUnit;
