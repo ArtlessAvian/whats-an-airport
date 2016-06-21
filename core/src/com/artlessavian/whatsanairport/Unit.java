@@ -12,6 +12,7 @@ class Unit
 	Tile lastTile;
 
 	private RangeInfo rangeInfo;
+	int health = 10;
 
 	public RangeInfo getRangeInfo()
 	{
@@ -106,5 +107,43 @@ class Unit
 				}
 			}
 		}
+	}
+
+	public void attack(Unit other)
+	{
+		other.health -= this.health/2;
+		if (other.checkDead())
+		{
+			return;
+		}
+		if (other.unitInfo.isDirect)
+		{
+			for (Tile t : other.tile.neighbors)
+			{
+				if (t.equals(this.tile))
+				{
+					other.counterAttack(this);
+					break;
+				}
+			}
+		}
+	}
+
+	public void counterAttack(Unit other)
+	{
+		other.health -= this.health/2;
+		other.checkDead();
+	}
+
+	public boolean checkDead()
+	{
+		if (this.health <= 0)
+		{
+			this.tile.map.units.remove(this);
+			this.tile.setUnit(null);
+			this.tile = null;
+			return true;
+		}
+		return false;
 	}
 }

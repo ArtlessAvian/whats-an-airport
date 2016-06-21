@@ -35,6 +35,8 @@ class BattleView
 
 	private final float screenTileHeight = 12;
 	final float tileSize = 64;
+	public int debuggery;
+
 
 	public BattleView(BattleModel battleModel)
 	{
@@ -130,12 +132,37 @@ class BattleView
 
 		batch.begin();
 
+		Class temp = model.inputHandler.receivers.get(model.inputHandler.receivers.size() - 1).getClass();
+
 		this.drawMap();
+
+		if (temp.equals(AttackInputReceiver.class))
+		{
+			this.drawAttack();
+		}
+
 		this.drawUnits();
+		if (temp.equals(Cursor.class))
+		{
+			this.drawPath();
+		}
+
 		this.drawHighlight();
-		this.drawCursor();
-		this.drawMenu();
-		this.drawDebug();
+
+		if (temp.equals(Cursor.class))
+		{
+			this.drawCursor();
+		}
+
+		if (model.inputHandler.activeMenu != null)
+		{
+			this.drawMenu();
+		}
+
+		if (debuggery % 2 == 1)
+		{
+			this.drawDebug();
+		}
 
 		batch.end();
 	}
@@ -160,18 +187,14 @@ class BattleView
 
 				terrainTileSet.draw(batch);
 
-				if (tile.getUnit() != null)
+				if ((debuggery / 2) % 2 == 1)
 				{
-					white.setColor(Color.BLACK);
-					white.setPosition(x * tileSize, y * tileSize);
-					white.draw(batch, 0.3f);
-				}
-
-				if (tile.debug)
-				{
-					white.setColor(Color.PINK);
-					white.setPosition(x * tileSize, y * tileSize);
-					white.draw(batch, 0.3f);
+					if (tile.getUnit() != null)
+					{
+						white.setColor(Color.BLACK);
+						white.setPosition(x * tileSize, y * tileSize);
+						white.draw(batch, 0.3f);
+					}
 				}
 
 				//bitmapFont.draw(batch, x + " " + y, x * tileSize, y * tileSize);
@@ -244,96 +267,102 @@ class BattleView
 
 			unitTileSet.draw(batch);
 
-			if (unit.selected)
+			bitmapFont.draw(batch, unit.health + "", unitTileSet.getX(), unitTileSet.getY() + 35);
+
+		}
+	}
+
+	private void drawPath()
+	{
+		if (model.inputHandler.cursor.selectedUnit != null)
+		{
+			path.setPosition(model.inputHandler.cursor.selectedUnit.tile.x * tileSize, model.inputHandler.cursor.selectedUnit.tile.y * tileSize);
+			if (!model.inputHandler.cursor.instructions.isEmpty())
 			{
-				path.setPosition(unit.tile.x * tileSize, unit.tile.y * tileSize);
-				if (!model.inputHandler.cursor.instructions.isEmpty())
+				Iterator<UnitInstruction> iter = model.inputHandler.cursor.instructions.iterator();
+				UnitInstruction last = iter.next();
+				while (iter.hasNext())
 				{
-					Iterator<UnitInstruction> iter = model.inputHandler.cursor.instructions.iterator();
-					UnitInstruction last = iter.next();
-					while (iter.hasNext())
+					UnitInstruction current = iter.next();
+
+					path.setRotation(0);
+
+					if (current.id == last.id)
 					{
-						UnitInstruction current = iter.next();
-
-						path.setRotation(0);
-
-						if (current.id == last.id)
+						uvShenanigans(0, 3, 0, 1, path);
+					}
+					else
+					{
+						uvShenanigans(2, 3, 0, 1, path);
+						if ((last.id + 1) % 4 == current.id)
 						{
-							uvShenanigans(0, 3, 0, 1, path);
+							path.rotate(-90);
 						}
-						else
-						{
-							uvShenanigans(2, 3, 0, 1, path);
-							if ((last.id + 1) % 4 == current.id)
-							{
-								path.rotate(-90);
-							}
-						}
-
-						switch (last)
-						{
-							case RIGHT:
-							{
-								path.rotate(-90);
-								path.translateX(tileSize);
-
-								break;
-							}
-							case UP:
-							{
-								path.rotate(0);
-								path.translateY(tileSize);
-
-								break;
-							}
-							case LEFT:
-							{
-								path.rotate(90);
-								path.translateX(-tileSize);
-								break;
-							}
-							case DOWN:
-							{
-								path.rotate(180);
-								path.translateY(-tileSize);
-								break;
-							}
-						}
-						path.draw(batch);
-						last = current;
 					}
 
-					uvShenanigans(1, 3, 0, 1, path);
 					switch (last)
 					{
 						case RIGHT:
 						{
+							path.rotate(-90);
 							path.translateX(tileSize);
-							path.setRotation(-90);
+
 							break;
 						}
 						case UP:
 						{
+							path.rotate(0);
 							path.translateY(tileSize);
-							path.setRotation(0);
+
 							break;
 						}
 						case LEFT:
 						{
+							path.rotate(90);
 							path.translateX(-tileSize);
-							path.setRotation(90);
 							break;
 						}
 						case DOWN:
 						{
+							path.rotate(180);
 							path.translateY(-tileSize);
-							path.setRotation(180);
 							break;
 						}
 					}
-
 					path.draw(batch);
+					last = current;
 				}
+
+				uvShenanigans(1, 3, 0, 1, path);
+				switch (last)
+				{
+					case RIGHT:
+					{
+						path.translateX(tileSize);
+						path.setRotation(-90);
+						break;
+					}
+					case UP:
+					{
+						path.translateY(tileSize);
+						path.setRotation(0);
+						break;
+					}
+					case LEFT:
+					{
+						path.translateX(-tileSize);
+						path.setRotation(90);
+						break;
+					}
+					case DOWN:
+					{
+						path.translateY(-tileSize);
+						path.setRotation(180);
+						break;
+					}
+				}
+
+				path.draw(batch);
 			}
 		}
 	}
@@ -343,6 +372,30 @@ class BattleView
 		box.setSize(tileSize, tileSize);
 		box.setPosition(model.inputHandler.cursor.x * tileSize, model.inputHandler.cursor.y * tileSize);
 		box.draw(batch);
+	}
+
+	public void drawAttack()
+	{
+		white.setColor(Color.RED);
+		white.setSize(tileSize, tileSize);
+		for (int i = 0; i < model.inputHandler.attackInputReceiver.tiles.size(); i++)
+		{
+			Tile t = model.inputHandler.attackInputReceiver.tiles.get(i);
+			white.setPosition(t.x * tileSize, t.y * tileSize);
+			if (t.equals(model.inputHandler.attackInputReceiver.current))
+			{
+				white.draw(batch, 0.7f);
+			}
+			else
+			{
+				white.draw(batch, 0.1f);
+			}
+
+			if ((debuggery / 4) % 2 == 1)
+			{
+				bitmapFont.draw(batch, model.inputHandler.attackInputReceiver.grading[i] + "", t.x * tileSize, t.y * tileSize - 35);
+			}
+		}
 	}
 
 	public void menuHelper(BasicMenu menu)
@@ -394,29 +447,26 @@ class BattleView
 
 	private void drawMenu()
 	{
-		if (model.inputHandler.activeMenu != null)
+		BasicMenu activeMenu = model.inputHandler.activeMenu;
+
+		menuHelper(activeMenu);
+		options.setSize(activeMenu.xSize, bitmapFont.getLineHeight());
+		for (int i = 0; i < activeMenu.options.size(); i++)
 		{
-			BasicMenu activeMenu = model.inputHandler.activeMenu;
-
-			menuHelper(activeMenu);
-			options.setSize(activeMenu.xSize, bitmapFont.getLineHeight());
-			for (int i = 0; i < activeMenu.options.size(); i++)
+			if (i == activeMenu.selected)
 			{
-				if (i == activeMenu.selected)
-				{
-					activeMenu.pushOptionRight.set(i, activeMenu.pushOptionRight.get(i) * 0.8f + 0.2f);
-				}
-				else
-				{
-					activeMenu.pushOptionRight.set(i, activeMenu.pushOptionRight.get(i) * 0.2f);
-				}
-
-				options.translateY(-options.getHeight());
-				options.draw(batch);
-				bitmapFont.draw(batch, activeMenu.options.get(i).name,
-					options.getX() + 25 + 50 * activeMenu.pushOptionRight.get(i),
-					options.getY() + options.getHeight() * 0.9f);
+				activeMenu.pushOptionRight.set(i, activeMenu.pushOptionRight.get(i) * 0.8f + 0.2f);
 			}
+			else
+			{
+				activeMenu.pushOptionRight.set(i, activeMenu.pushOptionRight.get(i) * 0.2f);
+			}
+
+			options.translateY(-options.getHeight());
+			options.draw(batch);
+			bitmapFont.draw(batch, activeMenu.options.get(i).name,
+				options.getX() + 25 + 50 * activeMenu.pushOptionRight.get(i),
+				options.getY() + options.getHeight() * 0.9f);
 		}
 	}
 
@@ -426,17 +476,11 @@ class BattleView
 
 		bitmapFont.draw(batch, model.inputHandler.cursor.x + " " + model.inputHandler.cursor.y, 5, 35);
 		bitmapFont.draw(batch, model.turnHandler.day + " " + model.turnHandler.turn, 5, 70);
+		bitmapFont.draw(batch, model.inputHandler.receivers.get(model.inputHandler.receivers.size()-1).getClass().getSimpleName(), 5, 105);
 
-		for (int y = 0; y < model.map.height; y++)
+		for (Unit unit : model.map.units)
 		{
-			for (int x = 0; x < model.map.width; x++)
-			{
-				Unit unit = model.map.tileMap[y][x].getUnit();
-				if (unit != null)
-				{
-					bitmapFont.draw(batch, unit.instructionsList + "", x * tileSize, y * tileSize);
-				}
-			}
+			bitmapFont.draw(batch, unit.instructionsList + "", unit.tile.x * tileSize, unit.tile.y * tileSize);
 		}
 
 		bitmapFont.setColor(1, 1, 1, 1);
@@ -448,7 +492,7 @@ class BattleView
 		worldSpace.viewportWidth = (float)width * worldSpace.viewportHeight / (float)height;
 		worldSpace.update();
 
-		bitmapFont.getData().setScale(Gdx.graphics.getPpcX() / 12f);
+		bitmapFont.getData().setScale(32f / 12f);
 
 		if (model.inputHandler.activeMenu != null)
 		{

@@ -10,11 +10,13 @@ class InputHandler implements InputProcessor
 {
 	BattleModel model;
 
-	final ArrayList<InputReceiver> receivers = new ArrayList<>();
+	final ArrayList<InputReceiver> receivers = new ArrayList<>(); // Things to send inputs to
+	BasicMenu activeMenu; // Thing to draw
 
+	// Thing
 	Cursor cursor;
-	BasicMenu activeMenu;
 	ArrayList<BasicMenu> menus;
+	AttackInputReceiver attackInputReceiver;
 
 	private int framesHeld = 0;
 	private int lastDirectional = -1;
@@ -139,6 +141,12 @@ class InputHandler implements InputProcessor
 				{
 					if (receivers.get(i).cancel()) {break;}
 				}
+				return true;
+			}
+
+			case Input.Keys.PERIOD:
+			{
+				model.view.debuggery++;
 				return true;
 			}
 		}

@@ -32,30 +32,34 @@ public class UnitMenu extends BasicMenu
 		this.originalTile = (Tile)objects[2];
 
 		//Buncha if statements
-		this.options.add(MenuOptions.WAIT);
 
+		// Join
+
+		// Capture
+
+		// Attack
 		tiles.clear();
-		if (this.finalDestination != this.originalTile)
-		{
-			if (this.selectedUnit.unitInfo.isDirect)
-			{
-				map.getAttackable(finalDestination.x, finalDestination.y, 1, 1, tiles);
-			}
-		}
-		else
-		{
-
-		}
+		map.getAttackable(finalDestination.x, finalDestination.y, selectedUnit.unitInfo.minRange, selectedUnit.unitInfo.maxRange, tiles);
 
 		for (Tile t : tiles)
 		{
-			t.debug = true;
-			if (t.getUnit() != null)
+			t.highlight.add(Color.PINK);
+		}
+
+		if (this.selectedUnit.unitInfo.isDirect || originalTile.equals(finalDestination))
+		{
+			for (Tile t : tiles)
 			{
-				this.options.add(MenuOptions.ATTACK);
-				break;
+				if (t.getUnit() != null && t.getUnit().owner != selectedUnit.owner)
+				{
+					this.options.add(MenuOptions.ATTACK);
+					break;
+				}
 			}
 		}
+
+		// Wait
+		this.options.add(MenuOptions.WAIT);
 	}
 
 	@Override
@@ -65,13 +69,29 @@ public class UnitMenu extends BasicMenu
 		{
 			case WAIT:
 			{
+				for (Tile t : tiles)
+				{
+					t.highlight.remove(Color.PINK);
+				}
+
 				selectedUnit.finalInstruction = UnitInstruction.WAIT;
 				inputHandler.activeMenu = null;
 				inputHandler.receivers.remove(this);
+				break;
 			}
 			case ATTACK:
 			{
-				inputHandler.receivers.add(new AttackInputReceiver());
+				for (Tile t : tiles)
+				{
+					t.highlight.remove(Color.PINK);
+				}
+
+				inputHandler.receivers.add(inputHandler.attackInputReceiver);
+				inputHandler.attackInputReceiver.init(selectedUnit, tiles);
+
+				inputHandler.activeMenu = null;
+				inputHandler.receivers.remove(this);
+				break;
 			}
 		}
 		return true;
@@ -80,6 +100,11 @@ public class UnitMenu extends BasicMenu
 	@Override
 	public boolean cancel()
 	{
+		for (Tile t : tiles)
+		{
+			t.highlight.remove(Color.PINK);
+		}
+
 		// TODO: Make work
 		selectedUnit.tile = originalTile;
 		originalTile.setUnit(selectedUnit);
@@ -90,9 +115,12 @@ public class UnitMenu extends BasicMenu
 
 		if (!selectedUnit.getRangeInfo().rangeCalcd) {selectedUnit.calculateMovement();}
 
-		for (Tile t : selectedUnit.getRangeInfo().attackable)
+		if (selectedUnit.unitInfo.isDirect)
 		{
-			t.highlight.add(Color.RED);
+			for (Tile t : selectedUnit.getRangeInfo().attackable)
+			{
+				t.highlight.add(Color.RED);
+			}
 		}
 		for (Tile t : selectedUnit.getRangeInfo().movable)
 		{

@@ -33,6 +33,7 @@ class BattleModel implements Screen
 		this.inputHandler.menus = new ArrayList<>();
 		this.inputHandler.menus.add(new UnitMenu(this.inputHandler, map));
 		this.inputHandler.menus.add(new DayMenu(this.inputHandler));
+		this.inputHandler.attackInputReceiver = new AttackInputReceiver(this.inputHandler);
 		this.inputHandler.receivers.add(this.inputHandler.cursor);
 
 		this.turnHandler = new TurnHandler(this.map);

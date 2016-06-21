@@ -17,6 +17,8 @@ public class RangeInfo
 	final HashMap<Tile, Tile> attackableFrom;
 	final Set<Tile> attackable;
 
+	final ArrayList<Tile> temp;
+
 	public RangeInfo(Unit unit)
 	{
 		this.unit = unit;
@@ -28,6 +30,7 @@ public class RangeInfo
 		this.movable = movementCost.keySet();
 		this.attackableFrom = new HashMap<>();
 		this.attackable = attackableFrom.keySet();
+		this.temp = new ArrayList<>();
 	}
 
 	void invalidateMovement()
@@ -73,15 +76,23 @@ public class RangeInfo
 			}
 			frontier.remove(current);
 
+			if (unit.unitInfo.isDirect && (current.getUnit() == null || current.getUnit() == unit))
+			{
+				temp.clear();
+				unit.tile.map.getAttackable(current.x, current.y, unit.unitInfo.minRange, unit.unitInfo.maxRange, temp);
+				for (Tile currentRange : temp)
+				{
+					if (!this.attackable.contains(currentRange))
+					{
+						this.attackableFrom.put(currentRange, current);
+					}
+				}
+			}
+
 			// Expand
 			for (Tile neighbor : current.neighbors)
 			{
 				if (neighbor == null) {continue;}
-
-				if (unit.unitInfo.isDirect && (current.getUnit() == null || current.getUnit() == unit) && !this.attackable.contains(neighbor))
-				{
-					this.attackableFrom.put(neighbor, current);
-				}
 
 				if (!this.movable.contains(neighbor))
 				{
@@ -103,16 +114,6 @@ public class RangeInfo
 			if (t.getUnit() != null && !t.getUnit().equals(unit))
 			{
 				iter.remove();
-			}
-		}
-
-		if (!unit.unitInfo.isDirect)
-		{
-			ArrayList<Tile> tiles = new ArrayList<>();
-			unit.tile.getAttackable(2, 3, tiles);
-			for (Tile t : tiles)
-			{
-				attackableFrom.put(t, unit.tile);
 			}
 		}
 

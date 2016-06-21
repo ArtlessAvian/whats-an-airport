@@ -199,9 +199,12 @@ public class Cursor implements InputReceiver
 
 					if (!cursored.getRangeInfo().rangeCalcd) {cursored.calculateMovement();}
 
-					for (Tile t : cursored.getRangeInfo().attackable)
+					if (selectedUnit.unitInfo.isDirect)
 					{
-						t.highlight.add(Color.RED);
+						for (Tile t : cursored.getRangeInfo().attackable)
+						{
+							t.highlight.add(Color.RED);
+						}
 					}
 					for (Tile t : cursored.getRangeInfo().movable)
 					{
