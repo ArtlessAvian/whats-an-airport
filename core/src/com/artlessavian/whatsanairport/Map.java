@@ -1,93 +1,99 @@
 package com.artlessavian.whatsanairport;
 
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import java.util.ArrayList;
 
-public class Map
+class Map
 {
-	public final MapTile[][] map;
-	public final int mapWidth;
-	public final int mapHeight;
+	final Tile[][] tileMap;
+	ArrayList<Unit> units;
 
+	final int width;
+	final int height;
 
-	public Map(int width, int height)
+	public Map(String mapFile)
 	{
-		map = new MapTile[width][height];
-		mapWidth = width;
-		mapHeight = height;
-	}
+		mapFile = mapFile.replaceAll("\\s++", "");
+		String[] tokens = mapFile.split(";");
 
-	public void debugGeneration(Texture terrain)
-	{
-		for (int x = 0; x < mapWidth; x++)
+		ArrayList<TileInfo> mapPalette = new ArrayList<>();
+		String[] tileInfoString = tokens[0].split(",");
+		for (String string : tileInfoString)
 		{
-			for (int y = 0; y < mapHeight; y++)
-			{
-				// This makes a cool thingy
-				int tileID = (int)(Math.cos((x + 0.5) * (y + 0.5 - mapHeight / 2f) / 10f) * 1.1 + 1.1);
+			mapPalette.add(TileInfo.valueOf(string));
+		}
 
-				if (Math.random() > 0.05f)
-				{
-					map[x][y] = new MapTile(x, y, WarsConst.getTerrain(tileID), terrain);
-				}
-				else
-				{
-					map[x][y] = new PropertyTile(x, y, WarsConst.getTerrain(tileID), terrain);
-				}
+		String[] size = tokens[1].split(",");
+		this.width = Integer.parseInt(size[0]);
+		this.height = Integer.parseInt(size[1]);
+
+		this.tileMap = new Tile[height][width];
+		this.units = new ArrayList<>();
+
+		for (int y = 0; y < height; y++)
+		{
+			String[] row = tokens[height + 1 - y].split(",");
+			for (int x = 0; x < width; x++)
+			{
+				this.tileMap[y][x] = new Tile(this, mapPalette.get(Integer.parseInt(row[x])), x, y);
+			}
+		}
+
+		for (int y = 0; y < height; y++)
+		{
+			String[] row = tokens[height + 1 - y].split(",");
+			for (int x = 0; x < width; x++)
+			{
+				try {this.tileMap[y][x].neighbors[0] = this.tileMap[y][x + 1];} catch (Exception e) {}
+				try {this.tileMap[y][x].neighbors[1] = this.tileMap[y + 1][x];} catch (Exception e) {}
+				try {this.tileMap[y][x].neighbors[2] = this.tileMap[y][x - 1];} catch (Exception e) {}
+				try {this.tileMap[y][x].neighbors[3] = this.tileMap[y - 1][x];} catch (Exception e) {}
 			}
 		}
 	}
 
-	public void establishNeighbors()
+	public void makeUnit(UnitInfo unitInfo, int team, int x, int y)
 	{
-		for (int x = 0; x < mapWidth; x++)
+		if (tileMap[y][x].getUnit() == null)
 		{
-			for (int y = 0; y < mapHeight; y++)
+			Unit u = new Unit(unitInfo, this.tileMap[y][x], team);
+			this.tileMap[y][x].setUnit(u);
+			units.add(u);
+		}
+	}
+
+	void update()
+	{
+		for (Unit unit : units)
+		{
+			if (unit != null)
 			{
-				// lol gross
-				try
-				{
-					map[x][y].neighborToDir.put(map[x + 1][y], WarsConst.CardinalDir.RIGHT);
-					map[x][y].dirToNeighbor.put(WarsConst.CardinalDir.RIGHT, map[x + 1][y]);
-				}
-				catch (Exception e) {}
-				try
-				{
-					map[x][y].neighborToDir.put(map[x - 1][y], WarsConst.CardinalDir.LEFT);
-					map[x][y].dirToNeighbor.put(WarsConst.CardinalDir.LEFT, map[x - 1][y]);
-				}
-				catch (Exception e) {}
-				try
-				{
-					map[x][y].neighborToDir.put(map[x][y + 1], WarsConst.CardinalDir.UP);
-					map[x][y].dirToNeighbor.put(WarsConst.CardinalDir.UP, map[x][y + 1]);
-				}
-				catch (Exception e) {}
-				try
-				{
-					map[x][y].neighborToDir.put(map[x][y - 1], WarsConst.CardinalDir.DOWN);
-					map[x][y].dirToNeighbor.put(WarsConst.CardinalDir.DOWN, map[x][y - 1]);
-				}
-				catch (Exception e) {}
+				unit.update();
 			}
 		}
 	}
 
-	public void draw(SpriteBatch batch)
+	public void getAttackable(int x, int y, int minRange, int maxRange, ArrayList<Tile> tiles)
 	{
-		for (int x = 0; x < mapWidth; x++)
+		// Cheapo Way
+		for (int deltaY = -maxRange; deltaY <= maxRange; deltaY++)
 		{
-			for (int y = 0; y < mapHeight; y++)
+			for (int deltaX = -maxRange; deltaX <= maxRange; deltaX++)
 			{
-				map[x][y].draw(batch);
-			}
-		}
-
-		for (int x = 0; x < mapWidth; x++)
-		{
-			for (int y = 0; y < mapHeight; y++)
-			{
-				if (map[x][y].unit != null) {map[x][y].unit.draw(batch);}
+				if (deltaX + deltaY <= maxRange && deltaX + deltaY >= -maxRange && deltaX - deltaY <= maxRange && deltaX - deltaY >= -maxRange)
+				{
+					if (deltaX + deltaY <= -minRange || deltaX + deltaY >= minRange || deltaX - deltaY <= -minRange || deltaX - deltaY >= minRange)
+					{
+						try
+						{
+							//attackableFrom.put(tileMap[x + deltaX][y + deltaY], tileMap[x][y]);
+							tiles.add(tileMap[y + deltaY][x + deltaX]);
+						}
+						catch (Exception e)
+						{
+							//lol
+						}
+					}
+				}
 			}
 		}
 	}

@@ -1,111 +1,125 @@
 package com.artlessavian.whatsanairport;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.Iterator;
 import java.util.Set;
 
 public class RangeInfo
 {
-	public final HashMap<MapTile, Integer> movementCost;
-	public final HashMap<MapTile, MapTile> cameFrom;
-	public final HashMap<MapTile, MapTile> attackableFrom;
+	private Unit unit;
 
-	public final Set<MapTile> attackable;
-	public final Set<MapTile> movable;
+	boolean rangeCalcd;
 
-	public RangeInfo(MapTile start, int movement, Unit unit)
+	final HashMap<Tile, Integer> movementCost;
+	final HashMap<Tile, Tile> cameFrom;
+	final Set<Tile> movable;
+	final HashMap<Tile, Tile> attackableFrom;
+	final Set<Tile> attackable;
+
+	final ArrayList<Tile> temp;
+
+	public RangeInfo(Unit unit)
 	{
-		movementCost = new HashMap<MapTile, Integer>();
-		cameFrom = new HashMap<MapTile, MapTile>();
-		attackableFrom = new HashMap<MapTile, MapTile>();
+		this.unit = unit;
 
-		attackable = attackableFrom.keySet();
-		movable = cameFrom.keySet();
+		this.rangeCalcd = false;
 
-		calculate(start, movement, unit);
+		this.movementCost = new HashMap<>();
+		this.cameFrom = new HashMap<>();
+		this.movable = movementCost.keySet();
+		this.attackableFrom = new HashMap<>();
+		this.attackable = attackableFrom.keySet();
+		this.temp = new ArrayList<>();
 	}
 
-	private void calculate(MapTile start, int movement, Unit unit)
+	void invalidateMovement()
 	{
-		// Dijkstra's for movement
-		LinkedList<MapTile> frontier = new LinkedList<MapTile>();
+		this.rangeCalcd = false;
 
-		frontier.add(start);
-		movementCost.put(start, 0);
-		cameFrom.put(start, start);
+		for (Tile t : attackable)
+		{
+			t.hasRangeHere.remove(this);
+		}
+
+		this.movementCost.clear();
+		this.cameFrom.clear();
+		this.attackableFrom.clear();
+	}
+
+	void calculateMovement()
+	{
+		this.invalidateMovement();
+
+		this.rangeCalcd = true;
+
+		// Dijkstra's for movement
+		ArrayList<Tile> frontier = new ArrayList<>();
+
+		frontier.add(unit.tile);
+		this.movementCost.put(unit.tile, 0);
+		this.cameFrom.put(unit.tile, unit.tile);
 
 		while (!frontier.isEmpty())
 		{
 			// Get least moved
-			MapTile current = null;
+			Tile current = null;
 			int cost = 0;
 
-			for (MapTile t : frontier)
+			for (Tile t : frontier)
 			{
-				if (current == null || movementCost.get(t) < cost)
+				if (this.movementCost.get(t) < cost || current == null)
 				{
-					cost = movementCost.get(t);
+					cost = this.movementCost.get(t);
 					current = t;
 				}
 			}
-
 			frontier.remove(current);
 
-			// Expand
-			for (MapTile neighbor : current.neighborToDir.keySet())
+			if (unit.unitInfo.isDirect && (current.getUnit() == null || current.getUnit() == unit))
 			{
-				if (unit.unitInfo.isDirect && (current.unit == null || current.unit == unit) && !attackable.contains(neighbor))
+				temp.clear();
+				unit.tile.getAttackable(unit.unitInfo.minRange, unit.unitInfo.maxRange, temp);
+				for (Tile currentRange : temp)
 				{
-					attackableFrom.put(neighbor, current);
+					if (!this.attackable.contains(currentRange))
+					{
+						this.attackableFrom.put(currentRange, current);
+					}
 				}
+			}
 
-				if (!movable.contains(neighbor))
+			// Expand
+			for (Tile neighbor : current.neighbors)
+			{
+				if (neighbor == null) {continue;}
+
+				if (!this.movable.contains(neighbor))
 				{
-					int newCost = cost + (neighbor.terrainType.infantryMove);
-					if (newCost <= movement && (neighbor.unit == null || neighbor.unit.team.equals(unit.team)))
+					int newCost = cost + neighbor.tileInfo.movementCost;
+					if (newCost <= unit.unitInfo.movement && (neighbor.getUnit() == null || neighbor.getUnit().owner == unit.owner))
 					{
 						frontier.add(neighbor);
-						movementCost.put(neighbor, newCost);
-						cameFrom.put(neighbor, current);
+						this.movementCost.put(neighbor, newCost);
+						this.cameFrom.put(neighbor, current);
 					}
 				}
 			}
 		}
 
-//		Iterator<MapTile> iter = visited.iterator();
-//		while (iter.hasNext())
-//		{
-//			MapTile next = iter.next();
-//			if (next.unit != null && next.unit != start.unit)
-//			{
-//				iter.remove();
-//			}
-//		}
-
-		if (!unit.unitInfo.isDirect)
+		Iterator<Tile> iter = movable.iterator();
+		while (iter.hasNext())
 		{
-			// Cheapo Way
-			for (int y = -unit.unitInfo.maxIndirectRange; y <= unit.unitInfo.maxIndirectRange; y++)
+			Tile t = iter.next();
+			if (t.getUnit() != null && !t.getUnit().equals(unit))
 			{
-				for (int x = -unit.unitInfo.maxIndirectRange; x <= unit.unitInfo.maxIndirectRange; x++)
-				{
-					if (x + y <= unit.unitInfo.maxIndirectRange && x + y >= -unit.unitInfo.maxIndirectRange && x - y <= unit.unitInfo.maxIndirectRange && x - y >= -unit.unitInfo.maxIndirectRange)
-					{
-						if (x + y <= -unit.unitInfo.minIndirectRange || x + y >= unit.unitInfo.minIndirectRange || x - y <= -unit.unitInfo.minIndirectRange || x - y >= unit.unitInfo.minIndirectRange)
-						{
-							try
-							{
-								//BattleScreen.getInstance().map.map[start.x + x][start.y + y].debugSpin = true;
-								attackableFrom.put(BattleScreen.getInstance().map.map[start.x + x][start.y + y], start);
-							}
-							catch (Exception e)
-							{
-								//lol
-							}
-						}
-					}
-				}
+				iter.remove();
 			}
+		}
+
+		for (Tile t : attackable)
+		{
+			t.hasRangeHere.add(unit);
 		}
 	}
 }
