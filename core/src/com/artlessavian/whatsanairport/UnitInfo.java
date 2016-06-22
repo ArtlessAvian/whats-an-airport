@@ -5,7 +5,8 @@ public enum UnitInfo
 	SOLDIER(0, 4, true, 1, 1),
 	MOTORCYCLE(1, 6, false, 2, 4),
 	MECH(2, 3, true, 1, 2),
-	TANK(3, 7, true, 1, 1);
+	TANK(3, 7, true, 1, 1),
+	HAX(0, 30, true, 1, 30);
 
 	final int id;
 	final int movement;

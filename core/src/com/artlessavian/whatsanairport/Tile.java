@@ -7,7 +7,7 @@ import java.util.HashSet;
 
 class Tile
 {
-	Map map;
+	final Map map;
 
 	boolean debug;
 
@@ -20,7 +20,7 @@ class Tile
 	final int y;
 
 	final Tile[] neighbors;
-	public ArrayList<Color> highlight;
+	public final ArrayList<Color> highlight;
 
 	public Tile(Map map, TileInfo tileInfo, int x, int y)
 	{
@@ -29,14 +29,14 @@ class Tile
 		this.tileInfo = tileInfo;
 		this.unit = null;
 
-		this.hasRangeHere = new HashSet<>();
+		this.hasRangeHere = new HashSet<Unit>();
 
 		this.x = x;
 		this.y = y;
 
 		this.neighbors = new Tile[4];
 
-		this.highlight = new ArrayList<>();
+		this.highlight = new ArrayList<Color>();
 	}
 
 	public UnitInstruction getNeighbor(Tile other)

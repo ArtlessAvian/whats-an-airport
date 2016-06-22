@@ -7,12 +7,14 @@ import java.util.ListIterator;
 class Unit
 {
 	final UnitInfo unitInfo;
-	int owner;
+	final int owner;
 	Tile tile;
 	Tile lastTile;
 
-	private RangeInfo rangeInfo;
+	private final RangeInfo rangeInfo;
 	int health = 10;
+	// TODO: Cancelling causes invalid movement from fuel costs ==> crash
+	int fuel = 30;
 
 	public RangeInfo getRangeInfo()
 	{
@@ -28,7 +30,7 @@ class Unit
 
 	ListIterator<UnitInstruction> instructions;
 	UnitInstruction finalInstruction;
-	ArrayList<UnitInstruction> instructionsList;
+	final ArrayList<UnitInstruction> instructionsList;
 
 	float accumulator;
 
@@ -43,7 +45,7 @@ class Unit
 
 		this.selected = false;
 		this.finalInstruction = null;
-		this.instructionsList = new ArrayList<>();
+		this.instructionsList = new ArrayList<UnitInstruction>();
 		this.accumulator = 0;
 	}
 
@@ -57,8 +59,10 @@ class Unit
 		rangeInfo.calculateMovement();
 	}
 
-	void receiveInstructions(LinkedList<UnitInstruction> received)
+	void receiveInstructions(LinkedList<UnitInstruction> received, Integer movementCost)
 	{
+		fuel -= movementCost;
+
 		instructionsList.clear();
 		instructionsList.addAll(received);
 		this.instructions = instructionsList.listIterator();
@@ -76,6 +80,8 @@ class Unit
 
 	public void update()
 	{
+		// Only visual stuff i guess
+
 		if (instructions != null && instructions.hasNext())
 		{
 			this.accumulator++;
@@ -103,7 +109,11 @@ class Unit
 						this.instructions = null;
 						break;
 					}
-					case ATTACK: {break;} // TODO
+					case ATTACK:
+					{
+
+						break;
+					}
 				}
 			}
 		}
@@ -141,6 +151,9 @@ class Unit
 		{
 			this.tile.map.units.remove(this);
 			this.tile.setUnit(null);
+
+			this.tile.map.checkRout(this.owner);
+
 			this.tile = null;
 			return true;
 		}

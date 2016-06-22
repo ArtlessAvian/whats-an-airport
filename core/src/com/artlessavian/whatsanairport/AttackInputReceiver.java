@@ -5,20 +5,20 @@ import java.util.Iterator;
 
 public class AttackInputReceiver implements InputReceiver
 {
-	private InputHandler inputHandler;
+	private final InputHandler inputHandler;
 
-	private Unit selectedUnit;
+	Unit selectedUnit;
 	float[] grading;
-	ArrayList<Tile> tiles;
+	final ArrayList<Tile> tiles;
 	Tile current;
 
 	public AttackInputReceiver(InputHandler inputHandler)
 	{
 		this.inputHandler = inputHandler;
-		this.tiles = new ArrayList<>();
+		this.tiles = new ArrayList<Tile>();
 	}
 
-	public void init(Unit selectedUnit, ArrayList<Tile> incomingTiles)
+	public void init(Unit selectedUnit, Tile finalDestination, ArrayList<Tile> incomingTiles)
 	{
 		this.selectedUnit = selectedUnit;
 		this.tiles.clear();
@@ -45,7 +45,7 @@ public class AttackInputReceiver implements InputReceiver
 		for (int i = 0; i < tiles.size(); i++)
 		{
 			Tile t = tiles.get(i);
-			grading[i] = Math.abs(t.x - selectedUnit.tile.x) + Math.abs(t.y - selectedUnit.tile.y);
+			grading[i] = Math.abs(t.x - finalDestination.x) + Math.abs(t.y - finalDestination.y);
 		}
 
 		int id = -1;
@@ -59,9 +59,7 @@ public class AttackInputReceiver implements InputReceiver
 		current = tiles.get(id);
 	}
 
-	// TODO: Gross time complexity n
-
-	public void gradeAndFind(boolean vertical, boolean flip)
+	private void gradeAndFind(boolean vertical, boolean flip)
 	{
 		for (int i = 0; i < tiles.size(); i++)
 		{
@@ -119,6 +117,7 @@ public class AttackInputReceiver implements InputReceiver
 				continue;
 			}
 
+			// TODO: This doesnt work for large maps with lots of units.
 			grading[i] = 2520f / (tXPrime - currentXPrime) - Math.abs(currentYPrime - tYPrime);
 		}
 
@@ -175,7 +174,6 @@ public class AttackInputReceiver implements InputReceiver
 	{
 		inputHandler.receivers.remove(this);
 		inputHandler.receivers.add(inputHandler.menus.get(0));
-		inputHandler.activeMenu = inputHandler.menus.get(0);
 
 		return true;
 	}
@@ -196,5 +194,11 @@ public class AttackInputReceiver implements InputReceiver
 	public boolean touchDragged(int screenX, int screenY, float tileX, float tileY)
 	{
 		return false;
+	}
+
+	@Override
+	public boolean update()
+	{
+		return true;
 	}
 }

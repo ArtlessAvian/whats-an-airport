@@ -29,11 +29,13 @@ class BattleModel implements Screen
 		this.map = new Map(text);
 
 		this.inputHandler.cursor = new Cursor(this.inputHandler, map);
-		this.inputHandler.activeMenu = null;
-		this.inputHandler.menus = new ArrayList<>();
+		this.inputHandler.menus = new ArrayList<BasicMenu>();
 		this.inputHandler.menus.add(new UnitMenu(this.inputHandler, map));
 		this.inputHandler.menus.add(new DayMenu(this.inputHandler));
 		this.inputHandler.attackInputReceiver = new AttackInputReceiver(this.inputHandler);
+		this.inputHandler.newDayShower = new NewDayShower(this.inputHandler, map);
+		this.inputHandler.textbox = new Textbox(this.inputHandler);
+
 		this.inputHandler.receivers.add(this.inputHandler.cursor);
 
 		this.turnHandler = new TurnHandler(this.map);
@@ -47,6 +49,7 @@ class BattleModel implements Screen
 		this.map.makeUnit(UnitInfo.SOLDIER, 0, 2, 4);
 		this.map.makeUnit(UnitInfo.MOTORCYCLE, 0, 2, 6);
 		this.map.makeUnit(UnitInfo.MECH, 0, 6, 4);
+		this.map.makeUnit(UnitInfo.HAX, 0, 0, 0);
 
 		for (int i = 0; i < 4; i++)
 		{

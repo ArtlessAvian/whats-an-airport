@@ -30,8 +30,13 @@ public class DayMenu extends BasicMenu
 		{
 			case ENDTURN:
 			{
-				inputHandler.model.turnHandler.endTurn();
-				inputHandler.activeMenu = null;
+				inputHandler.receivers.add(inputHandler.newDayShower);
+				inputHandler.receivers.remove(this);
+				break;
+			}
+			case DEBUGFILLER:
+			{
+				inputHandler.receivers.add(inputHandler.textbox);
 				inputHandler.receivers.remove(this);
 			}
 		}
@@ -41,7 +46,6 @@ public class DayMenu extends BasicMenu
 	@Override
 	public boolean cancel()
 	{
-		inputHandler.activeMenu = null;
 		inputHandler.receivers.remove(this);
 		return true;
 	}

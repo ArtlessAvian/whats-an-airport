@@ -1,5 +1,6 @@
 package com.artlessavian.whatsanairport;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.math.Vector3;
@@ -8,15 +9,16 @@ import java.util.ArrayList;
 
 class InputHandler implements InputProcessor
 {
-	BattleModel model;
+	final BattleModel model;
 
-	final ArrayList<InputReceiver> receivers = new ArrayList<>(); // Things to send inputs to
-	BasicMenu activeMenu; // Thing to draw
+	final ArrayList<InputReceiver> receivers; // Things to send inputs to
 
 	// Thing
 	Cursor cursor;
 	ArrayList<BasicMenu> menus;
 	AttackInputReceiver attackInputReceiver;
+	NewDayShower newDayShower;
+	Textbox textbox;
 
 	private int framesHeld = 0;
 	private int lastDirectional = -1;
@@ -24,6 +26,7 @@ class InputHandler implements InputProcessor
 	public InputHandler(BattleModel model)
 	{
 		this.model = model;
+		this.receivers = new ArrayList<InputReceiver>();
 	}
 
 	public void update()
@@ -62,6 +65,11 @@ class InputHandler implements InputProcessor
 					}
 				}
 			}
+		}
+
+		for (int i = receivers.size() - 1; i >= 0; i--)
+		{
+			if (receivers.get(i).update()) {break;}
 		}
 	}
 
@@ -144,9 +152,33 @@ class InputHandler implements InputProcessor
 				return true;
 			}
 
+			case Input.Keys.MINUS:
+			{
+				model.view.screenTileHeight--;
+				model.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+				return true;
+			}
+
+			case Input.Keys.EQUALS:
+			{
+				model.view.screenTileHeight++;
+				model.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+				return true;
+			}
+
 			case Input.Keys.PERIOD:
 			{
 				model.view.debuggery++;
+				return true;
+			}
+
+			case Input.Keys.SLASH:
+			{
+				for (InputReceiver r : receivers)
+				{
+					System.out.print(r.getClass().getSimpleName() + " ");
+				}
+				System.out.println();
 				return true;
 			}
 		}
@@ -169,7 +201,7 @@ class InputHandler implements InputProcessor
 		return false;
 	}
 
-	static Vector3 helper = new Vector3();
+	static final Vector3 helper = new Vector3();
 
 	public void helperScreenToTile(int screenX, int screenY)
 	{

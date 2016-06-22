@@ -2,9 +2,10 @@ package com.artlessavian.whatsanairport;
 
 class TurnHandler
 {
-	private Map map;
+	private final Map map;
 
 	final int[] orderToColor = {0, 1};
+	final boolean[] eliminated = {false, false};
 
 	int turn;
 	int day;
@@ -16,12 +17,15 @@ class TurnHandler
 
 	public void endTurn()
 	{
-//		turn++;
-//		if (turn >= orderToColor.length)
-//		{
-		day++;
-		turn = 0;
-//		}
+		do
+		{
+			turn++;
+			if (turn >= orderToColor.length)
+			{
+				day++;
+				turn = 0;
+			}
+		} while (eliminated[turn]);
 
 		for (int y = 0; y < map.height; y++)
 		{

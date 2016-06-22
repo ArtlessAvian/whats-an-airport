@@ -19,4 +19,6 @@ interface InputReceiver
 	boolean touchUp(int screenX, int screenY, float tileX, float tileY);
 
 	boolean touchDragged(int screenX, int screenY, float tileX, float tileY);
+
+	boolean update();
 }

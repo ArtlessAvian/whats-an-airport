@@ -6,8 +6,8 @@ import java.util.ArrayList;
 
 public class UnitMenu extends BasicMenu
 {
-	private Map map;
-	private ArrayList<Tile> tiles;
+	private final Map map;
+	private final ArrayList<Tile> tiles;
 
 	private Unit selectedUnit;
 	private Tile finalDestination;
@@ -17,7 +17,7 @@ public class UnitMenu extends BasicMenu
 	{
 		super(inputHandler);
 		this.map = map;
-		this.tiles = new ArrayList<>();
+		this.tiles = new ArrayList<Tile>();
 
 		xPadding = 64;
 		yPadding = 64;
@@ -74,7 +74,6 @@ public class UnitMenu extends BasicMenu
 				}
 
 				selectedUnit.finalInstruction = UnitInstruction.WAIT;
-				inputHandler.activeMenu = null;
 				inputHandler.receivers.remove(this);
 				break;
 			}
@@ -86,9 +85,8 @@ public class UnitMenu extends BasicMenu
 				}
 
 				inputHandler.receivers.add(inputHandler.attackInputReceiver);
-				inputHandler.attackInputReceiver.init(selectedUnit, tiles);
+				inputHandler.attackInputReceiver.init(selectedUnit, finalDestination, tiles);
 
-				inputHandler.activeMenu = null;
 				inputHandler.receivers.remove(this);
 				break;
 			}
@@ -128,7 +126,6 @@ public class UnitMenu extends BasicMenu
 			t.highlight.add(Color.BLUE);
 		}
 
-		inputHandler.activeMenu = null;
 		inputHandler.receivers.remove(this);
 		return true;
 	}

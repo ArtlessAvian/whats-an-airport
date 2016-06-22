@@ -5,7 +5,7 @@ import java.util.ArrayList;
 class Map
 {
 	final Tile[][] tileMap;
-	ArrayList<Unit> units;
+	final ArrayList<Unit> units;
 
 	final int width;
 	final int height;
@@ -15,7 +15,7 @@ class Map
 		mapFile = mapFile.replaceAll("\\s++", "");
 		String[] tokens = mapFile.split(";");
 
-		ArrayList<TileInfo> mapPalette = new ArrayList<>();
+		ArrayList<TileInfo> mapPalette = new ArrayList<TileInfo>();
 		String[] tileInfoString = tokens[0].split(",");
 		for (String string : tileInfoString)
 		{
@@ -27,7 +27,7 @@ class Map
 		this.height = Integer.parseInt(size[1]);
 
 		this.tileMap = new Tile[height][width];
-		this.units = new ArrayList<>();
+		this.units = new ArrayList<Unit>();
 
 		for (int y = 0; y < height; y++)
 		{
@@ -40,7 +40,6 @@ class Map
 
 		for (int y = 0; y < height; y++)
 		{
-			String[] row = tokens[height + 1 - y].split(",");
 			for (int x = 0; x < width; x++)
 			{
 				try {this.tileMap[y][x].neighbors[0] = this.tileMap[y][x + 1];} catch (Exception e) {}
@@ -65,11 +64,23 @@ class Map
 	{
 		for (Unit unit : units)
 		{
-			if (unit != null)
+//			if (unit != null)
+//			{
+			unit.update();
+//			}
+		}
+	}
+
+	boolean visuallyFinished()
+	{
+		for (Unit unit : units)
+		{
+			if (unit.instructions != null)
 			{
-				unit.update();
+				return false;
 			}
 		}
+		return true;
 	}
 
 	public void getAttackable(int x, int y, int minRange, int maxRange, ArrayList<Tile> tiles)
@@ -96,5 +107,19 @@ class Map
 				}
 			}
 		}
+	}
+
+	public void checkRout(int owner)
+	{
+		for (Unit u : units)
+		{
+			if (u.owner == owner)
+			{
+				return;
+			}
+		}
+
+		// TODO Textbox
+		System.out.println("Player " + owner + " has been eliminated!");
 	}
 }

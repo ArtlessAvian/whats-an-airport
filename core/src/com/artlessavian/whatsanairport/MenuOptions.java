@@ -10,7 +10,7 @@ public enum MenuOptions
 
 	ENDTURN("End Turn");
 
-	String name;
+	final String name;
 
 	MenuOptions(String name)
 	{

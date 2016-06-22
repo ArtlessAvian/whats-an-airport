@@ -4,9 +4,9 @@ import java.util.ArrayList;
 
 public abstract class BasicMenu implements InputReceiver
 {
-	InputHandler inputHandler;
-	ArrayList<MenuOptions> options;
-	ArrayList<Float> pushOptionRight;
+	final InputHandler inputHandler;
+	final ArrayList<MenuOptions> options;
+	final ArrayList<Float> pushOptionRight;
 	int selected;
 
 	int position; // Counterclockwise from top right
@@ -18,8 +18,8 @@ public abstract class BasicMenu implements InputReceiver
 	public BasicMenu(InputHandler inputHandler)
 	{
 		this.inputHandler = inputHandler;
-		this.options = new ArrayList<>();
-		this.pushOptionRight = new ArrayList<>();
+		this.options = new ArrayList<MenuOptions>();
+		this.pushOptionRight = new ArrayList<Float>();
 		this.selected = 0;
 
 		xPadding = 64;
@@ -147,5 +147,11 @@ public abstract class BasicMenu implements InputReceiver
 //			selected = (int)toSelect;
 //		}
 		return true;
+	}
+
+	@Override
+	public boolean update()
+	{
+		return false;
 	}
 }

@@ -7,7 +7,7 @@ import java.util.Set;
 
 public class RangeInfo
 {
-	private Unit unit;
+	private final Unit unit;
 
 	boolean rangeCalcd;
 
@@ -25,12 +25,12 @@ public class RangeInfo
 
 		this.rangeCalcd = false;
 
-		this.movementCost = new HashMap<>();
-		this.cameFrom = new HashMap<>();
+		this.movementCost = new HashMap<Tile, Integer>();
+		this.cameFrom = new HashMap<Tile, Tile>();
 		this.movable = movementCost.keySet();
-		this.attackableFrom = new HashMap<>();
+		this.attackableFrom = new HashMap<Tile, Tile>();
 		this.attackable = attackableFrom.keySet();
-		this.temp = new ArrayList<>();
+		this.temp = new ArrayList<Tile>();
 	}
 
 	void invalidateMovement()
@@ -39,7 +39,7 @@ public class RangeInfo
 
 		for (Tile t : attackable)
 		{
-			t.hasRangeHere.remove(this);
+			t.hasRangeHere.remove(unit);
 		}
 
 		this.movementCost.clear();
@@ -54,7 +54,7 @@ public class RangeInfo
 		this.rangeCalcd = true;
 
 		// Dijkstra's for movement
-		ArrayList<Tile> frontier = new ArrayList<>();
+		ArrayList<Tile> frontier = new ArrayList<Tile>();
 
 		frontier.add(unit.tile);
 		this.movementCost.put(unit.tile, 0);
@@ -79,7 +79,7 @@ public class RangeInfo
 			if (unit.unitInfo.isDirect && (current.getUnit() == null || current.getUnit() == unit))
 			{
 				temp.clear();
-				unit.tile.getAttackable(unit.unitInfo.minRange, unit.unitInfo.maxRange, temp);
+				current.getAttackable(unit.unitInfo.minRange, unit.unitInfo.maxRange, temp);
 				for (Tile currentRange : temp)
 				{
 					if (!this.attackable.contains(currentRange))
@@ -97,7 +97,7 @@ public class RangeInfo
 				if (!this.movable.contains(neighbor))
 				{
 					int newCost = cost + neighbor.tileInfo.movementCost;
-					if (newCost <= unit.unitInfo.movement && (neighbor.getUnit() == null || neighbor.getUnit().owner == unit.owner))
+					if (newCost <= unit.unitInfo.movement && newCost <= unit.fuel && (neighbor.getUnit() == null || neighbor.getUnit().owner == unit.owner))
 					{
 						frontier.add(neighbor);
 						this.movementCost.put(neighbor, newCost);

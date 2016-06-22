@@ -6,14 +6,14 @@ import java.util.LinkedList;
 
 public class Cursor implements InputReceiver
 {
-	private InputHandler inputHandler;
+	private final InputHandler inputHandler;
 	private final Map map;
 
 	int x;
 	int y;
 	Unit selectedUnit;
 	int movementCost;
-	LinkedList<UnitInstruction> instructions;
+	final LinkedList<UnitInstruction> instructions;
 
 	int lastTileCursored = 0;
 
@@ -21,7 +21,7 @@ public class Cursor implements InputReceiver
 	{
 		this.inputHandler = inputHandler;
 		this.map = map;
-		instructions = new LinkedList<>();
+		instructions = new LinkedList<UnitInstruction>();
 	}
 
 	public void rePath(boolean attackMove)
@@ -215,7 +215,6 @@ public class Cursor implements InputReceiver
 			else
 			{
 				inputHandler.receivers.add(inputHandler.menus.get(1));
-				inputHandler.activeMenu = inputHandler.menus.get(1);
 				inputHandler.menus.get(1).init();
 			}
 		}
@@ -241,10 +240,9 @@ public class Cursor implements InputReceiver
 			}
 
 			inputHandler.receivers.add(inputHandler.menus.get(0));
-			inputHandler.activeMenu = inputHandler.menus.get(0);
 			inputHandler.menus.get(0).init(selectedUnit, finalDestination, selectedUnit.tile);
 
-			selectedUnit.receiveInstructions(instructions);
+			selectedUnit.receiveInstructions(instructions, movementCost);
 
 			selectedUnit.selected = false;
 			selectedUnit = null;
@@ -282,5 +280,11 @@ public class Cursor implements InputReceiver
 		for (int i = y; i < (int)tileY; i++) {this.up();}
 
 		return true;
+	}
+
+	@Override
+	public boolean update()
+	{
+		return false;
 	}
 }
