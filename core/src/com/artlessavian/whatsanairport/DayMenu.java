@@ -15,7 +15,7 @@ public class DayMenu extends BasicMenu
 	{
 		//Buncha if statements
 
-		for (double i = Math.random() * 0; i > 0; i--)
+		for (double i = Math.random() * 1; i > 0; i--)
 		{
 			this.options.add(MenuOptions.DEBUGFILLER);
 		}
@@ -36,6 +36,7 @@ public class DayMenu extends BasicMenu
 			}
 			case DEBUGFILLER:
 			{
+				inputHandler.textbox.init();
 				inputHandler.receivers.add(inputHandler.textbox);
 				inputHandler.receivers.remove(this);
 			}

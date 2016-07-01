@@ -5,6 +5,8 @@ public class NewDayShower implements InputReceiver
 	private final InputHandler inputHandler;
 	private final Map map;
 
+	final int framesOpen = 180;
+
 	private boolean impatient;
 	int time;
 	private boolean alreadyFinished;
@@ -100,7 +102,7 @@ public class NewDayShower implements InputReceiver
 				time += 3;
 			}
 
-			if (time > 240)
+			if (time > framesOpen)
 			{
 				inputHandler.receivers.remove(this);
 				time = 0;

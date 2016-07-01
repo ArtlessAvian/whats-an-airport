@@ -3,11 +3,19 @@ package com.artlessavian.whatsanairport;
 public class Textbox implements InputReceiver
 {
 	private final InputHandler inputHandler;
-	String contents;
+	String[][] contents = {{"yoooo", "oooooo!"}, {"wat"}};
+	int thingy;
+	int line;
 
 	Textbox(InputHandler inputHandler)
 	{
 		this.inputHandler = inputHandler;
+	}
+
+	public void init()
+	{
+		thingy = 0;
+		line = 0;
 	}
 
 	@Override
@@ -37,7 +45,22 @@ public class Textbox implements InputReceiver
 	@Override
 	public boolean select()
 	{
-		inputHandler.receivers.remove(this);
+		if (thingy + 1 >= contents[line].length)
+		{
+			if (line + 1 >= contents.length)
+			{
+				inputHandler.receivers.remove(this);
+			}
+			else
+			{
+				line++;
+				thingy = 0;
+			}
+		}
+		else
+		{
+			thingy++;
+		}
 		return true;
 	}
 

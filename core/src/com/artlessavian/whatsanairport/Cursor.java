@@ -253,7 +253,23 @@ public class Cursor implements InputReceiver
 	@Override
 	public boolean cancel()
 	{
-		return false;
+		if (selectedUnit != null)
+		{
+			for (Tile t : selectedUnit.getRangeInfo().attackable)
+			{
+				t.highlight.remove(Color.RED);
+			}
+			for (Tile t : selectedUnit.getRangeInfo().movable)
+			{
+				t.highlight.remove(Color.BLUE);
+			}
+
+
+			selectedUnit.selected = false;
+			selectedUnit = null;
+		}
+
+		return true;
 	}
 
 	@Override

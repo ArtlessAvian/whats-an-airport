@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Array;
 
 import java.util.Iterator;
 
@@ -32,6 +33,8 @@ class BattleView
 
 	final OrthographicCamera worldSpace;
 	final Vector3 trueCamPos;
+
+	float textboxThingy = 0;
 
 	private final float defaultScreenTileHeight = 12;
 	float screenTileHeight = 12;
@@ -166,6 +169,8 @@ class BattleView
 		{
 			this.drawMenu();
 		}
+
+		this.drawTextbox(temp.equals(Textbox.class));
 
 		if (temp.equals(NewDayShower.class))
 		{
@@ -463,6 +468,8 @@ class BattleView
 
 	private void drawMenu()
 	{
+		bitmapFont.setColor(1,1,1,1);
+
 		BasicMenu activeMenu = (BasicMenu)model.inputHandler.receivers.get(model.inputHandler.receivers.size() - 1);
 
 		menuHelper(activeMenu);
@@ -471,11 +478,19 @@ class BattleView
 		{
 			if (i == activeMenu.selected)
 			{
-				activeMenu.pushOptionRight.set(i, activeMenu.pushOptionRight.get(i) * 0.8f + 0.2f);
+				float temp = activeMenu.pushOptionRight.get(i);
+				temp = temp * 0.8f + 0.2f;
+				temp += 0.01;
+				if (temp > 1) {temp = 1;}
+				activeMenu.pushOptionRight.set(i, temp);
 			}
 			else
 			{
-				activeMenu.pushOptionRight.set(i, activeMenu.pushOptionRight.get(i) * 0.2f);
+				float temp = activeMenu.pushOptionRight.get(i);
+				temp *= 0.2;
+				temp -= 0.01;
+				if (temp < 0) {temp = 0;}
+				activeMenu.pushOptionRight.set(i, temp);
 			}
 
 			options.translateY(-options.getHeight());
@@ -484,6 +499,40 @@ class BattleView
 				options.getX() + 25 + 50 * activeMenu.pushOptionRight.get(i),
 				options.getY() + options.getHeight() * 0.9f);
 		}
+	}
+
+	private void drawTextbox(boolean open)
+	{
+		if (open)
+		{
+			textboxThingy = textboxThingy * 0.8f + 0.2f;
+			textboxThingy += 0.01;
+			if (textboxThingy > 1) {textboxThingy = 1;}
+		}
+		else
+		{
+			textboxThingy = textboxThingy * 0.8f;
+			textboxThingy -= 0.01;
+			if (textboxThingy < 0) {textboxThingy = 0;}
+		}
+		float top = bitmapFont.getLineHeight() * 3f * textboxThingy;
+
+		white.setColor(0.3f,0.3f,0.3f,1);
+
+		white.setSize(worldSpace.viewportWidth, bitmapFont.getLineHeight()*3);
+		white.setCenterX(worldSpace.position.x);
+		white.setY(worldSpace.position.y - worldSpace.viewportHeight/2f + top - white.getHeight());
+		white.draw(batch);
+
+		Textbox t = model.inputHandler.textbox;
+
+		bitmapFont.draw(batch, t.contents[t.line][t.thingy], 0, white.getY() + bitmapFont.getLineHeight() * 1.5f);
+		try
+		{
+			bitmapFont.draw(batch, t.contents[t.line][t.thingy - 1], 0, white.getY() + bitmapFont.getLineHeight() * 2.5f);
+		}
+		catch (ArrayIndexOutOfBoundsException e)
+		{}
 	}
 
 	private float easingFunction(float t, float b, float c, float d)
@@ -495,7 +544,7 @@ class BattleView
 
 	private void drawNewDay()
 	{
-		float x = easingFunction(model.inputHandler.newDayShower.time, 0, 1, 240);
+		float x = easingFunction(model.inputHandler.newDayShower.time, 0, 1, model.inputHandler.newDayShower.framesOpen);
 		float y = worldSpace.position.y;
 
 		bitmapFont.setColor(1, 1, 1, 4 * (-x * x + x));
