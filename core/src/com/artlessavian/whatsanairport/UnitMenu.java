@@ -6,17 +6,16 @@ import java.util.ArrayList;
 
 public class UnitMenu extends BasicMenu
 {
-	private final Map map;
+	private Map map;
 	private final ArrayList<Tile> tiles;
 
 	private Unit selectedUnit;
 	private Tile finalDestination;
 	private Tile originalTile;
 
-	public UnitMenu(InputHandler inputHandler, Map map)
+	public UnitMenu(InputHandler inputHandler)
 	{
 		super(inputHandler);
-		this.map = map;
 		this.tiles = new ArrayList<Tile>();
 
 		xPadding = 64;
@@ -24,11 +23,12 @@ public class UnitMenu extends BasicMenu
 		position = 0;
 	}
 
-	public void initLogic(Object... objects)
+	public void initLogic(Object... args)
 	{
-		this.selectedUnit = (Unit)objects[0];
-		this.finalDestination = (Tile)objects[1];
-		this.originalTile = (Tile)objects[2];
+		this.map = inputHandler.model.map;
+		this.selectedUnit = (Unit)args[0];
+		this.finalDestination = (Tile)args[1];
+		this.originalTile = (Tile)args[2];
 
 		//Buncha if statements
 
@@ -74,7 +74,7 @@ public class UnitMenu extends BasicMenu
 				}
 
 				selectedUnit.finalInstruction = UnitInstruction.WAIT;
-				inputHandler.receivers.remove(this);
+				inputHandler.pop();
 				break;
 			}
 			case ATTACK:
@@ -84,10 +84,7 @@ public class UnitMenu extends BasicMenu
 					t.highlight.remove(Color.PINK);
 				}
 
-				inputHandler.receivers.add(inputHandler.attackInputReceiver);
-				inputHandler.attackInputReceiver.init(selectedUnit, finalDestination, tiles);
-
-				inputHandler.receivers.remove(this);
+				inputHandler.addState(AttackInputReceiver.class, true, false, selectedUnit, finalDestination, tiles);
 				break;
 			}
 		}
@@ -109,7 +106,7 @@ public class UnitMenu extends BasicMenu
 		selectedUnit.instructions = null;
 		finalDestination.setUnit(null);
 
-		inputHandler.cursor.selectedUnit = selectedUnit;
+		((Cursor)inputHandler.getState(Cursor.class)).selectedUnit = selectedUnit;
 		selectedUnit.selected = true;
 
 		if (!selectedUnit.getRangeInfo().rangeCalcd) {selectedUnit.calculateMovement();}
@@ -126,7 +123,7 @@ public class UnitMenu extends BasicMenu
 			t.highlight.add(Color.BLUE);
 		}
 
-		inputHandler.receivers.remove(this);
+		inputHandler.pop();
 		return true;
 	}
 }

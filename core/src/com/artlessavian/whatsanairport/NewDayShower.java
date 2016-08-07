@@ -3,7 +3,7 @@ package com.artlessavian.whatsanairport;
 public class NewDayShower implements InputReceiver
 {
 	private final InputHandler inputHandler;
-	private final Map map;
+	private Map map;
 
 	final int framesOpen = 180;
 
@@ -11,14 +11,25 @@ public class NewDayShower implements InputReceiver
 	int time;
 	private boolean alreadyFinished;
 
-	NewDayShower(InputHandler inputHandler, Map map)
+	public NewDayShower(InputHandler inputHandler)
 	{
 		this.inputHandler = inputHandler;
-		this.map = map;
 
 		time = 0;
 		impatient = false;
 		alreadyFinished = false;
+	}
+
+	@Override
+	public void receivePrevious(InputReceiver previous, Class previousClass)
+	{
+
+	}
+
+	@Override
+	public void reset(Object[] args)
+	{
+		this.map = inputHandler.model.map;
 	}
 
 	// Prevent inputs from going down the stack
@@ -104,7 +115,7 @@ public class NewDayShower implements InputReceiver
 
 			if (time > framesOpen)
 			{
-				inputHandler.receivers.remove(this);
+				inputHandler.addState(Cursor.class, false, true);
 				time = 0;
 				impatient = false;
 				alreadyFinished = false;

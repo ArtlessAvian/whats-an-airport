@@ -18,47 +18,6 @@ public class AttackInputReceiver implements InputReceiver
 		this.tiles = new ArrayList<Tile>();
 	}
 
-	public void init(Unit selectedUnit, Tile finalDestination, ArrayList<Tile> incomingTiles)
-	{
-		this.selectedUnit = selectedUnit;
-		this.tiles.clear();
-		this.tiles.addAll(incomingTiles);
-
-		// Units only
-
-		Iterator<Tile> tilesIter = this.tiles.iterator();
-		while (tilesIter.hasNext())
-		{
-			Unit unit = tilesIter.next().getUnit();
-			if (unit == null || unit.owner == selectedUnit.owner)
-			{
-				tilesIter.remove();
-			}
-		}
-
-		// Current = Taxicab closest
-		if (grading == null || tiles.size() > grading.length)
-		{
-			grading = new float[tiles.size()];
-		}
-
-		for (int i = 0; i < tiles.size(); i++)
-		{
-			Tile t = tiles.get(i);
-			grading[i] = Math.abs(t.x - finalDestination.x) + Math.abs(t.y - finalDestination.y);
-		}
-
-		int id = -1;
-		for (int i = 0; i < tiles.size(); i++)
-		{
-			if (id == -1 || grading[i] < grading[id])
-			{
-				id = i;
-			}
-		}
-		current = tiles.get(id);
-	}
-
 	private void gradeAndFind(boolean vertical, boolean flip)
 	{
 		for (int i = 0; i < tiles.size(); i++)
@@ -133,6 +92,55 @@ public class AttackInputReceiver implements InputReceiver
 	}
 
 	@Override
+	public void receivePrevious(InputReceiver previous, Class previousClass)
+	{
+
+	}
+
+	@Override
+	public void reset(Object[] args)
+	{
+		this.selectedUnit = (Unit)args[0];
+		Tile finalDestination = (Tile)args[1];
+		this.tiles.clear();
+		this.tiles.addAll((ArrayList<Tile>)args[2]);
+
+		// Units only
+
+		Iterator<Tile> tilesIter = this.tiles.iterator();
+		while (tilesIter.hasNext())
+		{
+			Unit unit = tilesIter.next().getUnit();
+			if (unit == null || unit.owner == selectedUnit.owner)
+			{
+				tilesIter.remove();
+			}
+		}
+
+		// Current = Taxicab closest
+		if (grading == null || tiles.size() > grading.length)
+		{
+			grading = new float[tiles.size()];
+		}
+
+		for (int i = 0; i < tiles.size(); i++)
+		{
+			Tile t = tiles.get(i);
+			grading[i] = Math.abs(t.x - finalDestination.x) + Math.abs(t.y - finalDestination.y);
+		}
+
+		int id = -1;
+		for (int i = 0; i < tiles.size(); i++)
+		{
+			if (id == -1 || grading[i] < grading[id])
+			{
+				id = i;
+			}
+		}
+		current = tiles.get(id);
+	}
+
+	@Override
 	public boolean up()
 	{
 		gradeAndFind(true, false);
@@ -165,15 +173,14 @@ public class AttackInputReceiver implements InputReceiver
 	{
 		selectedUnit.attack(current.getUnit());
 		selectedUnit.finalInstruction = UnitInstruction.WAIT;
-		inputHandler.receivers.remove(this);
+		inputHandler.pop();
 		return true;
 	}
 
 	@Override
 	public boolean cancel()
 	{
-		inputHandler.receivers.remove(this);
-		inputHandler.receivers.add(inputHandler.menus.get(0));
+		inputHandler.addState(UnitMenu.class, true, false);
 
 		return true;
 	}

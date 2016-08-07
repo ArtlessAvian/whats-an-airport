@@ -12,7 +12,14 @@ public class Textbox implements InputReceiver
 		this.inputHandler = inputHandler;
 	}
 
-	public void init()
+	@Override
+	public void receivePrevious(InputReceiver previous, Class previousClass)
+	{
+
+	}
+
+	@Override
+	public void reset(Object[] args)
 	{
 		thingy = 0;
 		line = 0;
@@ -49,7 +56,7 @@ public class Textbox implements InputReceiver
 		{
 			if (line + 1 >= contents.length)
 			{
-				inputHandler.receivers.remove(this);
+				inputHandler.pop();
 			}
 			else
 			{

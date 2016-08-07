@@ -41,34 +41,10 @@ class Tile
 
 	public UnitInstruction getNeighbor(Tile other)
 	{
-		try
-		{
-			if (neighbors[0].equals(other)) {return UnitInstruction.RIGHT;}
-		}
-		catch (Exception e)
-		{
-		}
-		try
-		{
-			if (neighbors[1].equals(other)) {return UnitInstruction.UP;}
-		}
-		catch (Exception e)
-		{
-		}
-		try
-		{
-			if (neighbors[2].equals(other)) {return UnitInstruction.LEFT;}
-		}
-		catch (Exception e)
-		{
-		}
-		try
-		{
-			if (neighbors[3].equals(other)) {return UnitInstruction.DOWN;}
-		}
-		catch (Exception e)
-		{
-		}
+		if (neighbors[0] == other) {return UnitInstruction.RIGHT;}
+		if (neighbors[1] == other) {return UnitInstruction.UP;}
+		if (neighbors[2] == other) {return UnitInstruction.LEFT;}
+		if (neighbors[3] == other) {return UnitInstruction.DOWN;}
 
 		return UnitInstruction.WAIT;
 	}
@@ -80,6 +56,7 @@ class Tile
 
 	public void setUnit(Unit newUnit)
 	{
+		//TODO: Concurrent Modification Exception????
 		for (Unit u : hasRangeHere)
 		{
 			if (!u.equals(newUnit))

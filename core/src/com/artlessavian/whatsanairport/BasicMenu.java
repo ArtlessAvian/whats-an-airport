@@ -12,7 +12,7 @@ public abstract class BasicMenu implements InputReceiver
 	int position; // Counterclockwise from top right
 	float xPadding;
 	float yPadding;
-	float xSize;
+	static float xSize;
 	float ySize;
 
 	public BasicMenu(InputHandler inputHandler)
@@ -27,23 +27,29 @@ public abstract class BasicMenu implements InputReceiver
 		position = 0;
 	}
 
-	public void init(Object... objects)
+	@Override
+	public void receivePrevious(InputReceiver previous, Class previousClass)
+	{
+
+	}
+
+	protected abstract void initLogic(Object... objects);
+
+	@Override
+	public void reset(Object[] args)
 	{
 		selected = 0;
 
 		this.options.clear();
 		this.pushOptionRight.clear();
 
-		initLogic(objects);
+		initLogic(args);
 
 		for (MenuOptions o : this.options)
 		{
 			this.pushOptionRight.add(0f);
 		}
-
 	}
-
-	public abstract void initLogic(Object... objects);
 
 	@Override
 	public boolean up()

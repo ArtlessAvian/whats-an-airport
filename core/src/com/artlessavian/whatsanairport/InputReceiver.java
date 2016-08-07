@@ -2,6 +2,10 @@ package com.artlessavian.whatsanairport;
 
 interface InputReceiver
 {
+	void receivePrevious(InputReceiver previous, Class previousClass);
+
+	void reset(Object[] args);
+
 	boolean up();
 
 	boolean down();

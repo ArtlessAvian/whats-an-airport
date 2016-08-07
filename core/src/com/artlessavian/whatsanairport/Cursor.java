@@ -7,7 +7,7 @@ import java.util.LinkedList;
 public class Cursor implements InputReceiver
 {
 	private final InputHandler inputHandler;
-	private final Map map;
+	private Map map;
 
 	int x;
 	int y;
@@ -17,10 +17,9 @@ public class Cursor implements InputReceiver
 
 	int lastTileCursored = 0;
 
-	public Cursor(InputHandler inputHandler, Map map)
+	public Cursor(InputHandler inputHandler)
 	{
 		this.inputHandler = inputHandler;
-		this.map = map;
 		instructions = new LinkedList<UnitInstruction>();
 	}
 
@@ -124,6 +123,18 @@ public class Cursor implements InputReceiver
 	}
 
 	@Override
+	public void receivePrevious(InputReceiver previous, Class previousClass)
+	{
+
+	}
+
+	@Override
+	public void reset(Object[] args)
+	{
+		map = inputHandler.model.map;
+	}
+
+	@Override
 	public boolean up()
 	{
 		if (y < map.height - 1)
@@ -214,8 +225,7 @@ public class Cursor implements InputReceiver
 			}
 			else
 			{
-				inputHandler.receivers.add(inputHandler.menus.get(1));
-				inputHandler.menus.get(1).init();
+				inputHandler.addState(DayMenu.class, false, false);
 			}
 		}
 		else
@@ -239,9 +249,8 @@ public class Cursor implements InputReceiver
 				finalDestination = finalDestination.neighbors[ui.id];
 			}
 
-			inputHandler.receivers.add(inputHandler.menus.get(0));
-			inputHandler.menus.get(0).init(selectedUnit, finalDestination, selectedUnit.tile);
-
+			inputHandler.addState(UnitMenu.class, false, false, selectedUnit, finalDestination, selectedUnit.tile);
+			
 			selectedUnit.receiveInstructions(instructions, movementCost);
 
 			selectedUnit.selected = false;
