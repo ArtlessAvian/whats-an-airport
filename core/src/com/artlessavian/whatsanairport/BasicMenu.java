@@ -2,9 +2,8 @@ package com.artlessavian.whatsanairport;
 
 import java.util.ArrayList;
 
-public abstract class BasicMenu implements InputReceiver
+public abstract class BasicMenu extends InputReceiver
 {
-	final InputHandler inputHandler;
 	final ArrayList<MenuOptions> options;
 	final ArrayList<Float> pushOptionRight;
 	int selected;
@@ -17,7 +16,7 @@ public abstract class BasicMenu implements InputReceiver
 
 	public BasicMenu(InputHandler inputHandler)
 	{
-		this.inputHandler = inputHandler;
+		super(inputHandler);
 		this.options = new ArrayList<MenuOptions>();
 		this.pushOptionRight = new ArrayList<Float>();
 		this.selected = 0;
@@ -25,12 +24,6 @@ public abstract class BasicMenu implements InputReceiver
 		xPadding = 64;
 		yPadding = 64;
 		position = 0;
-	}
-
-	@Override
-	public void receivePrevious(InputReceiver previous, Class previousClass)
-	{
-
 	}
 
 	protected abstract void initLogic(Object... objects);

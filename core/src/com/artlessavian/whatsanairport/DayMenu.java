@@ -11,6 +11,12 @@ public class DayMenu extends BasicMenu
 		position = 0;
 	}
 
+	@Override
+	void reactivate()
+	{
+
+	}
+
 	public void initLogic(Object... objects)
 	{
 		//Buncha if statements

@@ -1,12 +1,12 @@
 package com.artlessavian.whatsanairport;
 
-public class Textbox extends InputReceiver
+public class MovingUnitWait extends InputReceiver
 {
-	String[][] contents = {{"yoooo", "oooooo!"}, {"wat"}};
-	int thingy;
-	int line;
+	private Unit selectedUnit;
+	private Tile finalDestination;
+	private Tile originalTile;
 
-	Textbox(InputHandler inputHandler)
+	public MovingUnitWait(InputHandler inputHandler)
 	{
 		super(inputHandler);
 	}
@@ -14,14 +14,15 @@ public class Textbox extends InputReceiver
 	@Override
 	public void reset(Object[] args)
 	{
-		thingy = 0;
-		line = 0;
+		selectedUnit = (Unit)args[0];
+		finalDestination = (Tile)args[1];
+		originalTile = (Tile)args[2];
 	}
 
 	@Override
 	void reactivate()
 	{
-
+		inputHandler.pop();
 	}
 
 	@Override
@@ -51,23 +52,7 @@ public class Textbox extends InputReceiver
 	@Override
 	public boolean select()
 	{
-		if (thingy + 1 >= contents[line].length)
-		{
-			if (line + 1 >= contents.length)
-			{
-				inputHandler.pop();
-			}
-			else
-			{
-				line++;
-				thingy = 0;
-			}
-		}
-		else
-		{
-			thingy++;
-		}
-		return true;
+		return false;
 	}
 
 	@Override
@@ -97,6 +82,10 @@ public class Textbox extends InputReceiver
 	@Override
 	public boolean update()
 	{
-		return false;
+		if (selectedUnit.tile == finalDestination)
+		{
+			inputHandler.addState(UnitMenu.class, true, false, selectedUnit, finalDestination, originalTile);
+		}
+		return true;
 	}
 }

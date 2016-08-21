@@ -1,28 +1,35 @@
 package com.artlessavian.whatsanairport;
 
-interface InputReceiver
+abstract class InputReceiver
 {
-	void receivePrevious(InputReceiver previous, Class previousClass);
+	protected InputHandler inputHandler;
 
-	void reset(Object[] args);
+	public InputReceiver(InputHandler inputHandler)
+	{
+		this.inputHandler = inputHandler;
+	}
 
-	boolean up();
+	abstract void reset(Object[] args);
 
-	boolean down();
+	abstract void reactivate();
 
-	boolean left();
+	abstract boolean up();
 
-	boolean right();
+	abstract boolean down();
 
-	boolean select();
+	abstract boolean left();
 
-	boolean cancel();
+	abstract boolean right();
 
-	boolean touchDown(int screenX, int screenY, float tileX, float tileY);
+	abstract boolean select();
 
-	boolean touchUp(int screenX, int screenY, float tileX, float tileY);
+	abstract boolean cancel();
 
-	boolean touchDragged(int screenX, int screenY, float tileX, float tileY);
+	abstract boolean touchDown(int screenX, int screenY, float tileX, float tileY);
 
-	boolean update();
+	abstract boolean touchUp(int screenX, int screenY, float tileX, float tileY);
+
+	abstract boolean touchDragged(int screenX, int screenY, float tileX, float tileY);
+
+	abstract boolean update();
 }

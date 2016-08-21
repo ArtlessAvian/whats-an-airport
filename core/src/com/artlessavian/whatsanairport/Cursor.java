@@ -4,9 +4,8 @@ import com.badlogic.gdx.graphics.Color;
 
 import java.util.LinkedList;
 
-public class Cursor implements InputReceiver
+public class Cursor extends InputReceiver
 {
-	private final InputHandler inputHandler;
 	private Map map;
 
 	int x;
@@ -19,6 +18,7 @@ public class Cursor implements InputReceiver
 
 	public Cursor(InputHandler inputHandler)
 	{
+		super(inputHandler);
 		this.inputHandler = inputHandler;
 		instructions = new LinkedList<UnitInstruction>();
 	}
@@ -123,15 +123,15 @@ public class Cursor implements InputReceiver
 	}
 
 	@Override
-	public void receivePrevious(InputReceiver previous, Class previousClass)
-	{
-
-	}
-
-	@Override
 	public void reset(Object[] args)
 	{
 		map = inputHandler.model.map;
+	}
+
+	@Override
+	void reactivate()
+	{
+
 	}
 
 	@Override
@@ -249,7 +249,7 @@ public class Cursor implements InputReceiver
 				finalDestination = finalDestination.neighbors[ui.id];
 			}
 
-			inputHandler.addState(UnitMenu.class, false, false, selectedUnit, finalDestination, selectedUnit.tile);
+			inputHandler.addState(MovingUnitWait.class, false, false, selectedUnit, finalDestination, selectedUnit.tile);
 			
 			selectedUnit.receiveInstructions(instructions, movementCost);
 
@@ -272,7 +272,6 @@ public class Cursor implements InputReceiver
 			{
 				t.highlight.remove(Color.BLUE);
 			}
-
 
 			selectedUnit.selected = false;
 			selectedUnit = null;

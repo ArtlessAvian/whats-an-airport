@@ -3,10 +3,8 @@ package com.artlessavian.whatsanairport;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class AttackInputReceiver implements InputReceiver
+public class AttackInputReceiver extends InputReceiver
 {
-	private final InputHandler inputHandler;
-
 	Unit selectedUnit;
 	float[] grading;
 	final ArrayList<Tile> tiles;
@@ -14,7 +12,7 @@ public class AttackInputReceiver implements InputReceiver
 
 	public AttackInputReceiver(InputHandler inputHandler)
 	{
-		this.inputHandler = inputHandler;
+		super(inputHandler);
 		this.tiles = new ArrayList<Tile>();
 	}
 
@@ -92,12 +90,6 @@ public class AttackInputReceiver implements InputReceiver
 	}
 
 	@Override
-	public void receivePrevious(InputReceiver previous, Class previousClass)
-	{
-
-	}
-
-	@Override
 	public void reset(Object[] args)
 	{
 		this.selectedUnit = (Unit)args[0];
@@ -141,6 +133,12 @@ public class AttackInputReceiver implements InputReceiver
 	}
 
 	@Override
+	void reactivate()
+	{
+
+	}
+
+	@Override
 	public boolean up()
 	{
 		gradeAndFind(true, false);
@@ -173,7 +171,7 @@ public class AttackInputReceiver implements InputReceiver
 	{
 		selectedUnit.attack(current.getUnit());
 		selectedUnit.finalInstruction = UnitInstruction.WAIT;
-		inputHandler.pop();
+		super.inputHandler.pop();
 		return true;
 	}
 

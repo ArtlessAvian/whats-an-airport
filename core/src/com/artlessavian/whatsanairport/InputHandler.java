@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Vector3;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 class InputHandler implements InputProcessor
@@ -66,25 +67,25 @@ class InputHandler implements InputProcessor
 		InputReceiver temp = getState(classeroni);
 		InputReceiver previous = null;
 
-		if (receivers.size() > 0)
-		{
-			previous = receivers.get(receivers.size() - 1);
-			temp.receivePrevious(previous, previous.getClass());
-		}
-
 		if (clear)
 		{
 			receivers.clear();
-			receiversClass.clear();
 		}
 		else if (pop)
 		{
-			pop();
+			receivers.remove(receivers.size() - 1);
+			receiversClass.remove(receiversClass.size() - 1);
 		}
 
 		temp.reset(args);
 		receivers.add(temp);
 		receiversClass.add(classeroni);
+
+		for (Class c : receiversClass)
+		{
+			System.out.print(c.getSimpleName() + " < ");
+		}
+		System.out.println();
 	}
 
 	public void pop()
@@ -93,6 +94,7 @@ class InputHandler implements InputProcessor
 		{
 			receivers.remove(receivers.size() - 1);
 			receiversClass.remove(receiversClass.size() - 1);
+			receivers.get(receivers.size() - 1).reactivate();
 		}
 	}
 

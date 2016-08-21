@@ -23,6 +23,12 @@ public class UnitMenu extends BasicMenu
 		position = 0;
 	}
 
+	@Override
+	void reactivate()
+	{
+
+	}
+
 	public void initLogic(Object... args)
 	{
 		this.map = inputHandler.model.map;

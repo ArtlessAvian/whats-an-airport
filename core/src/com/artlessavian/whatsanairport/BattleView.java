@@ -591,10 +591,6 @@ class BattleView
 		worldSpace.update();
 
 		bitmapFont.getData().setScale(32f / 12f);
-
-		if (model.inputHandler.receiversClass.get(model.inputHandler.receiversClass.size() - 1).getClass().getSuperclass().equals(BasicMenu.class))
-		{
-			BasicMenu.xSize = 0;
-		}
+		BasicMenu.xSize = 0;
 	}
 }

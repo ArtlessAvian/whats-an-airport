@@ -1,8 +1,8 @@
 package com.artlessavian.whatsanairport;
 
-public class NewDayShower implements InputReceiver
+public class NewDayShower extends InputReceiver
 {
-	private final InputHandler inputHandler;
+
 	private Map map;
 
 	final int framesOpen = 180;
@@ -13,7 +13,7 @@ public class NewDayShower implements InputReceiver
 
 	public NewDayShower(InputHandler inputHandler)
 	{
-		this.inputHandler = inputHandler;
+		super(inputHandler);
 
 		time = 0;
 		impatient = false;
@@ -21,15 +21,15 @@ public class NewDayShower implements InputReceiver
 	}
 
 	@Override
-	public void receivePrevious(InputReceiver previous, Class previousClass)
-	{
-
-	}
-
-	@Override
 	public void reset(Object[] args)
 	{
 		this.map = inputHandler.model.map;
+	}
+
+	@Override
+	void reactivate()
+	{
+
 	}
 
 	// Prevent inputs from going down the stack
