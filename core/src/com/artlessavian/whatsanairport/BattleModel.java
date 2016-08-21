@@ -5,8 +5,6 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.files.FileHandle;
 
-import java.util.ArrayList;
-
 class BattleModel implements Screen
 {
 	private final WarsMain main;
@@ -60,7 +58,7 @@ class BattleModel implements Screen
 
 	}
 
-	boolean lol;
+	static boolean lol;
 
 	@Override
 	public void render(float delta)

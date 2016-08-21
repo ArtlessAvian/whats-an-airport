@@ -10,7 +10,6 @@ public class UnitMenu extends BasicMenu
 	private final ArrayList<Tile> tiles;
 
 	private Unit selectedUnit;
-	private Tile finalDestination;
 	private Tile originalTile;
 
 	public UnitMenu(InputHandler inputHandler)
@@ -33,8 +32,7 @@ public class UnitMenu extends BasicMenu
 	{
 		this.map = inputHandler.model.map;
 		this.selectedUnit = (Unit)args[0];
-		this.finalDestination = (Tile)args[1];
-		this.originalTile = (Tile)args[2];
+		this.originalTile = (Tile)args[1];
 
 		//Buncha if statements
 
@@ -44,14 +42,14 @@ public class UnitMenu extends BasicMenu
 
 		// Attack
 		tiles.clear();
-		finalDestination.getAttackable(selectedUnit.unitInfo.minRange, selectedUnit.unitInfo.maxRange, tiles);
+		selectedUnit.trueTile.getAttackable(selectedUnit.unitInfo.minRange, selectedUnit.unitInfo.maxRange, tiles);
 
 		for (Tile t : tiles)
 		{
 			t.highlight.add(Color.PINK);
 		}
 
-		if (this.selectedUnit.unitInfo.isDirect || originalTile.equals(finalDestination))
+		if (this.selectedUnit.unitInfo.isDirect || originalTile.equals(selectedUnit.trueTile))
 		{
 			for (Tile t : tiles)
 			{
@@ -79,8 +77,8 @@ public class UnitMenu extends BasicMenu
 					t.highlight.remove(Color.PINK);
 				}
 
-				selectedUnit.finalInstruction = UnitInstruction.WAIT;
-				inputHandler.pop();
+				selectedUnit.endTurn();
+				inputHandler.addState(Cursor.class, false, true);
 				break;
 			}
 			case ATTACK:
@@ -90,7 +88,7 @@ public class UnitMenu extends BasicMenu
 					t.highlight.remove(Color.PINK);
 				}
 
-				inputHandler.addState(AttackInputReceiver.class, true, false, selectedUnit, finalDestination, tiles);
+				inputHandler.addState(AttackInputReceiver.class, false, false, selectedUnit, tiles, originalTile);
 				break;
 			}
 		}
@@ -106,13 +104,15 @@ public class UnitMenu extends BasicMenu
 		}
 
 		// TODO: Make work
-		selectedUnit.tile = originalTile;
+		selectedUnit.trueTile.setUnit(null);
 		originalTile.setUnit(selectedUnit);
+		selectedUnit.tile = originalTile;
+		selectedUnit.trueTile = originalTile;
+
 		selectedUnit.instructionsList.clear();
 		selectedUnit.instructions = null;
-		finalDestination.setUnit(null);
 
-		((Cursor)inputHandler.getState(Cursor.class)).selectedUnit = selectedUnit;
+		((MoveUnit)inputHandler.getState(MoveUnit.class)).selectedUnit = selectedUnit;
 		selectedUnit.selected = true;
 
 		if (!selectedUnit.getRangeInfo().rangeCalcd) {selectedUnit.calculateMovement();}

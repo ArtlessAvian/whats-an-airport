@@ -7,7 +7,6 @@ import com.badlogic.gdx.math.Vector3;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 
 class InputHandler implements InputProcessor
@@ -70,6 +69,7 @@ class InputHandler implements InputProcessor
 		if (clear)
 		{
 			receivers.clear();
+			receiversClass.clear();
 		}
 		else if (pop)
 		{
@@ -100,7 +100,7 @@ class InputHandler implements InputProcessor
 
 	public InputReceiver getTop()
 	{
-		return receivers.get(receivers.size()-1);
+		return receivers.get(receivers.size() - 1);
 	}
 
 	public void update()

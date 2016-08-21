@@ -10,7 +10,6 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.Array;
 
 import java.util.Iterator;
 
@@ -40,7 +39,6 @@ class BattleView
 	float screenTileHeight = 12;
 	final float tileSize = 64;
 	public int debuggery;
-
 
 	public BattleView(BattleModel battleModel)
 	{
@@ -154,7 +152,7 @@ class BattleView
 		}
 
 		this.drawUnits();
-		if (topClass.equals(Cursor.class))
+		if (topClass.equals(MoveUnit.class))
 		{
 			this.drawPath(topObject);
 		}
@@ -296,12 +294,12 @@ class BattleView
 
 	private void drawPath(InputReceiver topObject)
 	{
-		if (((Cursor)topObject).selectedUnit != null)
+		if (((MoveUnit)topObject).selectedUnit != null)
 		{
-			path.setPosition(((Cursor)topObject).selectedUnit.tile.x * tileSize, ((Cursor)topObject).selectedUnit.tile.y * tileSize);
-			if (!((Cursor)topObject).instructions.isEmpty())
+			path.setPosition(((MoveUnit)topObject).selectedUnit.tile.x * tileSize, ((MoveUnit)topObject).selectedUnit.tile.y * tileSize);
+			if (!((MoveUnit)topObject).instructions.isEmpty())
 			{
-				Iterator<UnitInstruction> iter = ((Cursor)topObject).instructions.iterator();
+				Iterator<UnitInstruction> iter = ((MoveUnit)topObject).instructions.iterator();
 				UnitInstruction last = iter.next();
 				while (iter.hasNext())
 				{
@@ -386,6 +384,9 @@ class BattleView
 
 				path.draw(batch);
 			}
+			box.setSize(tileSize, tileSize);
+			box.setPosition(((MoveUnit)topObject).x * tileSize, ((MoveUnit)topObject).y * tileSize);
+			box.draw(batch);
 		}
 	}
 
@@ -469,7 +470,7 @@ class BattleView
 
 	private void drawMenu(InputReceiver topObject)
 	{
-		bitmapFont.setColor(1,1,1,1);
+		bitmapFont.setColor(1, 1, 1, 1);
 
 		BasicMenu activeMenu = (BasicMenu)topObject;
 

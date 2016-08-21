@@ -15,8 +15,7 @@ public class MovingUnitWait extends InputReceiver
 	public void reset(Object[] args)
 	{
 		selectedUnit = (Unit)args[0];
-		finalDestination = (Tile)args[1];
-		originalTile = (Tile)args[2];
+		originalTile = (Tile)args[1];
 	}
 
 	@Override
@@ -28,63 +27,63 @@ public class MovingUnitWait extends InputReceiver
 	@Override
 	public boolean up()
 	{
-		return false;
+		return true;
 	}
 
 	@Override
 	public boolean down()
 	{
-		return false;
+		return true;
 	}
 
 	@Override
 	public boolean left()
 	{
-		return false;
+		return true;
 	}
 
 	@Override
 	public boolean right()
 	{
-		return false;
+		return true;
 	}
 
 	@Override
 	public boolean select()
 	{
-		return false;
+		return true;
 	}
 
 	@Override
 	public boolean cancel()
 	{
-		return false;
+		return true;
 	}
 
 	@Override
 	public boolean touchDown(int screenX, int screenY, float tileX, float tileY)
 	{
-		return false;
+		return true;
 	}
 
 	@Override
 	public boolean touchUp(int screenX, int screenY, float tileX, float tileY)
 	{
-		return false;
+		return true;
 	}
 
 	@Override
 	public boolean touchDragged(int screenX, int screenY, float tileX, float tileY)
 	{
-		return false;
+		return true;
 	}
 
 	@Override
 	public boolean update()
 	{
-		if (selectedUnit.tile == finalDestination)
+		if (!selectedUnit.isAnimating)
 		{
-			inputHandler.addState(UnitMenu.class, true, false, selectedUnit, finalDestination, originalTile);
+			inputHandler.addState(UnitMenu.class, true, false, selectedUnit, originalTile);
 		}
 		return true;
 	}

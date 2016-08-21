@@ -8,6 +8,7 @@ public class AttackInputReceiver extends InputReceiver
 	Unit selectedUnit;
 	float[] grading;
 	final ArrayList<Tile> tiles;
+	Tile originalTile;
 	Tile current;
 
 	public AttackInputReceiver(InputHandler inputHandler)
@@ -93,9 +94,9 @@ public class AttackInputReceiver extends InputReceiver
 	public void reset(Object[] args)
 	{
 		this.selectedUnit = (Unit)args[0];
-		Tile finalDestination = (Tile)args[1];
 		this.tiles.clear();
-		this.tiles.addAll((ArrayList<Tile>)args[2]);
+		this.tiles.addAll((ArrayList<Tile>)args[1]);
+		this.originalTile = (Tile)args[2];
 
 		// Units only
 
@@ -118,7 +119,7 @@ public class AttackInputReceiver extends InputReceiver
 		for (int i = 0; i < tiles.size(); i++)
 		{
 			Tile t = tiles.get(i);
-			grading[i] = Math.abs(t.x - finalDestination.x) + Math.abs(t.y - finalDestination.y);
+			grading[i] = Math.abs(t.x - selectedUnit.trueTile.x) + Math.abs(t.y - selectedUnit.trueTile.y);
 		}
 
 		int id = -1;
@@ -170,15 +171,15 @@ public class AttackInputReceiver extends InputReceiver
 	public boolean select()
 	{
 		selectedUnit.attack(current.getUnit());
-		selectedUnit.finalInstruction = UnitInstruction.WAIT;
-		super.inputHandler.pop();
+		selectedUnit.endTurn();
+		super.inputHandler.addState(Cursor.class, false, true);
 		return true;
 	}
 
 	@Override
 	public boolean cancel()
 	{
-		inputHandler.addState(UnitMenu.class, true, false);
+		inputHandler.addState(UnitMenu.class, true, false, selectedUnit, originalTile);
 
 		return true;
 	}

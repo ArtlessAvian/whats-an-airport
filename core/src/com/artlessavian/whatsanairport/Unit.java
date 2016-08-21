@@ -8,13 +8,17 @@ class Unit
 {
 	final UnitInfo unitInfo;
 	final int owner;
-	Tile tile;
+
+	Tile trueTile; // logic
+	Tile tile; // visual
 	Tile lastTile;
 
 	private final RangeInfo rangeInfo;
 	int health = 10;
 	// TODO: Cancelling causes invalid movement from fuel costs ==> crash
 	int fuel = 30;
+
+	boolean isAnimating = false;
 
 	public RangeInfo getRangeInfo()
 	{
@@ -29,7 +33,6 @@ class Unit
 	public boolean selected;
 
 	ListIterator<UnitInstruction> instructions;
-	UnitInstruction finalInstruction;
 	final ArrayList<UnitInstruction> instructionsList;
 
 	float accumulator;
@@ -37,6 +40,7 @@ class Unit
 	public Unit(UnitInfo info, Tile tile, int owner)
 	{
 		this.unitInfo = info;
+		this.trueTile = tile;
 		this.tile = tile;
 		this.lastTile = tile;
 		this.owner = owner;
@@ -44,7 +48,6 @@ class Unit
 		this.rangeInfo = new RangeInfo(this);
 
 		this.selected = false;
-		this.finalInstruction = null;
 		this.instructionsList = new ArrayList<UnitInstruction>();
 		this.accumulator = 0;
 	}
@@ -59,8 +62,13 @@ class Unit
 		rangeInfo.calculateMovement();
 	}
 
-	void receiveInstructions(LinkedList<UnitInstruction> received, Integer movementCost)
+	void receiveInstructions(LinkedList<UnitInstruction> received, Integer movementCost, Tile finalDestination)
 	{
+		isAnimating = true;
+		trueTile.setUnit(null);
+		trueTile = finalDestination;
+		finalDestination.setUnit(this);
+
 		fuel -= movementCost;
 
 		instructionsList.clear();
@@ -93,29 +101,7 @@ class Unit
 		}
 		else
 		{
-			if (finalInstruction != null)
-			{
-				switch (finalInstruction)
-				{
-					case WAIT:
-					{
-						done = true;
-						finalInstruction = null;
-
-						this.lastTile.setUnit(null);
-						this.tile.setUnit(this);
-						this.lastTile = this.tile;
-
-						this.instructions = null;
-						break;
-					}
-					case ATTACK:
-					{
-
-						break;
-					}
-				}
-			}
+			isAnimating = false;
 		}
 	}
 
@@ -128,15 +114,24 @@ class Unit
 		}
 		if (other.unitInfo.isDirect)
 		{
-			for (Tile t : other.tile.neighbors)
+			for (Tile t : other.trueTile.neighbors)
 			{
-				if (t != null && t.equals(this.tile))
+				if (t != null && t.equals(this.trueTile))
 				{
 					other.counterAttack(this);
 					break;
 				}
 			}
 		}
+
+		endTurn();
+	}
+
+	public void endTurn()
+	{
+		done = true;
+
+		this.instructions = null;
 	}
 
 	public void counterAttack(Unit other)
@@ -149,12 +144,12 @@ class Unit
 	{
 		if (this.health <= 0)
 		{
-			this.tile.map.units.remove(this);
-			this.tile.setUnit(null);
+			this.trueTile.map.units.remove(this);
+			this.trueTile.setUnit(null);
 
-			this.tile.map.checkRout(this.owner);
+			this.trueTile.map.checkRout(this.owner);
 
-			this.tile = null;
+			this.trueTile = null;
 			return true;
 		}
 		return false;

@@ -56,7 +56,6 @@ class Tile
 
 	public void setUnit(Unit newUnit)
 	{
-		//TODO: Concurrent Modification Exception????
 		for (Unit u : hasRangeHere)
 		{
 			if (!u.equals(newUnit))
