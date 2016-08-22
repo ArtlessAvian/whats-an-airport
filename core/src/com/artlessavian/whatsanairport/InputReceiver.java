@@ -1,8 +1,14 @@
 package com.artlessavian.whatsanairport;
 
+import java.util.ArrayList;
+
 abstract class InputReceiver
 {
 	protected InputHandler inputHandler;
+
+	boolean hasFocus = false;
+	float focusX = 0;
+	float focusY = 0;
 
 	public InputReceiver(InputHandler inputHandler)
 	{

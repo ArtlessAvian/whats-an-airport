@@ -10,6 +10,7 @@ public class Cursor extends InputReceiver
 	public Cursor(InputHandler inputHandler)
 	{
 		super(inputHandler);
+		hasFocus = true;
 	}
 
 	@Override
@@ -30,6 +31,7 @@ public class Cursor extends InputReceiver
 		if (y < map.height - 1)
 		{
 			y++;
+			focusY = y + 0.5f;
 		}
 		return true;
 	}
@@ -40,6 +42,7 @@ public class Cursor extends InputReceiver
 		if (y > 0)
 		{
 			y--;
+			focusY = y + 0.5f;
 		}
 		return true;
 	}
@@ -50,6 +53,7 @@ public class Cursor extends InputReceiver
 		if (x > 0)
 		{
 			x--;
+			focusX = x + 0.5f;
 		}
 		return true;
 	}
@@ -60,6 +64,7 @@ public class Cursor extends InputReceiver
 		if (x < map.width - 1)
 		{
 			x++;
+			focusX = x + 0.5f;
 		}
 		return true;
 	}
@@ -72,7 +77,7 @@ public class Cursor extends InputReceiver
 		{
 			if (cursored.owner == inputHandler.model.turnHandler.turn && !cursored.done)
 			{
-				inputHandler.addState(MoveUnit.class, false, false, cursored);
+				inputHandler.addState(MoveUnit.class, false, false, cursored, cursored.trueTile);
 			}
 		}
 		else

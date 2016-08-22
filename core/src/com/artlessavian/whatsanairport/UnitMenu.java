@@ -112,23 +112,6 @@ public class UnitMenu extends BasicMenu
 		selectedUnit.instructionsList.clear();
 		selectedUnit.instructions = null;
 
-		((MoveUnit)inputHandler.getState(MoveUnit.class)).selectedUnit = selectedUnit;
-		selectedUnit.selected = true;
-
-		if (!selectedUnit.getRangeInfo().rangeCalcd) {selectedUnit.calculateMovement();}
-
-		if (selectedUnit.unitInfo.isDirect)
-		{
-			for (Tile t : selectedUnit.getRangeInfo().attackable)
-			{
-				t.highlight.add(Color.RED);
-			}
-		}
-		for (Tile t : selectedUnit.getRangeInfo().movable)
-		{
-			t.highlight.add(Color.BLUE);
-		}
-
 		inputHandler.pop();
 		return true;
 	}

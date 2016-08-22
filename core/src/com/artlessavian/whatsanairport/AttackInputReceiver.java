@@ -15,6 +15,8 @@ public class AttackInputReceiver extends InputReceiver
 	{
 		super(inputHandler);
 		this.tiles = new ArrayList<Tile>();
+
+		hasFocus = true;
 	}
 
 	private void gradeAndFind(boolean vertical, boolean flip)
@@ -88,6 +90,9 @@ public class AttackInputReceiver extends InputReceiver
 			}
 		}
 		current = tiles.get(id);
+
+		focusX = current.x;
+		focusY = current.y;
 	}
 
 	@Override
@@ -179,7 +184,7 @@ public class AttackInputReceiver extends InputReceiver
 	@Override
 	public boolean cancel()
 	{
-		inputHandler.addState(UnitMenu.class, true, false, selectedUnit, originalTile);
+		inputHandler.pop();
 
 		return true;
 	}

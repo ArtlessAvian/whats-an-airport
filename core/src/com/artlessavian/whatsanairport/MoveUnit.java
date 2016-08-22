@@ -16,11 +16,14 @@ public class MoveUnit extends InputReceiver
 	int movementCost;
 
 	Unit selectedUnit;
+	private Tile originalTile;
 
 	public MoveUnit(InputHandler inputHandler)
 	{
 		super(inputHandler);
 		instructions = new LinkedList<UnitInstruction>();
+
+		hasFocus = true;
 	}
 
 	@Override
@@ -29,24 +32,12 @@ public class MoveUnit extends InputReceiver
 		map = inputHandler.model.map;
 
 		selectedUnit = (Unit)args[0];
+		originalTile = (Tile)args[1];
 
 		reactivate();
 
 		selectedUnit.selected = true;
 
-		if (!selectedUnit.getRangeInfo().rangeCalcd) {selectedUnit.calculateMovement();}
-
-		if (selectedUnit.unitInfo.isDirect)
-		{
-			for (Tile t : selectedUnit.getRangeInfo().attackable)
-			{
-				t.highlight.add(Color.RED);
-			}
-		}
-		for (Tile t : selectedUnit.getRangeInfo().movable)
-		{
-			t.highlight.add(Color.BLUE);
-		}
 	}
 
 	@Override
@@ -59,6 +50,18 @@ public class MoveUnit extends InputReceiver
 
 		lastTileCursored = 0;
 		movementCost = 0;
+
+		if (selectedUnit.unitInfo.isDirect)
+		{
+			for (Tile t : selectedUnit.getRangeInfo().attackable)
+			{
+				t.highlight.add(Color.RED);
+			}
+		}
+		for (Tile t : selectedUnit.getRangeInfo().movable)
+		{
+			t.highlight.add(Color.BLUE);
+		}
 	}
 
 	private void rePath(boolean attackMove)
@@ -158,6 +161,9 @@ public class MoveUnit extends InputReceiver
 		}
 
 		lastTileCursored = thisTileCursored;
+
+		focusX = x + 0.5f;
+		focusY = y + 0.5f;
 	}
 
 	@Override
@@ -231,8 +237,8 @@ public class MoveUnit extends InputReceiver
 			finalDestination = finalDestination.neighbors[ui.id];
 		}
 
-		inputHandler.addState(MovingUnitWait.class, false, false, selectedUnit, selectedUnit.trueTile);
-		selectedUnit.receiveInstructions(instructions, movementCost, selectedUnit.trueTile);
+		inputHandler.addState(MovingUnitWait.class, false, false, selectedUnit, originalTile);
+		selectedUnit.receiveInstructions(instructions, movementCost, finalDestination);
 
 		return true;
 	}

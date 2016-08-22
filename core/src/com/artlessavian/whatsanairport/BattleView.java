@@ -32,6 +32,8 @@ class BattleView
 
 	final OrthographicCamera worldSpace;
 	final Vector3 trueCamPos;
+	boolean fixX;
+	boolean fixY;
 
 	float textboxThingy = 0;
 
@@ -80,6 +82,7 @@ class BattleView
 	public void focus(float tileLeeway, float tileX, float tileY)
 	{
 		tileLeeway *= tileSize;
+
 		tileX *= tileSize;
 		tileY *= tileSize;
 
@@ -94,30 +97,28 @@ class BattleView
 		worldSpace.project(helper);
 		worldSpace.position.set(tempX, tempY, 0);
 
-		if (worldSpace.viewportWidth >= model.map.width * tileSize)
+		if (!fixX)
 		{
-			trueCamPos.x = model.map.width * tileSize / 2f;
-		}
-		else if (helper.x < tileLeeway)
-		{
-			trueCamPos.x -= tileSize;
-		}
-		else if (helper.x > Gdx.graphics.getWidth() - tileLeeway)
-		{
-			trueCamPos.x += tileSize;
+			if (helper.x < tileLeeway)
+			{
+				trueCamPos.x -= tileSize;
+			}
+			else if (helper.x > Gdx.graphics.getWidth() - tileLeeway)
+			{
+				trueCamPos.x += tileSize;
+			}
 		}
 
-		if (screenTileHeight >= model.map.height)
+		if (!fixY)
 		{
-			trueCamPos.y = model.map.height * tileSize / 2f;
-		}
-		else if (helper.y < tileLeeway)
-		{
-			trueCamPos.y -= tileSize;
-		}
-		else if (helper.y > Gdx.graphics.getHeight() - tileLeeway)
-		{
-			trueCamPos.y += tileSize;
+			if (helper.y < tileLeeway)
+			{
+				trueCamPos.y -= tileSize;
+			}
+			else if (helper.y > Gdx.graphics.getHeight() - tileLeeway)
+			{
+				trueCamPos.y += tileSize;
+			}
 		}
 	}
 
@@ -129,13 +130,9 @@ class BattleView
 		Class topClass = model.inputHandler.getTop().getClass();
 		InputReceiver topObject = model.inputHandler.getTop();
 
-		if (topClass.equals(Cursor.class))
+		if (topObject.hasFocus)
 		{
-			focus(3, ((Cursor)topObject).x, ((Cursor)topObject).y);
-		}
-		else if (topObject.equals(AttackInputReceiver.class))
-		{
-			focus(1, ((AttackInputReceiver)topObject).current.x, ((AttackInputReceiver)topObject).current.y);
+			focus(3, topObject.focusX, topObject.focusY);
 		}
 
 		worldSpace.position.lerp(trueCamPos, 0.05f);
@@ -593,5 +590,25 @@ class BattleView
 
 		bitmapFont.getData().setScale(32f / 12f);
 		BasicMenu.xSize = 0;
+
+		if (worldSpace.viewportWidth >= model.map.width * tileSize)
+		{
+			trueCamPos.x = model.map.width * tileSize / 2f;
+			fixX = true;
+		}
+		else
+		{
+			fixX = false;
+		}
+
+		if (screenTileHeight >= model.map.height)
+		{
+			trueCamPos.y = model.map.height * tileSize / 2f;
+			fixY = true;
+		}
+		else
+		{
+			fixY = false;
+		}
 	}
 }
