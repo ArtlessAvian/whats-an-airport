@@ -6,17 +6,15 @@ import java.util.ArrayList;
 
 public class UnitMenu extends BasicMenu
 {
-	private final Map map;
+	private Map map;
 	private final ArrayList<Tile> tiles;
 
 	private Unit selectedUnit;
-	private Tile finalDestination;
 	private Tile originalTile;
 
-	public UnitMenu(InputHandler inputHandler, Map map)
+	public UnitMenu(InputHandler inputHandler)
 	{
 		super(inputHandler);
-		this.map = map;
 		this.tiles = new ArrayList<Tile>();
 
 		xPadding = 64;
@@ -24,11 +22,17 @@ public class UnitMenu extends BasicMenu
 		position = 0;
 	}
 
-	public void initLogic(Object... objects)
+	@Override
+	void reactivate()
 	{
-		this.selectedUnit = (Unit)objects[0];
-		this.finalDestination = (Tile)objects[1];
-		this.originalTile = (Tile)objects[2];
+
+	}
+
+	public void initLogic(Object... args)
+	{
+		this.map = inputHandler.model.map;
+		this.selectedUnit = (Unit)args[0];
+		this.originalTile = (Tile)args[1];
 
 		//Buncha if statements
 
@@ -38,14 +42,14 @@ public class UnitMenu extends BasicMenu
 
 		// Attack
 		tiles.clear();
-		finalDestination.getAttackable(selectedUnit.unitInfo.minRange, selectedUnit.unitInfo.maxRange, tiles);
+		selectedUnit.trueTile.getAttackable(selectedUnit.unitInfo.minRange, selectedUnit.unitInfo.maxRange, tiles);
 
 		for (Tile t : tiles)
 		{
 			t.highlight.add(Color.PINK);
 		}
 
-		if (this.selectedUnit.unitInfo.isDirect || originalTile.equals(finalDestination))
+		if (this.selectedUnit.unitInfo.isDirect || originalTile.equals(selectedUnit.trueTile))
 		{
 			for (Tile t : tiles)
 			{
@@ -73,8 +77,8 @@ public class UnitMenu extends BasicMenu
 					t.highlight.remove(Color.PINK);
 				}
 
-				selectedUnit.finalInstruction = UnitInstruction.WAIT;
-				inputHandler.receivers.remove(this);
+				selectedUnit.endTurn();
+				inputHandler.addState(Cursor.class, false, true);
 				break;
 			}
 			case ATTACK:
@@ -84,10 +88,7 @@ public class UnitMenu extends BasicMenu
 					t.highlight.remove(Color.PINK);
 				}
 
-				inputHandler.receivers.add(inputHandler.attackInputReceiver);
-				inputHandler.attackInputReceiver.init(selectedUnit, finalDestination, tiles);
-
-				inputHandler.receivers.remove(this);
+				inputHandler.addState(AttackInputReceiver.class, false, false, selectedUnit, tiles, originalTile);
 				break;
 			}
 		}
@@ -103,30 +104,15 @@ public class UnitMenu extends BasicMenu
 		}
 
 		// TODO: Make work
-		selectedUnit.tile = originalTile;
+		selectedUnit.trueTile.setUnit(null);
 		originalTile.setUnit(selectedUnit);
+		selectedUnit.tile = originalTile;
+		selectedUnit.trueTile = originalTile;
+
 		selectedUnit.instructionsList.clear();
 		selectedUnit.instructions = null;
-		finalDestination.setUnit(null);
 
-		inputHandler.cursor.selectedUnit = selectedUnit;
-		selectedUnit.selected = true;
-
-		if (!selectedUnit.getRangeInfo().rangeCalcd) {selectedUnit.calculateMovement();}
-
-		if (selectedUnit.unitInfo.isDirect)
-		{
-			for (Tile t : selectedUnit.getRangeInfo().attackable)
-			{
-				t.highlight.add(Color.RED);
-			}
-		}
-		for (Tile t : selectedUnit.getRangeInfo().movable)
-		{
-			t.highlight.add(Color.BLUE);
-		}
-
-		inputHandler.receivers.remove(this);
+		inputHandler.pop();
 		return true;
 	}
 }

@@ -5,20 +5,18 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.math.Vector3;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 class InputHandler implements InputProcessor
 {
 	final BattleModel model;
 
-	final ArrayList<InputReceiver> receivers; // Things to send inputs to
+	private final ArrayList<InputReceiver> receivers; // Things to send inputs to
+	final ArrayList<Class> receiversClass; // funsies
 
-	// Thing
-	Cursor cursor;
-	ArrayList<BasicMenu> menus;
-	AttackInputReceiver attackInputReceiver;
-	NewDayShower newDayShower;
-	Textbox textbox;
+	private HashMap<Class<? extends InputReceiver>, InputReceiver> hashMap;
 
 	private int framesHeld = 0;
 	private int lastDirectional = -1;
@@ -27,6 +25,82 @@ class InputHandler implements InputProcessor
 	{
 		this.model = model;
 		this.receivers = new ArrayList<InputReceiver>();
+		this.receiversClass = new ArrayList<Class>();
+		hashMap = new HashMap<Class<? extends InputReceiver>, InputReceiver>();
+	}
+
+	public InputReceiver getState(Class<? extends InputReceiver> classeroni)
+	{
+		InputReceiver temp = hashMap.get(classeroni);
+
+		if (temp == null)
+		{
+			try
+			{
+				temp = classeroni.getConstructor(InputHandler.class).newInstance(this);
+				hashMap.put(classeroni, temp);
+			}
+			catch (NoSuchMethodException e)
+			{
+				e.printStackTrace();
+			}
+			catch (IllegalAccessException e)
+			{
+				e.printStackTrace();
+			}
+			catch (InstantiationException e)
+			{
+				e.printStackTrace();
+			}
+			catch (InvocationTargetException e)
+			{
+				e.printStackTrace();
+			}
+		}
+
+		return temp;
+	}
+
+	public void addState(Class<? extends InputReceiver> classeroni, boolean pop, boolean clear, Object... args)
+	{
+		InputReceiver temp = getState(classeroni);
+		InputReceiver previous = null;
+
+		if (clear)
+		{
+			receivers.clear();
+			receiversClass.clear();
+		}
+		else if (pop)
+		{
+			receivers.remove(receivers.size() - 1);
+			receiversClass.remove(receiversClass.size() - 1);
+		}
+
+		temp.reset(args);
+		receivers.add(temp);
+		receiversClass.add(classeroni);
+
+		for (Class c : receiversClass)
+		{
+			System.out.print(c.getSimpleName() + " < ");
+		}
+		System.out.println();
+	}
+
+	public void pop()
+	{
+		if (receivers.size() > 0)
+		{
+			receivers.remove(receivers.size() - 1);
+			receiversClass.remove(receiversClass.size() - 1);
+			receivers.get(receivers.size() - 1).reactivate();
+		}
+	}
+
+	public InputReceiver getTop()
+	{
+		return receivers.get(receivers.size() - 1);
 	}
 
 	public void update()

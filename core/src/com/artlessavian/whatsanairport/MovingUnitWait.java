@@ -1,125 +1,89 @@
 package com.artlessavian.whatsanairport;
 
-public class NewDayShower extends InputReceiver
+public class MovingUnitWait extends InputReceiver
 {
+	private Unit selectedUnit;
+	private Tile finalDestination;
+	private Tile originalTile;
 
-	private Map map;
-
-	final int framesOpen = 180;
-
-	private boolean impatient;
-	int time;
-	private boolean alreadyFinished;
-
-	public NewDayShower(InputHandler inputHandler)
+	public MovingUnitWait(InputHandler inputHandler)
 	{
 		super(inputHandler);
-
-		time = 0;
-		impatient = false;
-		alreadyFinished = false;
 	}
 
 	@Override
 	public void reset(Object[] args)
 	{
-		this.map = inputHandler.model.map;
+		selectedUnit = (Unit)args[0];
+		originalTile = (Tile)args[1];
 	}
 
 	@Override
 	void reactivate()
 	{
-
+		inputHandler.pop();
 	}
 
-	// Prevent inputs from going down the stack
 	@Override
 	public boolean up()
 	{
-		impatient = true;
 		return true;
 	}
 
 	@Override
 	public boolean down()
 	{
-		impatient = true;
 		return true;
 	}
 
 	@Override
 	public boolean left()
 	{
-		impatient = true;
 		return true;
 	}
 
 	@Override
 	public boolean right()
 	{
-		impatient = true;
 		return true;
 	}
 
 	@Override
 	public boolean select()
 	{
-		impatient = true;
 		return true;
 	}
 
 	@Override
 	public boolean cancel()
 	{
-		impatient = true;
 		return true;
 	}
 
 	@Override
 	public boolean touchDown(int screenX, int screenY, float tileX, float tileY)
 	{
-		impatient = true;
 		return true;
 	}
 
 	@Override
 	public boolean touchUp(int screenX, int screenY, float tileX, float tileY)
 	{
-		impatient = true;
 		return true;
 	}
 
 	@Override
 	public boolean touchDragged(int screenX, int screenY, float tileX, float tileY)
 	{
-		impatient = true;
 		return true;
 	}
 
 	@Override
 	public boolean update()
 	{
-		if (map.visuallyFinished())
+		if (!selectedUnit.isAnimating)
 		{
-			if (!alreadyFinished)
-			{
-				inputHandler.model.turnHandler.endTurn();
-				alreadyFinished = true;
-			}
-
-			time++;
-			if (impatient)
-			{
-				time += 3;
-			}
-
-			if (time > framesOpen)
-			{
-				inputHandler.addState(Cursor.class, false, true);
-				time = 0;
-				impatient = false;
-				alreadyFinished = false;
-			}
+			inputHandler.addState(UnitMenu.class, true, false, selectedUnit, originalTile);
 		}
 		return true;
 	}

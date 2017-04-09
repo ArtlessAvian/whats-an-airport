@@ -1,10 +1,9 @@
 package com.artlessavian.whatsanairport;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.files.FileHandle;
-
-import java.util.ArrayList;
 
 class BattleModel implements Screen
 {
@@ -28,15 +27,7 @@ class BattleModel implements Screen
 		String text = file.readString();
 		this.map = new Map(text);
 
-		this.inputHandler.cursor = new Cursor(this.inputHandler, map);
-		this.inputHandler.menus = new ArrayList<BasicMenu>();
-		this.inputHandler.menus.add(new UnitMenu(this.inputHandler, map));
-		this.inputHandler.menus.add(new DayMenu(this.inputHandler));
-		this.inputHandler.attackInputReceiver = new AttackInputReceiver(this.inputHandler);
-		this.inputHandler.newDayShower = new NewDayShower(this.inputHandler, map);
-		this.inputHandler.textbox = new Textbox(this.inputHandler);
-
-		this.inputHandler.receivers.add(this.inputHandler.cursor);
+		this.inputHandler.addState(Cursor.class, false, false);
 
 		this.turnHandler = new TurnHandler(this.map);
 
@@ -51,7 +42,7 @@ class BattleModel implements Screen
 		this.map.makeUnit(UnitInfo.MECH, 0, 6, 4);
 		this.map.makeUnit(UnitInfo.HAX, 0, 0, 0);
 
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < 9; i++)
 		{
 			this.map.makeUnit(UnitInfo.SOLDIER, 1, (int)(Math.random() * map.width), (int)(Math.random() * map.height));
 			this.map.makeUnit(UnitInfo.MECH, 1, (int)(Math.random() * map.width), (int)(Math.random() * map.height));
@@ -67,9 +58,30 @@ class BattleModel implements Screen
 
 	}
 
+	static boolean lol;
+
 	@Override
 	public void render(float delta)
 	{
+		if (Gdx.input.isKeyJustPressed(Input.Keys.BACKSLASH))
+		{
+			lol = !lol;
+		}
+
+		if (lol)
+		{
+			int deltaY = (int)(Math.random() * 9 - 4);
+			for (int i = 0; i < deltaY; i++) {this.inputHandler.up();}
+			for (int i = 0; i > deltaY; i--) {this.inputHandler.down();}
+
+			int deltaX = (int)(Math.random() * 9 - 4);
+			for (int i = 0; i < deltaX; i++) {this.inputHandler.right();}
+			for (int i = 0; i > deltaX; i--) {this.inputHandler.left();}
+
+			if (Math.random() < 0.3f) {this.inputHandler.keyDown(Input.Keys.J);}
+			if (Math.random() < 0.1f) {this.inputHandler.keyDown(Input.Keys.N);}
+		}
+
 		this.inputHandler.update();
 
 		this.map.update();

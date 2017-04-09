@@ -1,24 +1,41 @@
 package com.artlessavian.whatsanairport;
 
-interface InputReceiver
+import java.util.ArrayList;
+
+abstract class InputReceiver
 {
-	boolean up();
+	protected InputHandler inputHandler;
 
-	boolean down();
+	boolean hasFocus = false;
+	float focusX = 0;
+	float focusY = 0;
 
-	boolean left();
+	public InputReceiver(InputHandler inputHandler)
+	{
+		this.inputHandler = inputHandler;
+	}
 
-	boolean right();
+	abstract void reset(Object[] args);
 
-	boolean select();
+	abstract void reactivate();
 
-	boolean cancel();
+	abstract boolean up();
 
-	boolean touchDown(int screenX, int screenY, float tileX, float tileY);
+	abstract boolean down();
 
-	boolean touchUp(int screenX, int screenY, float tileX, float tileY);
+	abstract boolean left();
 
-	boolean touchDragged(int screenX, int screenY, float tileX, float tileY);
+	abstract boolean right();
 
-	boolean update();
+	abstract boolean select();
+
+	abstract boolean cancel();
+
+	abstract boolean touchDown(int screenX, int screenY, float tileX, float tileY);
+
+	abstract boolean touchUp(int screenX, int screenY, float tileX, float tileY);
+
+	abstract boolean touchDragged(int screenX, int screenY, float tileX, float tileY);
+
+	abstract boolean update();
 }

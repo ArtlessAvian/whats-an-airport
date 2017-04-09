@@ -11,6 +11,12 @@ public class DayMenu extends BasicMenu
 		position = 0;
 	}
 
+	@Override
+	void reactivate()
+	{
+
+	}
+
 	public void initLogic(Object... objects)
 	{
 		//Buncha if statements
@@ -30,15 +36,12 @@ public class DayMenu extends BasicMenu
 		{
 			case ENDTURN:
 			{
-				inputHandler.receivers.add(inputHandler.newDayShower);
-				inputHandler.receivers.remove(this);
+				inputHandler.addState(NewDayShower.class, true, false);
 				break;
 			}
 			case DEBUGFILLER:
 			{
-				inputHandler.textbox.init();
-				inputHandler.receivers.add(inputHandler.textbox);
-				inputHandler.receivers.remove(this);
+//				inputHandler.addState(Textbox.class, true, false);
 			}
 		}
 		return true;
@@ -47,7 +50,7 @@ public class DayMenu extends BasicMenu
 	@Override
 	public boolean cancel()
 	{
-		inputHandler.receivers.remove(this);
+		inputHandler.pop();
 		return true;
 	}
 }

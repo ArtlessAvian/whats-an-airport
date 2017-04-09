@@ -10,7 +10,6 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.Array;
 
 import java.util.Iterator;
 
@@ -33,6 +32,8 @@ class BattleView
 
 	final OrthographicCamera worldSpace;
 	final Vector3 trueCamPos;
+	boolean fixX;
+	boolean fixY;
 
 	float textboxThingy = 0;
 
@@ -40,7 +41,6 @@ class BattleView
 	float screenTileHeight = 12;
 	final float tileSize = 64;
 	public int debuggery;
-
 
 	public BattleView(BattleModel battleModel)
 	{
@@ -82,6 +82,7 @@ class BattleView
 	public void focus(float tileLeeway, float tileX, float tileY)
 	{
 		tileLeeway *= tileSize;
+
 		tileX *= tileSize;
 		tileY *= tileSize;
 
@@ -96,30 +97,28 @@ class BattleView
 		worldSpace.project(helper);
 		worldSpace.position.set(tempX, tempY, 0);
 
-		if (worldSpace.viewportWidth >= model.map.width * tileSize)
+		if (!fixX)
 		{
-			trueCamPos.x = model.map.width * tileSize / 2f;
-		}
-		else if (helper.x < tileLeeway)
-		{
-			trueCamPos.x -= tileSize;
-		}
-		else if (helper.x > Gdx.graphics.getWidth() - tileLeeway)
-		{
-			trueCamPos.x += tileSize;
+			if (helper.x < tileLeeway)
+			{
+				trueCamPos.x -= tileSize;
+			}
+			else if (helper.x > Gdx.graphics.getWidth() - tileLeeway)
+			{
+				trueCamPos.x += tileSize;
+			}
 		}
 
-		if (screenTileHeight >= model.map.height)
+		if (!fixY)
 		{
-			trueCamPos.y = model.map.height * tileSize / 2f;
-		}
-		else if (helper.y < tileLeeway)
-		{
-			trueCamPos.y -= tileSize;
-		}
-		else if (helper.y > Gdx.graphics.getHeight() - tileLeeway)
-		{
-			trueCamPos.y += tileSize;
+			if (helper.y < tileLeeway)
+			{
+				trueCamPos.y -= tileSize;
+			}
+			else if (helper.y > Gdx.graphics.getHeight() - tileLeeway)
+			{
+				trueCamPos.y += tileSize;
+			}
 		}
 	}
 
@@ -128,15 +127,12 @@ class BattleView
 		Gdx.gl.glClearColor(0.1f, 0.0f, 0.1f, 1f);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-		Class temp = model.inputHandler.receivers.get(model.inputHandler.receivers.size() - 1).getClass();
+		Class topClass = model.inputHandler.getTop().getClass();
+		InputReceiver topObject = model.inputHandler.getTop();
 
-		if (temp.equals(Cursor.class))
+		if (topObject.hasFocus)
 		{
-			focus(3, model.inputHandler.cursor.x, model.inputHandler.cursor.y);
-		}
-		else if (temp.equals(AttackInputReceiver.class))
-		{
-			focus(1, model.inputHandler.attackInputReceiver.current.x, model.inputHandler.attackInputReceiver.current.y);
+			focus(3, topObject.focusX, topObject.focusY);
 		}
 
 		worldSpace.position.lerp(trueCamPos, 0.05f);
@@ -147,39 +143,39 @@ class BattleView
 
 		this.drawMap();
 
-		if (temp.equals(AttackInputReceiver.class))
+		if (topClass.equals(AttackInputReceiver.class))
 		{
-			this.drawAttack();
+			this.drawAttack(topObject);
 		}
 
 		this.drawUnits();
-		if (temp.equals(Cursor.class))
+		if (topClass.equals(MoveUnit.class))
 		{
-			this.drawPath();
+			this.drawPath(topObject);
 		}
 
 		this.drawHighlight();
 
-		if (temp.equals(Cursor.class))
+		if (topClass.equals(Cursor.class))
 		{
-			this.drawCursor();
+			this.drawCursor(topObject);
 		}
 
-		if (temp.getSuperclass().equals(BasicMenu.class))
+		if (topClass.getSuperclass().equals(BasicMenu.class))
 		{
-			this.drawMenu();
+			this.drawMenu(topObject);
 		}
 
-		this.drawTextbox(temp.equals(Textbox.class));
+		this.drawTextbox(topClass.equals(Textbox.class), topObject);
 
-		if (temp.equals(NewDayShower.class))
+		if (topClass.equals(NewDayShower.class))
 		{
-			this.drawNewDay();
+			this.drawNewDay(topObject);
 		}
 
 		if (debuggery % 2 == 1)
 		{
-			this.drawDebug();
+			this.drawDebug(topObject);
 		}
 
 		batch.end();
@@ -293,14 +289,14 @@ class BattleView
 		}
 	}
 
-	private void drawPath()
+	private void drawPath(InputReceiver topObject)
 	{
-		if (model.inputHandler.cursor.selectedUnit != null)
+		if (((MoveUnit)topObject).selectedUnit != null)
 		{
-			path.setPosition(model.inputHandler.cursor.selectedUnit.tile.x * tileSize, model.inputHandler.cursor.selectedUnit.tile.y * tileSize);
-			if (!model.inputHandler.cursor.instructions.isEmpty())
+			path.setPosition(((MoveUnit)topObject).selectedUnit.tile.x * tileSize, ((MoveUnit)topObject).selectedUnit.tile.y * tileSize);
+			if (!((MoveUnit)topObject).instructions.isEmpty())
 			{
-				Iterator<UnitInstruction> iter = model.inputHandler.cursor.instructions.iterator();
+				Iterator<UnitInstruction> iter = ((MoveUnit)topObject).instructions.iterator();
 				UnitInstruction last = iter.next();
 				while (iter.hasNext())
 				{
@@ -385,25 +381,28 @@ class BattleView
 
 				path.draw(batch);
 			}
+			box.setSize(tileSize, tileSize);
+			box.setPosition(((MoveUnit)topObject).x * tileSize, ((MoveUnit)topObject).y * tileSize);
+			box.draw(batch);
 		}
 	}
 
-	private void drawCursor()
+	private void drawCursor(InputReceiver topObject)
 	{
 		box.setSize(tileSize, tileSize);
-		box.setPosition(model.inputHandler.cursor.x * tileSize, model.inputHandler.cursor.y * tileSize);
+		box.setPosition(((Cursor)topObject).x * tileSize, ((Cursor)topObject).y * tileSize);
 		box.draw(batch);
 	}
 
-	public void drawAttack()
+	public void drawAttack(InputReceiver topObject)
 	{
 		white.setColor(Color.RED);
 		white.setSize(tileSize, tileSize);
-		for (int i = 0; i < model.inputHandler.attackInputReceiver.tiles.size(); i++)
+		for (int i = 0; i < ((AttackInputReceiver)topObject).tiles.size(); i++)
 		{
-			Tile t = model.inputHandler.attackInputReceiver.tiles.get(i);
+			Tile t = ((AttackInputReceiver)topObject).tiles.get(i);
 			white.setPosition(t.x * tileSize, t.y * tileSize);
-			if (t.equals(model.inputHandler.attackInputReceiver.current))
+			if (t.equals(((AttackInputReceiver)topObject).current))
 			{
 				white.draw(batch, 0.7f);
 			}
@@ -414,7 +413,7 @@ class BattleView
 
 			if ((debuggery / 4) % 2 == 1)
 			{
-				bitmapFont.draw(batch, model.inputHandler.attackInputReceiver.grading[i] + "", t.x * tileSize, t.y * tileSize - 35);
+				bitmapFont.draw(batch, ((AttackInputReceiver)topObject).grading[i] + "", t.x * tileSize, t.y * tileSize - 35);
 			}
 		}
 	}
@@ -466,11 +465,11 @@ class BattleView
 		}
 	}
 
-	private void drawMenu()
+	private void drawMenu(InputReceiver topObject)
 	{
-		bitmapFont.setColor(1,1,1,1);
+		bitmapFont.setColor(1, 1, 1, 1);
 
-		BasicMenu activeMenu = (BasicMenu)model.inputHandler.receivers.get(model.inputHandler.receivers.size() - 1);
+		BasicMenu activeMenu = (BasicMenu)topObject;
 
 		menuHelper(activeMenu);
 		options.setSize(activeMenu.xSize, bitmapFont.getLineHeight());
@@ -501,38 +500,38 @@ class BattleView
 		}
 	}
 
-	private void drawTextbox(boolean open)
+	private void drawTextbox(boolean open, InputReceiver topObject)
 	{
-		if (open)
-		{
-			textboxThingy = textboxThingy * 0.8f + 0.2f;
-			textboxThingy += 0.01;
-			if (textboxThingy > 1) {textboxThingy = 1;}
-		}
-		else
-		{
-			textboxThingy = textboxThingy * 0.8f;
-			textboxThingy -= 0.01;
-			if (textboxThingy < 0) {textboxThingy = 0;}
-		}
-		float top = bitmapFont.getLineHeight() * 3f * textboxThingy;
-
-		white.setColor(0.3f,0.3f,0.3f,1);
-
-		white.setSize(worldSpace.viewportWidth, bitmapFont.getLineHeight()*3);
-		white.setCenterX(worldSpace.position.x);
-		white.setY(worldSpace.position.y - worldSpace.viewportHeight/2f + top - white.getHeight());
-		white.draw(batch);
-
-		Textbox t = model.inputHandler.textbox;
-
-		bitmapFont.draw(batch, t.contents[t.line][t.thingy], 0, white.getY() + bitmapFont.getLineHeight() * 1.5f);
-		try
-		{
-			bitmapFont.draw(batch, t.contents[t.line][t.thingy - 1], 0, white.getY() + bitmapFont.getLineHeight() * 2.5f);
-		}
-		catch (ArrayIndexOutOfBoundsException e)
-		{}
+//		if (open)
+//		{
+//			textboxThingy = textboxThingy * 0.8f + 0.2f;
+//			textboxThingy += 0.01;
+//			if (textboxThingy > 1) {textboxThingy = 1;}
+//		}
+//		else
+//		{
+//			textboxThingy = textboxThingy * 0.8f;
+//			textboxThingy -= 0.01;
+//			if (textboxThingy < 0) {textboxThingy = 0;}
+//		}
+//		float top = bitmapFont.getLineHeight() * 3f * textboxThingy;
+//
+//		white.setColor(0.3f,0.3f,0.3f,1);
+//
+//		white.setSize(worldSpace.viewportWidth, bitmapFont.getLineHeight()*3);
+//		white.setCenterX(worldSpace.position.x);
+//		white.setY(worldSpace.position.y - worldSpace.viewportHeight/2f + top - white.getHeight());
+//		white.draw(batch);
+//
+//		Textbox t = (Textbox)model.inputHandler.getState(Textbox.class);
+//
+//		bitmapFont.draw(batch, t.contents[t.line][t.thingy], 0, white.getY() + bitmapFont.getLineHeight() * 1.5f);
+//		try
+//		{
+//			bitmapFont.draw(batch, t.contents[t.line][t.thingy - 1], 0, white.getY() + bitmapFont.getLineHeight() * 2.5f);
+//		}
+//		catch (ArrayIndexOutOfBoundsException e)
+//		{}
 	}
 
 	private float easingFunction(float t, float b, float c, float d)
@@ -542,9 +541,9 @@ class BattleView
 		return b + c * (4 * tc + -6 * ts + 3 * t);
 	}
 
-	private void drawNewDay()
+	private void drawNewDay(InputReceiver topObject)
 	{
-		float x = easingFunction(model.inputHandler.newDayShower.time, 0, 1, model.inputHandler.newDayShower.framesOpen);
+		float x = easingFunction(((NewDayShower)topObject).time, 0, 1, ((NewDayShower)topObject).framesOpen);
 		float y = worldSpace.position.y;
 
 		bitmapFont.setColor(1, 1, 1, 4 * (-x * x + x));
@@ -563,13 +562,17 @@ class BattleView
 		bitmapFont.draw(batch, "Day " + model.turnHandler.day, x - glyphLayout.width / 2f, y);
 	}
 
-	private void drawDebug()
+	private void drawDebug(InputReceiver topObject)
 	{
 		bitmapFont.setColor(1, 1, 1, 0.5f);
 
-		bitmapFont.draw(batch, model.inputHandler.cursor.x + " " + model.inputHandler.cursor.y, 5, 35);
+		bitmapFont.draw(batch, ((Cursor)model.inputHandler.getState(Cursor.class)).x + " " + ((Cursor)model.inputHandler.getState(Cursor.class)).y, 5, 35);
 		bitmapFont.draw(batch, model.turnHandler.day + " " + model.turnHandler.turn, 5, 70);
-		bitmapFont.draw(batch, model.inputHandler.receivers.get(model.inputHandler.receivers.size() - 1).getClass().getSimpleName(), 5, 105);
+
+		for (int i = 0; i < model.inputHandler.receiversClass.size(); i++)
+		{
+			bitmapFont.draw(batch, model.inputHandler.receiversClass.get(i).getSimpleName(), 5, 105 + 15 * i);
+		}
 
 		for (Unit unit : model.map.units)
 		{
@@ -586,10 +589,26 @@ class BattleView
 		worldSpace.update();
 
 		bitmapFont.getData().setScale(32f / 12f);
+		BasicMenu.xSize = 0;
 
-		if (model.inputHandler.receivers.get(model.inputHandler.receivers.size() - 1).getClass().getSuperclass().equals(BasicMenu.class))
+		if (worldSpace.viewportWidth >= model.map.width * tileSize)
 		{
-			((BasicMenu)model.inputHandler.receivers.get(model.inputHandler.receivers.size() - 1)).xSize = 0;
+			trueCamPos.x = model.map.width * tileSize / 2f;
+			fixX = true;
+		}
+		else
+		{
+			fixX = false;
+		}
+
+		if (screenTileHeight >= model.map.height)
+		{
+			trueCamPos.y = model.map.height * tileSize / 2f;
+			fixY = true;
+		}
+		else
+		{
+			fixY = false;
 		}
 	}
 }

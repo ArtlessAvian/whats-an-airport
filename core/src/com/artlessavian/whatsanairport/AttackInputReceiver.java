@@ -3,60 +3,20 @@ package com.artlessavian.whatsanairport;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class AttackInputReceiver implements InputReceiver
+public class AttackInputReceiver extends InputReceiver
 {
-	private final InputHandler inputHandler;
-
 	Unit selectedUnit;
 	float[] grading;
 	final ArrayList<Tile> tiles;
+	Tile originalTile;
 	Tile current;
 
 	public AttackInputReceiver(InputHandler inputHandler)
 	{
-		this.inputHandler = inputHandler;
+		super(inputHandler);
 		this.tiles = new ArrayList<Tile>();
-	}
 
-	public void init(Unit selectedUnit, Tile finalDestination, ArrayList<Tile> incomingTiles)
-	{
-		this.selectedUnit = selectedUnit;
-		this.tiles.clear();
-		this.tiles.addAll(incomingTiles);
-
-		// Units only
-
-		Iterator<Tile> tilesIter = this.tiles.iterator();
-		while (tilesIter.hasNext())
-		{
-			Unit unit = tilesIter.next().getUnit();
-			if (unit == null || unit.owner == selectedUnit.owner)
-			{
-				tilesIter.remove();
-			}
-		}
-
-		// Current = Taxicab closest
-		if (grading == null || tiles.size() > grading.length)
-		{
-			grading = new float[tiles.size()];
-		}
-
-		for (int i = 0; i < tiles.size(); i++)
-		{
-			Tile t = tiles.get(i);
-			grading[i] = Math.abs(t.x - finalDestination.x) + Math.abs(t.y - finalDestination.y);
-		}
-
-		int id = -1;
-		for (int i = 0; i < tiles.size(); i++)
-		{
-			if (id == -1 || grading[i] < grading[id])
-			{
-				id = i;
-			}
-		}
-		current = tiles.get(id);
+		hasFocus = true;
 	}
 
 	private void gradeAndFind(boolean vertical, boolean flip)
@@ -130,6 +90,58 @@ public class AttackInputReceiver implements InputReceiver
 			}
 		}
 		current = tiles.get(id);
+
+		focusX = current.x;
+		focusY = current.y;
+	}
+
+	@Override
+	public void reset(Object[] args)
+	{
+		this.selectedUnit = (Unit)args[0];
+		this.tiles.clear();
+		this.tiles.addAll((ArrayList<Tile>)args[1]);
+		this.originalTile = (Tile)args[2];
+
+		// Units only
+
+		Iterator<Tile> tilesIter = this.tiles.iterator();
+		while (tilesIter.hasNext())
+		{
+			Unit unit = tilesIter.next().getUnit();
+			if (unit == null || unit.owner == selectedUnit.owner)
+			{
+				tilesIter.remove();
+			}
+		}
+
+		// Current = Taxicab closest
+		if (grading == null || tiles.size() > grading.length)
+		{
+			grading = new float[tiles.size()];
+		}
+
+		for (int i = 0; i < tiles.size(); i++)
+		{
+			Tile t = tiles.get(i);
+			grading[i] = Math.abs(t.x - selectedUnit.trueTile.x) + Math.abs(t.y - selectedUnit.trueTile.y);
+		}
+
+		int id = -1;
+		for (int i = 0; i < tiles.size(); i++)
+		{
+			if (id == -1 || grading[i] < grading[id])
+			{
+				id = i;
+			}
+		}
+		current = tiles.get(id);
+	}
+
+	@Override
+	void reactivate()
+	{
+
 	}
 
 	@Override
@@ -164,16 +176,15 @@ public class AttackInputReceiver implements InputReceiver
 	public boolean select()
 	{
 		selectedUnit.attack(current.getUnit());
-		selectedUnit.finalInstruction = UnitInstruction.WAIT;
-		inputHandler.receivers.remove(this);
+		selectedUnit.endTurn();
+		super.inputHandler.addState(Cursor.class, false, true);
 		return true;
 	}
 
 	@Override
 	public boolean cancel()
 	{
-		inputHandler.receivers.remove(this);
-		inputHandler.receivers.add(inputHandler.menus.get(0));
+		inputHandler.pop();
 
 		return true;
 	}

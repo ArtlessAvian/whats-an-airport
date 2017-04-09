@@ -1,21 +1,27 @@
 package com.artlessavian.whatsanairport;
 
-public class Textbox implements InputReceiver
+public class Textbox extends InputReceiver
 {
-	private final InputHandler inputHandler;
 	String[][] contents = {{"yoooo", "oooooo!"}, {"wat"}};
 	int thingy;
 	int line;
 
 	Textbox(InputHandler inputHandler)
 	{
-		this.inputHandler = inputHandler;
+		super(inputHandler);
 	}
 
-	public void init()
+	@Override
+	public void reset(Object[] args)
 	{
 		thingy = 0;
 		line = 0;
+	}
+
+	@Override
+	void reactivate()
+	{
+
 	}
 
 	@Override
@@ -49,7 +55,7 @@ public class Textbox implements InputReceiver
 		{
 			if (line + 1 >= contents.length)
 			{
-				inputHandler.receivers.remove(this);
+				inputHandler.pop();
 			}
 			else
 			{

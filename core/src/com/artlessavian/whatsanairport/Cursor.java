@@ -1,126 +1,28 @@
 package com.artlessavian.whatsanairport;
 
-import com.badlogic.gdx.graphics.Color;
-
-import java.util.LinkedList;
-
-public class Cursor implements InputReceiver
+public class Cursor extends InputReceiver
 {
-	private final InputHandler inputHandler;
-	private final Map map;
+	private Map map;
 
 	int x;
 	int y;
-	Unit selectedUnit;
-	int movementCost;
-	final LinkedList<UnitInstruction> instructions;
 
-	int lastTileCursored = 0;
-
-	public Cursor(InputHandler inputHandler, Map map)
+	public Cursor(InputHandler inputHandler)
 	{
-		this.inputHandler = inputHandler;
-		this.map = map;
-		instructions = new LinkedList<UnitInstruction>();
+		super(inputHandler);
+		hasFocus = true;
 	}
 
-	public void rePath(boolean attackMove)
+	@Override
+	public void reset(Object[] args)
 	{
-		instructions.clear();
-
-		Tile current = map.tileMap[y][x];
-		if (attackMove)
-		{
-			current = selectedUnit.getRangeInfo().attackableFrom.get(current);
-		}
-		movementCost = selectedUnit.getRangeInfo().movementCost.get(current);
-		while (!current.equals(selectedUnit.tile))
-		{
-			Tile next = selectedUnit.getRangeInfo().cameFrom.get(current);
-			instructions.addFirst(next.getNeighbor(current));
-			current = next;
-		}
+		map = inputHandler.model.map;
 	}
 
-	public void pushDir(UnitInstruction unitInstr)
+	@Override
+	void reactivate()
 	{
-		if (!instructions.isEmpty() && (instructions.getLast().id + 2) % 4 == unitInstr.id)
-		{
-			instructions.removeLast();
-			movementCost -= map.tileMap[y][x].tileInfo.movementCost;
-		}
-		else
-		{
-			instructions.add(unitInstr);
-			movementCost += map.tileMap[y][x].tileInfo.movementCost;
 
-			if (movementCost > selectedUnit.unitInfo.movement) {rePath(false);}
-		}
-	}
-
-	public void inputtedDir(UnitInstruction unitInstr)
-	{
-		// 0 Movable, 1 Attackable, 2 Non
-		int thisTileCursored = 0;
-
-		if (!selectedUnit.getRangeInfo().movable.contains(map.tileMap[y][x]))
-		{
-			thisTileCursored++;
-			if (!selectedUnit.getRangeInfo().attackable.contains(map.tileMap[y][x]))
-			{
-				thisTileCursored++;
-			}
-		}
-
-		if (!selectedUnit.unitInfo.isDirect && thisTileCursored == 1)
-		{
-			thisTileCursored--;
-		}
-
-		switch (thisTileCursored + lastTileCursored * 3)
-		{
-			case 0:
-			{
-				pushDir(unitInstr);
-				break;
-			} // move to move
-			case 1: {break;} // move to attack
-			case 2:
-			{
-				instructions.clear();
-				movementCost = 0;
-				break;
-			} // move to empty (wont happen)
-			case 3:
-			{
-				rePath(false);
-				break;
-			} // attack to move
-			case 4:
-			{
-				rePath(true);
-				break;
-			} // attack to attack
-			case 5:
-			{
-				instructions.clear();
-				movementCost = 0;
-				break;
-			} // attack to empty
-			case 6:
-			{
-				rePath(false);
-				break;
-			} // empty to move (wont happen)
-			case 7:
-			{
-				rePath(true);
-				break;
-			} // empty to attack
-			case 8: {break;} // empty to empty
-		}
-
-		lastTileCursored = thisTileCursored;
 	}
 
 	@Override
@@ -129,10 +31,7 @@ public class Cursor implements InputReceiver
 		if (y < map.height - 1)
 		{
 			y++;
-			if (selectedUnit != null)
-			{
-				this.inputtedDir(UnitInstruction.UP);
-			}
+			focusY = y + 0.5f;
 		}
 		return true;
 	}
@@ -143,10 +42,7 @@ public class Cursor implements InputReceiver
 		if (y > 0)
 		{
 			y--;
-			if (selectedUnit != null)
-			{
-				this.inputtedDir(UnitInstruction.DOWN);
-			}
+			focusY = y + 0.5f;
 		}
 		return true;
 	}
@@ -157,10 +53,7 @@ public class Cursor implements InputReceiver
 		if (x > 0)
 		{
 			x--;
-			if (selectedUnit != null)
-			{
-				this.inputtedDir(UnitInstruction.LEFT);
-			}
+			focusX = x + 0.5f;
 		}
 		return true;
 	}
@@ -171,10 +64,7 @@ public class Cursor implements InputReceiver
 		if (x < map.width - 1)
 		{
 			x++;
-			if (selectedUnit != null)
-			{
-				this.inputtedDir(UnitInstruction.RIGHT);
-			}
+			focusX = x + 0.5f;
 		}
 		return true;
 	}
@@ -183,69 +73,16 @@ public class Cursor implements InputReceiver
 	public boolean select()
 	{
 		Unit cursored = map.tileMap[y][x].getUnit();
-		if (selectedUnit == null)
+		if (cursored != null)
 		{
-			if (cursored != null)
+			if (cursored.owner == inputHandler.model.turnHandler.turn && !cursored.done)
 			{
-				if (cursored.owner == inputHandler.model.turnHandler.turn && cursored.instructions == null && !cursored.done)
-				{
-					instructions.clear();
-					selectedUnit = cursored;
-
-					lastTileCursored = 0;
-					movementCost = 0;
-
-					cursored.selected = true;
-
-					if (!cursored.getRangeInfo().rangeCalcd) {cursored.calculateMovement();}
-
-					if (selectedUnit.unitInfo.isDirect)
-					{
-						for (Tile t : cursored.getRangeInfo().attackable)
-						{
-							t.highlight.add(Color.RED);
-						}
-					}
-					for (Tile t : cursored.getRangeInfo().movable)
-					{
-						t.highlight.add(Color.BLUE);
-					}
-				}
-			}
-			else
-			{
-				inputHandler.receivers.add(inputHandler.menus.get(1));
-				inputHandler.menus.get(1).init();
+				inputHandler.addState(MoveUnit.class, false, false, cursored, cursored.trueTile);
 			}
 		}
 		else
 		{
-			for (Tile t : selectedUnit.getRangeInfo().attackable)
-			{
-				t.highlight.remove(Color.RED);
-			}
-			for (Tile t : selectedUnit.getRangeInfo().movable)
-			{
-				t.highlight.remove(Color.BLUE);
-			}
-
-			Tile finalDestination = selectedUnit.tile;
-
-			for (UnitInstruction ui : instructions)
-			{
-				// TODO This can crash for some reason
-				// Moving and then canceling out asap causes the instructions to still be carried out
-				// I might have fixed it?
-				finalDestination = finalDestination.neighbors[ui.id];
-			}
-
-			inputHandler.receivers.add(inputHandler.menus.get(0));
-			inputHandler.menus.get(0).init(selectedUnit, finalDestination, selectedUnit.tile);
-
-			selectedUnit.receiveInstructions(instructions, movementCost);
-
-			selectedUnit.selected = false;
-			selectedUnit = null;
+			if (!BattleModel.lol) {inputHandler.addState(DayMenu.class, false, false);}
 		}
 		return true;
 	}
@@ -253,22 +90,14 @@ public class Cursor implements InputReceiver
 	@Override
 	public boolean cancel()
 	{
-		if (selectedUnit != null)
+		Unit cursored = map.tileMap[y][x].getUnit();
+		if (cursored != null)
 		{
-			for (Tile t : selectedUnit.getRangeInfo().attackable)
+			if (cursored.owner != inputHandler.model.turnHandler.turn)
 			{
-				t.highlight.remove(Color.RED);
+				System.out.println("STUB. Danger Zone");
 			}
-			for (Tile t : selectedUnit.getRangeInfo().movable)
-			{
-				t.highlight.remove(Color.BLUE);
-			}
-
-
-			selectedUnit.selected = false;
-			selectedUnit = null;
 		}
-
 		return true;
 	}
 
@@ -276,7 +105,6 @@ public class Cursor implements InputReceiver
 	public boolean touchDown(int screenX, int screenY, float tileX, float tileY)
 	{
 		touchDragged(screenX, screenY, tileX, tileY);
-
 		return true;
 	}
 

@@ -36,6 +36,11 @@ public class RangeInfo
 	void invalidateMovement()
 	{
 		this.rangeCalcd = false;
+	}
+
+	void calculateMovement()
+	{
+		this.invalidateMovement();
 
 		for (Tile t : attackable)
 		{
@@ -45,20 +50,15 @@ public class RangeInfo
 		this.movementCost.clear();
 		this.cameFrom.clear();
 		this.attackableFrom.clear();
-	}
-
-	void calculateMovement()
-	{
-		this.invalidateMovement();
 
 		this.rangeCalcd = true;
 
 		// Dijkstra's for movement
 		ArrayList<Tile> frontier = new ArrayList<Tile>();
 
-		frontier.add(unit.tile);
-		this.movementCost.put(unit.tile, 0);
-		this.cameFrom.put(unit.tile, unit.tile);
+		frontier.add(unit.trueTile);
+		this.movementCost.put(unit.trueTile, 0);
+		this.cameFrom.put(unit.trueTile, unit.trueTile);
 
 		while (!frontier.isEmpty())
 		{
